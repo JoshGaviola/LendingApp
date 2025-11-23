@@ -29,23 +29,36 @@
         private void InitializeComponent()
         {
             this.CustomerLoginLabel = new System.Windows.Forms.Label();
+            this.EnterCredentialsLbl = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // CustomerLoginLabel
             // 
             this.CustomerLoginLabel.AutoSize = true;
-            this.CustomerLoginLabel.ForeColor = System.Drawing.Color.BurlyWood;
-            this.CustomerLoginLabel.Location = new System.Drawing.Point(380, 86);
+            this.CustomerLoginLabel.Font = new System.Drawing.Font("Verdana", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CustomerLoginLabel.ForeColor = System.Drawing.Color.OrangeRed;
+            this.CustomerLoginLabel.Location = new System.Drawing.Point(320, 38);
             this.CustomerLoginLabel.Name = "CustomerLoginLabel";
-            this.CustomerLoginLabel.Size = new System.Drawing.Size(77, 13);
+            this.CustomerLoginLabel.Size = new System.Drawing.Size(252, 32);
             this.CustomerLoginLabel.TabIndex = 1;
-            this.CustomerLoginLabel.Text = "CustomerLogin";
+            this.CustomerLoginLabel.Text = "Customer Login";
+            // 
+            // EnterCredentialsLbl
+            // 
+            this.EnterCredentialsLbl.AutoSize = true;
+            this.EnterCredentialsLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.EnterCredentialsLbl.Location = new System.Drawing.Point(322, 69);
+            this.EnterCredentialsLbl.Name = "EnterCredentialsLbl";
+            this.EnterCredentialsLbl.Size = new System.Drawing.Size(346, 20);
+            this.EnterCredentialsLbl.TabIndex = 2;
+            this.EnterCredentialsLbl.Text = " Enter your credentials to access the dashboard";
             // 
             // CustomerLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(707, 536);
+            this.ClientSize = new System.Drawing.Size(706, 590);
+            this.Controls.Add(this.EnterCredentialsLbl);
             this.Controls.Add(this.CustomerLoginLabel);
             this.Name = "CustomerLogin";
             this.Text = "CustomerLogin";
@@ -59,6 +72,7 @@
 
         #endregion
         private System.Windows.Forms.Label CustomerLoginLabel;
+        private System.Windows.Forms.Label EnterCredentialsLbl;
     }
 }
 

@@ -16,7 +16,7 @@ namespace LendingApp
         {
             InitializeComponent();
             CustomerLoginLabel.ForeColor = ColorTranslator.FromHtml("#2C3E50");
-
+            EnterCredentialsLbl.ForeColor = ColorTranslator.FromHtml("#898484");
         }
 
         bool movePosition;
