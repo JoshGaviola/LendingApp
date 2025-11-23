@@ -72,6 +72,9 @@
     <EmbeddedResource Include="UI\CustomerUI\CustomerLogin.resx">
       <DependentUpon>CustomerLogin.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
+      <DependentUpon>CustomerManagement.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
