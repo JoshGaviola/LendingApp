@@ -46,6 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CustomerUI\CustomerDashBoard.Designer.cs">
+      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\CustomerUI\CustomerLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -63,6 +69,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="UI\CustomerUI\CustomerDashBoard.resx">
+      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerLogin.resx">
       <DependentUpon>CustomerLogin.cs</DependentUpon>
     </EmbeddedResource>
