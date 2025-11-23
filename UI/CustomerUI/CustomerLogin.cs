@@ -18,6 +18,7 @@ namespace LendingApp
             InitializeComponent();
             CustomerLoginLabel.ForeColor = ColorTranslator.FromHtml("#2C3E50");
             EnterCredentialsLbl.ForeColor = ColorTranslator.FromHtml("#898484");
+            SignInBtn.BackColor = ColorTranslator.FromHtml("#3498DB");
         }
 
         bool movePosition;
@@ -56,5 +57,19 @@ namespace LendingApp
                 e.Graphics.FillRectangle(brush, rect);
             }
         }
+
+
+        private void BorderGray(object sender, PaintEventArgs e)
+        {
+            Panel p = sender as Panel;
+
+            ControlPaint.DrawBorder(
+                e.Graphics,
+                p.ClientRectangle,
+                ColorTranslator.FromHtml("#A7A7A7"),
+                ButtonBorderStyle.Solid
+            );
+        }
+
     }
 }
