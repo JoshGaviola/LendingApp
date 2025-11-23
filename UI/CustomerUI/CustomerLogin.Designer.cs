@@ -1,6 +1,6 @@
 ﻿namespace LendingApp
 {
-    partial class Form1
+    partial class CustomerLogin
     {
         /// <summary>
         /// Required designer variable.

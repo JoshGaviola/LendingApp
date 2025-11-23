@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace LendingApp
 {
-    public partial class Form1 : Form
+    public partial class CustomerLogin : Form
     {
-        public Form1()
+        public CustomerLogin()
         {
             InitializeComponent();
         }
