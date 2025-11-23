@@ -110,7 +110,7 @@
             // 
             this.SignInBtn.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.SignInBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SignInBtn.Font = new System.Drawing.Font("Poppins SemiBold", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SignInBtn.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SignInBtn.ForeColor = System.Drawing.SystemColors.ButtonFace;
             this.SignInBtn.Location = new System.Drawing.Point(384, 440);
             this.SignInBtn.Name = "SignInBtn";
