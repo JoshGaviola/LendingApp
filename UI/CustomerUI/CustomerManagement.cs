@@ -21,5 +21,10 @@ namespace LendingApp.UI.CustomerUI
         {
 
         }
+
+        private void lblName_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
