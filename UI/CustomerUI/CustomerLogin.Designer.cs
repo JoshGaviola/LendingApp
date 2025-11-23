@@ -28,13 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.CustomerLoginLabel = new System.Windows.Forms.Label();
+            this.SuspendLayout();
+            // 
+            // CustomerLoginLabel
+            // 
+            this.CustomerLoginLabel.AutoSize = true;
+            this.CustomerLoginLabel.ForeColor = System.Drawing.Color.BurlyWood;
+            this.CustomerLoginLabel.Location = new System.Drawing.Point(380, 86);
+            this.CustomerLoginLabel.Name = "CustomerLoginLabel";
+            this.CustomerLoginLabel.Size = new System.Drawing.Size(77, 13);
+            this.CustomerLoginLabel.TabIndex = 1;
+            this.CustomerLoginLabel.Text = "CustomerLogin";
+            // 
+            // CustomerLogin
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Text = "Form1";
+            this.ClientSize = new System.Drawing.Size(707, 536);
+            this.Controls.Add(this.CustomerLoginLabel);
+            this.Name = "CustomerLogin";
+            this.Text = "CustomerLogin";
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CustomerLogin_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.CustomerLogin_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.CustomerLogin_MouseUp);
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
 
         #endregion
+        private System.Windows.Forms.Label CustomerLoginLabel;
     }
 }
 
