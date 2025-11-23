@@ -26,5 +26,10 @@ namespace LendingApp.UI.CustomerUI
         {
 
         }
+
+        private void btnCustomer1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
