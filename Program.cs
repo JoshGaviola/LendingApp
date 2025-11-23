@@ -17,7 +17,7 @@ namespace LendingApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new CustomerLogin());
+            Application.Run(new LendingApp.UI.CustomerUI.CustomerDashBoard());
         }
     }
 }
