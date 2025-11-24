@@ -47,9 +47,7 @@ namespace LendingApp.UI.CustomerUI{
         }
 
         private void SetLabelsGray(){
-
             foreach (Control control in this.Controls){
-
                 if (control is Panel dashboardPanel && (string)dashboardPanel.Tag == "DashBoardBox"){
 
                     foreach (Control child in dashboardPanel.Controls){
