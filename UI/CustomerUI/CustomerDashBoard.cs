@@ -20,6 +20,8 @@ namespace LendingApp.UI.CustomerUI{
             panel4.BackColor = ColorTranslator.FromHtml("#3498DB");
             panel5.BackColor = ColorTranslator.FromHtml("#34DB3A");
             panel6.BackColor = ColorTranslator.FromHtml("#FFC300");
+            RecentPayments.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            QuickActions.ForeColor = ColorTranslator.FromHtml("#2C3E50");
 
         }
 
