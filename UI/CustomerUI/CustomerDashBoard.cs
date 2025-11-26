@@ -15,6 +15,7 @@ namespace LendingApp.UI.CustomerUI{
 
             InitializeComponent();
             SetLabelsGray();
+            formControls();
             label1.ForeColor = ColorTranslator.FromHtml("#838383");
             panel4.BackColor = ColorTranslator.FromHtml("#3498DB");
             panel5.BackColor = ColorTranslator.FromHtml("#34DB3A");
@@ -22,6 +23,12 @@ namespace LendingApp.UI.CustomerUI{
 
         }
 
+        private void formControls()
+        {
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.MaximizeBox = false;
+        }
         private void CustDashHeaderPanel_Paint(object sender, PaintEventArgs e){
 
             Rectangle rect = CustDashHeaderPanel.ClientRectangle;
@@ -60,6 +67,5 @@ namespace LendingApp.UI.CustomerUI{
                 }
             }
         }
-
     }
 }
