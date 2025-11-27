@@ -16,12 +16,19 @@ namespace LendingApp.UI.CustomerUI{
             InitializeComponent();
             SetLabelsGray();
             formControls();
+            this.BackColor = ColorTranslator.FromHtml("#F0F2F5");
             label1.ForeColor = ColorTranslator.FromHtml("#838383");
             panel4.BackColor = ColorTranslator.FromHtml("#3498DB");
             panel5.BackColor = ColorTranslator.FromHtml("#34DB3A");
             panel6.BackColor = ColorTranslator.FromHtml("#FFC300");
             RecentPayments.ForeColor = ColorTranslator.FromHtml("#2C3E50");
             QuickActions.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            LoandID.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            LoanStatus.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            LoanType.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            Amount.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            Term.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            Status.ForeColor = ColorTranslator.FromHtml("#2C3E50");
 
         }
 
@@ -60,7 +67,7 @@ namespace LendingApp.UI.CustomerUI{
 
             using (Pen pen = new Pen(ColorTranslator.FromHtml("#B8B0B0"), 1))
             {
-                e.Graphics.DrawLine(pen, 0, panel12.Height / 2, panel12.Width, panel12.Height / 2);
+                e.Graphics.DrawLine(pen, 0, panel12.Height / 2, this.Width, panel12.Height / 2);
             }
         }
 
