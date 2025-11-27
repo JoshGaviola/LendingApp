@@ -55,6 +55,15 @@ namespace LendingApp.UI.CustomerUI{
             );
         }
 
+        private void GrayLine(object sender, PaintEventArgs e)
+        {
+
+            using (Pen pen = new Pen(ColorTranslator.FromHtml("#B8B0B0"), 1))
+            {
+                e.Graphics.DrawLine(pen, 0, panel12.Height / 2, panel12.Width, panel12.Height / 2);
+            }
+        }
+
         private void SetLabelsGray(){
             foreach (Control control in this.Controls){
                 if (control is Panel dashboardPanel && (string)dashboardPanel.Tag == "DashBoardBox"){
@@ -68,6 +77,8 @@ namespace LendingApp.UI.CustomerUI{
                     }
                 }
             }
+
+
         }
     }
 }
