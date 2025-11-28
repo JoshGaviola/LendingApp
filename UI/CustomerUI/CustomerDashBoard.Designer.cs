@@ -47,53 +47,53 @@
             this.label4 = new System.Windows.Forms.Label();
             this.panel6 = new System.Windows.Forms.Panel();
             this.panel7 = new System.Windows.Forms.Panel();
-            this.RecentPayments = new System.Windows.Forms.Label();
-            this.panel8 = new System.Windows.Forms.Panel();
-            this.QuickActions = new System.Windows.Forms.Label();
-            this.panel9 = new System.Windows.Forms.Panel();
-            this.panel10 = new System.Windows.Forms.Panel();
-            this.panel12 = new System.Windows.Forms.Panel();
-            this.label12 = new System.Windows.Forms.Label();
-            this.panel11 = new System.Windows.Forms.Panel();
-            this.label13 = new System.Windows.Forms.Label();
-            this.panel13 = new System.Windows.Forms.Panel();
-            this.label14 = new System.Windows.Forms.Label();
-            this.panel14 = new System.Windows.Forms.Panel();
-            this.label15 = new System.Windows.Forms.Label();
-            this.label16 = new System.Windows.Forms.Label();
             this.label17 = new System.Windows.Forms.Label();
-            this.LoanStatus = new System.Windows.Forms.Label();
-            this.panel15 = new System.Windows.Forms.Panel();
-            this.LoandID = new System.Windows.Forms.Label();
-            this.LoanType = new System.Windows.Forms.Label();
-            this.Amount = new System.Windows.Forms.Label();
-            this.Term = new System.Windows.Forms.Label();
-            this.Status = new System.Windows.Forms.Label();
-            this.panel16 = new System.Windows.Forms.Panel();
-            this.panel17 = new System.Windows.Forms.Panel();
-            this.panel18 = new System.Windows.Forms.Panel();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
-            this.label19 = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.label21 = new System.Windows.Forms.Label();
-            this.label22 = new System.Windows.Forms.Label();
-            this.label23 = new System.Windows.Forms.Label();
-            this.label24 = new System.Windows.Forms.Label();
-            this.label25 = new System.Windows.Forms.Label();
-            this.label26 = new System.Windows.Forms.Label();
-            this.label27 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label15 = new System.Windows.Forms.Label();
+            this.panel14 = new System.Windows.Forms.Panel();
+            this.label14 = new System.Windows.Forms.Label();
+            this.panel13 = new System.Windows.Forms.Panel();
+            this.label13 = new System.Windows.Forms.Label();
+            this.panel11 = new System.Windows.Forms.Panel();
+            this.label12 = new System.Windows.Forms.Label();
+            this.panel12 = new System.Windows.Forms.Panel();
+            this.RecentPayments = new System.Windows.Forms.Label();
+            this.panel9 = new System.Windows.Forms.Panel();
             this.label28 = new System.Windows.Forms.Label();
+            this.label27 = new System.Windows.Forms.Label();
+            this.label26 = new System.Windows.Forms.Label();
+            this.label25 = new System.Windows.Forms.Label();
+            this.label24 = new System.Windows.Forms.Label();
+            this.label23 = new System.Windows.Forms.Label();
+            this.label22 = new System.Windows.Forms.Label();
+            this.label21 = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.panel18 = new System.Windows.Forms.Panel();
+            this.panel17 = new System.Windows.Forms.Panel();
+            this.panel16 = new System.Windows.Forms.Panel();
+            this.Status = new System.Windows.Forms.Label();
+            this.Term = new System.Windows.Forms.Label();
+            this.Amount = new System.Windows.Forms.Label();
+            this.LoanType = new System.Windows.Forms.Label();
+            this.LoandID = new System.Windows.Forms.Label();
+            this.panel15 = new System.Windows.Forms.Panel();
+            this.LoanStatus = new System.Windows.Forms.Label();
+            this.panel10 = new System.Windows.Forms.Panel();
+            this.QuickActions = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.panel8 = new System.Windows.Forms.Panel();
             this.CustDashHeaderPanel.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel7.SuspendLayout();
-            this.panel8.SuspendLayout();
             this.panel9.SuspendLayout();
+            this.panel8.SuspendLayout();
             this.SuspendLayout();
             // 
             // CustDashHeaderPanel
@@ -137,10 +137,10 @@
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.panel4);
-            this.panel1.Location = new System.Drawing.Point(321, 133);
+            this.panel1.Location = new System.Drawing.Point(299, 133);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(372, 131);
+            this.panel1.Size = new System.Drawing.Size(387, 131);
             this.panel1.TabIndex = 1;
             this.panel1.Tag = "DashBoardBox";
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
@@ -184,7 +184,7 @@
             // 
             this.panel4.Location = new System.Drawing.Point(0, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(372, 10);
+            this.panel4.Size = new System.Drawing.Size(387, 10);
             this.panel4.TabIndex = 0;
             // 
             // panel2
@@ -193,7 +193,7 @@
             this.panel2.Controls.Add(this.label6);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.panel5);
-            this.panel2.Location = new System.Drawing.Point(716, 133);
+            this.panel2.Location = new System.Drawing.Point(714, 133);
             this.panel2.Margin = new System.Windows.Forms.Padding(4);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(363, 131);
@@ -312,11 +312,115 @@
             this.panel7.Controls.Add(this.label12);
             this.panel7.Controls.Add(this.panel12);
             this.panel7.Controls.Add(this.RecentPayments);
-            this.panel7.Location = new System.Drawing.Point(321, 293);
+            this.panel7.Location = new System.Drawing.Point(299, 293);
             this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(678, 223);
+            this.panel7.Size = new System.Drawing.Size(700, 223);
             this.panel7.TabIndex = 4;
             this.panel7.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label17.ForeColor = System.Drawing.Color.Black;
+            this.label17.Location = new System.Drawing.Point(606, 157);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(58, 18);
+            this.label17.TabIndex = 8;
+            this.label17.Text = "$0.00";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label16.ForeColor = System.Drawing.Color.Black;
+            this.label16.Location = new System.Drawing.Point(606, 113);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(58, 18);
+            this.label16.TabIndex = 7;
+            this.label16.Text = "$0.00";
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label15.ForeColor = System.Drawing.Color.Black;
+            this.label15.Location = new System.Drawing.Point(606, 69);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(58, 18);
+            this.label15.TabIndex = 4;
+            this.label15.Text = "$0.00";
+            // 
+            // panel14
+            // 
+            this.panel14.Location = new System.Drawing.Point(17, 185);
+            this.panel14.Name = "panel14";
+            this.panel14.Size = new System.Drawing.Size(572, 10);
+            this.panel14.TabIndex = 6;
+            this.panel14.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.BackColor = System.Drawing.Color.Transparent;
+            this.label14.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.ForeColor = System.Drawing.Color.Black;
+            this.label14.Location = new System.Drawing.Point(13, 154);
+            this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(157, 28);
+            this.label14.TabIndex = 6;
+            this.label14.Text = "Payment received";
+            // 
+            // panel13
+            // 
+            this.panel13.Location = new System.Drawing.Point(17, 141);
+            this.panel13.Name = "panel13";
+            this.panel13.Size = new System.Drawing.Size(572, 10);
+            this.panel13.TabIndex = 5;
+            this.panel13.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.BackColor = System.Drawing.Color.Transparent;
+            this.label13.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.ForeColor = System.Drawing.Color.Black;
+            this.label13.Location = new System.Drawing.Point(13, 110);
+            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(229, 28);
+            this.label13.TabIndex = 5;
+            this.label13.Text = "Laon Application approved";
+            // 
+            // panel11
+            // 
+            this.panel11.Location = new System.Drawing.Point(17, 97);
+            this.panel11.Name = "panel11";
+            this.panel11.Size = new System.Drawing.Size(572, 10);
+            this.panel11.TabIndex = 4;
+            this.panel11.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.BackColor = System.Drawing.Color.Transparent;
+            this.label12.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.ForeColor = System.Drawing.Color.Black;
+            this.label12.Location = new System.Drawing.Point(13, 66);
+            this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(271, 28);
+            this.label12.TabIndex = 4;
+            this.label12.Text = "New Laon Application Submitted";
+            // 
+            // panel12
+            // 
+            this.panel12.Location = new System.Drawing.Point(3, 41);
+            this.panel12.Name = "panel12";
+            this.panel12.Size = new System.Drawing.Size(672, 10);
+            this.panel12.TabIndex = 3;
+            this.panel12.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
             // 
             // RecentPayments
             // 
@@ -330,31 +434,6 @@
             this.RecentPayments.Size = new System.Drawing.Size(151, 28);
             this.RecentPayments.TabIndex = 2;
             this.RecentPayments.Text = "Recent Payments";
-            // 
-            // panel8
-            // 
-            this.panel8.Controls.Add(this.button4);
-            this.panel8.Controls.Add(this.button3);
-            this.panel8.Controls.Add(this.button2);
-            this.panel8.Controls.Add(this.QuickActions);
-            this.panel8.Location = new System.Drawing.Point(1035, 283);
-            this.panel8.Name = "panel8";
-            this.panel8.Size = new System.Drawing.Size(383, 233);
-            this.panel8.TabIndex = 5;
-            this.panel8.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
-            // 
-            // QuickActions
-            // 
-            this.QuickActions.AutoSize = true;
-            this.QuickActions.BackColor = System.Drawing.Color.Transparent;
-            this.QuickActions.Font = new System.Drawing.Font("Poppins", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.QuickActions.ForeColor = System.Drawing.Color.Black;
-            this.QuickActions.Location = new System.Drawing.Point(17, 17);
-            this.QuickActions.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.QuickActions.Name = "QuickActions";
-            this.QuickActions.Size = new System.Drawing.Size(145, 34);
-            this.QuickActions.TabIndex = 8;
-            this.QuickActions.Text = "Quick Actions";
             // 
             // panel9
             // 
@@ -380,156 +459,206 @@
             this.panel9.Controls.Add(this.LoandID);
             this.panel9.Controls.Add(this.panel15);
             this.panel9.Controls.Add(this.LoanStatus);
-            this.panel9.Location = new System.Drawing.Point(321, 541);
+            this.panel9.Location = new System.Drawing.Point(299, 541);
             this.panel9.Name = "panel9";
-            this.panel9.Size = new System.Drawing.Size(975, 292);
+            this.panel9.Size = new System.Drawing.Size(1118, 292);
             this.panel9.TabIndex = 6;
             this.panel9.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
             // 
-            // panel10
+            // label28
             // 
-            this.panel10.Location = new System.Drawing.Point(-2, 92);
-            this.panel10.Name = "panel10";
-            this.panel10.Size = new System.Drawing.Size(258, 762);
-            this.panel10.TabIndex = 7;
+            this.label28.AutoSize = true;
+            this.label28.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label28.ForeColor = System.Drawing.Color.Black;
+            this.label28.Location = new System.Drawing.Point(768, 241);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(90, 26);
+            this.label28.TabIndex = 23;
+            this.label28.Text = "24 Months";
             // 
-            // panel12
+            // label27
             // 
-            this.panel12.Location = new System.Drawing.Point(3, 41);
-            this.panel12.Name = "panel12";
-            this.panel12.Size = new System.Drawing.Size(672, 10);
-            this.panel12.TabIndex = 3;
-            this.panel12.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.label27.AutoSize = true;
+            this.label27.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label27.ForeColor = System.Drawing.Color.Black;
+            this.label27.Location = new System.Drawing.Point(768, 181);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(90, 26);
+            this.label27.TabIndex = 23;
+            this.label27.Text = "24 Months";
             // 
-            // label12
+            // label26
             // 
-            this.label12.AutoSize = true;
-            this.label12.BackColor = System.Drawing.Color.Transparent;
-            this.label12.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label12.ForeColor = System.Drawing.Color.Black;
-            this.label12.Location = new System.Drawing.Point(13, 66);
-            this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(271, 28);
-            this.label12.TabIndex = 4;
-            this.label12.Text = "New Laon Application Submitted";
+            this.label26.AutoSize = true;
+            this.label26.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label26.ForeColor = System.Drawing.Color.Black;
+            this.label26.Location = new System.Drawing.Point(768, 120);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(90, 26);
+            this.label26.TabIndex = 22;
+            this.label26.Text = "24 Months";
             // 
-            // panel11
+            // label25
             // 
-            this.panel11.Location = new System.Drawing.Point(17, 97);
-            this.panel11.Name = "panel11";
-            this.panel11.Size = new System.Drawing.Size(572, 10);
-            this.panel11.TabIndex = 4;
-            this.panel11.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.label25.AutoSize = true;
+            this.label25.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label25.ForeColor = System.Drawing.Color.Black;
+            this.label25.Location = new System.Drawing.Point(682, 241);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(51, 26);
+            this.label25.TabIndex = 21;
+            this.label25.Text = "$0.00";
             // 
-            // label13
+            // label24
             // 
-            this.label13.AutoSize = true;
-            this.label13.BackColor = System.Drawing.Color.Transparent;
-            this.label13.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label13.ForeColor = System.Drawing.Color.Black;
-            this.label13.Location = new System.Drawing.Point(13, 110);
-            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(229, 28);
-            this.label13.TabIndex = 5;
-            this.label13.Text = "Laon Application approved";
+            this.label24.AutoSize = true;
+            this.label24.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label24.ForeColor = System.Drawing.Color.Black;
+            this.label24.Location = new System.Drawing.Point(682, 181);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(51, 26);
+            this.label24.TabIndex = 20;
+            this.label24.Text = "$0.00";
             // 
-            // panel13
+            // label23
             // 
-            this.panel13.Location = new System.Drawing.Point(17, 141);
-            this.panel13.Name = "panel13";
-            this.panel13.Size = new System.Drawing.Size(572, 10);
-            this.panel13.TabIndex = 5;
-            this.panel13.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.label23.AutoSize = true;
+            this.label23.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label23.ForeColor = System.Drawing.Color.Black;
+            this.label23.Location = new System.Drawing.Point(682, 120);
+            this.label23.Name = "label23";
+            this.label23.Size = new System.Drawing.Size(51, 26);
+            this.label23.TabIndex = 19;
+            this.label23.Text = "$0.00";
             // 
-            // label14
+            // label22
             // 
-            this.label14.AutoSize = true;
-            this.label14.BackColor = System.Drawing.Color.Transparent;
-            this.label14.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label14.ForeColor = System.Drawing.Color.Black;
-            this.label14.Location = new System.Drawing.Point(13, 154);
-            this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(157, 28);
-            this.label14.TabIndex = 6;
-            this.label14.Text = "Payment received";
+            this.label22.AutoSize = true;
+            this.label22.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label22.ForeColor = System.Drawing.Color.Black;
+            this.label22.Location = new System.Drawing.Point(229, 243);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(118, 26);
+            this.label22.TabIndex = 18;
+            this.label22.Text = "Personal Loan";
             // 
-            // panel14
+            // label21
             // 
-            this.panel14.Location = new System.Drawing.Point(17, 185);
-            this.panel14.Name = "panel14";
-            this.panel14.Size = new System.Drawing.Size(572, 10);
-            this.panel14.TabIndex = 6;
-            this.panel14.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.label21.AutoSize = true;
+            this.label21.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label21.ForeColor = System.Drawing.Color.Black;
+            this.label21.Location = new System.Drawing.Point(229, 181);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(118, 26);
+            this.label21.TabIndex = 18;
+            this.label21.Text = "Personal Loan";
             // 
-            // label15
+            // label20
             // 
-            this.label15.AutoSize = true;
-            this.label15.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label15.ForeColor = System.Drawing.Color.Black;
-            this.label15.Location = new System.Drawing.Point(606, 69);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(58, 18);
-            this.label15.TabIndex = 4;
-            this.label15.Text = "$0.00";
+            this.label20.AutoSize = true;
+            this.label20.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label20.ForeColor = System.Drawing.Color.Black;
+            this.label20.Location = new System.Drawing.Point(229, 120);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(118, 26);
+            this.label20.TabIndex = 17;
+            this.label20.Text = "Personal Loan";
             // 
-            // label16
+            // label19
             // 
-            this.label16.AutoSize = true;
-            this.label16.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label16.ForeColor = System.Drawing.Color.Black;
-            this.label16.Location = new System.Drawing.Point(606, 113);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(58, 18);
-            this.label16.TabIndex = 7;
-            this.label16.Text = "$0.00";
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label19.ForeColor = System.Drawing.Color.Black;
+            this.label19.Location = new System.Drawing.Point(26, 243);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(121, 18);
+            this.label19.TabIndex = 16;
+            this.label19.Text = "LN-2024-001";
             // 
-            // label17
+            // label18
             // 
-            this.label17.AutoSize = true;
-            this.label17.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label17.ForeColor = System.Drawing.Color.Black;
-            this.label17.Location = new System.Drawing.Point(606, 157);
-            this.label17.Name = "label17";
-            this.label17.Size = new System.Drawing.Size(58, 18);
-            this.label17.TabIndex = 8;
-            this.label17.Text = "$0.00";
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label18.ForeColor = System.Drawing.Color.Black;
+            this.label18.Location = new System.Drawing.Point(26, 183);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(121, 18);
+            this.label18.TabIndex = 15;
+            this.label18.Text = "LN-2024-001";
             // 
-            // LoanStatus
+            // label11
             // 
-            this.LoanStatus.AutoSize = true;
-            this.LoanStatus.BackColor = System.Drawing.Color.Transparent;
-            this.LoanStatus.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LoanStatus.ForeColor = System.Drawing.Color.Black;
-            this.LoanStatus.Location = new System.Drawing.Point(13, 6);
-            this.LoanStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.LoanStatus.Name = "LoanStatus";
-            this.LoanStatus.Size = new System.Drawing.Size(182, 28);
-            this.LoanStatus.TabIndex = 9;
-            this.LoanStatus.Text = "Loan Status Overview";
+            this.label11.AutoSize = true;
+            this.label11.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label11.ForeColor = System.Drawing.Color.Black;
+            this.label11.Location = new System.Drawing.Point(26, 122);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(121, 18);
+            this.label11.TabIndex = 9;
+            this.label11.Text = "LN-2024-001";
             // 
-            // panel15
+            // panel18
             // 
-            this.panel15.Location = new System.Drawing.Point(3, 37);
-            this.panel15.Name = "panel15";
-            this.panel15.Size = new System.Drawing.Size(969, 10);
-            this.panel15.TabIndex = 5;
-            this.panel15.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.panel18.Location = new System.Drawing.Point(29, 216);
+            this.panel18.Name = "panel18";
+            this.panel18.Size = new System.Drawing.Size(1036, 10);
+            this.panel18.TabIndex = 4;
+            this.panel18.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
             // 
-            // LoandID
+            // panel17
             // 
-            this.LoandID.AutoSize = true;
-            this.LoandID.BackColor = System.Drawing.Color.Transparent;
-            this.LoandID.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LoandID.ForeColor = System.Drawing.Color.Black;
-            this.LoandID.Location = new System.Drawing.Point(24, 68);
-            this.LoandID.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.LoandID.Name = "LoandID";
-            this.LoandID.Size = new System.Drawing.Size(69, 28);
-            this.LoandID.TabIndex = 10;
-            this.LoandID.Text = "Loan ID";
+            this.panel17.Location = new System.Drawing.Point(29, 155);
+            this.panel17.Name = "panel17";
+            this.panel17.Size = new System.Drawing.Size(1036, 10);
+            this.panel17.TabIndex = 4;
+            this.panel17.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            // 
+            // panel16
+            // 
+            this.panel16.Location = new System.Drawing.Point(29, 97);
+            this.panel16.Name = "panel16";
+            this.panel16.Size = new System.Drawing.Size(1037, 10);
+            this.panel16.TabIndex = 4;
+            this.panel16.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            // 
+            // Status
+            // 
+            this.Status.AutoSize = true;
+            this.Status.BackColor = System.Drawing.Color.Transparent;
+            this.Status.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Status.ForeColor = System.Drawing.Color.Black;
+            this.Status.Location = new System.Drawing.Point(871, 68);
+            this.Status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.Status.Name = "Status";
+            this.Status.Size = new System.Drawing.Size(62, 28);
+            this.Status.TabIndex = 14;
+            this.Status.Text = "Status";
+            // 
+            // Term
+            // 
+            this.Term.AutoSize = true;
+            this.Term.BackColor = System.Drawing.Color.Transparent;
+            this.Term.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Term.ForeColor = System.Drawing.Color.Black;
+            this.Term.Location = new System.Drawing.Point(779, 68);
+            this.Term.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.Term.Name = "Term";
+            this.Term.Size = new System.Drawing.Size(53, 28);
+            this.Term.TabIndex = 13;
+            this.Term.Text = "Term";
+            // 
+            // Amount
+            // 
+            this.Amount.AutoSize = true;
+            this.Amount.BackColor = System.Drawing.Color.Transparent;
+            this.Amount.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Amount.ForeColor = System.Drawing.Color.Black;
+            this.Amount.Location = new System.Drawing.Point(669, 68);
+            this.Amount.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.Amount.Name = "Amount";
+            this.Amount.Size = new System.Drawing.Size(75, 28);
+            this.Amount.TabIndex = 12;
+            this.Amount.Text = "Amount";
             // 
             // LoanType
             // 
@@ -544,200 +673,59 @@
             this.LoanType.TabIndex = 11;
             this.LoanType.Text = "Loan Type";
             // 
-            // Amount
+            // LoandID
             // 
-            this.Amount.AutoSize = true;
-            this.Amount.BackColor = System.Drawing.Color.Transparent;
-            this.Amount.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Amount.ForeColor = System.Drawing.Color.Black;
-            this.Amount.Location = new System.Drawing.Point(505, 68);
-            this.Amount.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.Amount.Name = "Amount";
-            this.Amount.Size = new System.Drawing.Size(75, 28);
-            this.Amount.TabIndex = 12;
-            this.Amount.Text = "Amount";
+            this.LoandID.AutoSize = true;
+            this.LoandID.BackColor = System.Drawing.Color.Transparent;
+            this.LoandID.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoandID.ForeColor = System.Drawing.Color.Black;
+            this.LoandID.Location = new System.Drawing.Point(24, 68);
+            this.LoandID.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.LoandID.Name = "LoandID";
+            this.LoandID.Size = new System.Drawing.Size(69, 28);
+            this.LoandID.TabIndex = 10;
+            this.LoandID.Text = "Loan ID";
             // 
-            // Term
+            // panel15
             // 
-            this.Term.AutoSize = true;
-            this.Term.BackColor = System.Drawing.Color.Transparent;
-            this.Term.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Term.ForeColor = System.Drawing.Color.Black;
-            this.Term.Location = new System.Drawing.Point(634, 68);
-            this.Term.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.Term.Name = "Term";
-            this.Term.Size = new System.Drawing.Size(53, 28);
-            this.Term.TabIndex = 13;
-            this.Term.Text = "Term";
+            this.panel15.Location = new System.Drawing.Point(3, 37);
+            this.panel15.Name = "panel15";
+            this.panel15.Size = new System.Drawing.Size(1090, 10);
+            this.panel15.TabIndex = 5;
+            this.panel15.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
             // 
-            // Status
+            // LoanStatus
             // 
-            this.Status.AutoSize = true;
-            this.Status.BackColor = System.Drawing.Color.Transparent;
-            this.Status.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Status.ForeColor = System.Drawing.Color.Black;
-            this.Status.Location = new System.Drawing.Point(733, 68);
-            this.Status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.Status.Name = "Status";
-            this.Status.Size = new System.Drawing.Size(62, 28);
-            this.Status.TabIndex = 14;
-            this.Status.Text = "Status";
+            this.LoanStatus.AutoSize = true;
+            this.LoanStatus.BackColor = System.Drawing.Color.Transparent;
+            this.LoanStatus.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoanStatus.ForeColor = System.Drawing.Color.Black;
+            this.LoanStatus.Location = new System.Drawing.Point(13, 6);
+            this.LoanStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.LoanStatus.Name = "LoanStatus";
+            this.LoanStatus.Size = new System.Drawing.Size(182, 28);
+            this.LoanStatus.TabIndex = 9;
+            this.LoanStatus.Text = "Loan Status Overview";
             // 
-            // panel16
+            // panel10
             // 
-            this.panel16.Location = new System.Drawing.Point(29, 97);
-            this.panel16.Name = "panel16";
-            this.panel16.Size = new System.Drawing.Size(907, 10);
-            this.panel16.TabIndex = 4;
-            this.panel16.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
+            this.panel10.Location = new System.Drawing.Point(-2, 92);
+            this.panel10.Name = "panel10";
+            this.panel10.Size = new System.Drawing.Size(258, 762);
+            this.panel10.TabIndex = 7;
             // 
-            // panel17
+            // QuickActions
             // 
-            this.panel17.Location = new System.Drawing.Point(29, 155);
-            this.panel17.Name = "panel17";
-            this.panel17.Size = new System.Drawing.Size(907, 10);
-            this.panel17.TabIndex = 4;
-            this.panel17.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
-            // 
-            // panel18
-            // 
-            this.panel18.Location = new System.Drawing.Point(29, 216);
-            this.panel18.Name = "panel18";
-            this.panel18.Size = new System.Drawing.Size(907, 10);
-            this.panel18.TabIndex = 4;
-            this.panel18.Paint += new System.Windows.Forms.PaintEventHandler(this.GrayLine);
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.ForeColor = System.Drawing.Color.Black;
-            this.label11.Location = new System.Drawing.Point(26, 122);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(121, 18);
-            this.label11.TabIndex = 9;
-            this.label11.Text = "LN-2024-001";
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.ForeColor = System.Drawing.Color.Black;
-            this.label18.Location = new System.Drawing.Point(26, 183);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(121, 18);
-            this.label18.TabIndex = 15;
-            this.label18.Text = "LN-2024-001";
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("Verdana", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.ForeColor = System.Drawing.Color.Black;
-            this.label19.Location = new System.Drawing.Point(26, 243);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(121, 18);
-            this.label19.TabIndex = 16;
-            this.label19.Text = "LN-2024-001";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label20.ForeColor = System.Drawing.Color.Black;
-            this.label20.Location = new System.Drawing.Point(229, 120);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(118, 26);
-            this.label20.TabIndex = 17;
-            this.label20.Text = "Personal Loan";
-            // 
-            // label21
-            // 
-            this.label21.AutoSize = true;
-            this.label21.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label21.ForeColor = System.Drawing.Color.Black;
-            this.label21.Location = new System.Drawing.Point(229, 181);
-            this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(118, 26);
-            this.label21.TabIndex = 18;
-            this.label21.Text = "Personal Loan";
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label22.ForeColor = System.Drawing.Color.Black;
-            this.label22.Location = new System.Drawing.Point(229, 243);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(118, 26);
-            this.label22.TabIndex = 18;
-            this.label22.Text = "Personal Loan";
-            // 
-            // label23
-            // 
-            this.label23.AutoSize = true;
-            this.label23.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label23.ForeColor = System.Drawing.Color.Black;
-            this.label23.Location = new System.Drawing.Point(518, 120);
-            this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(51, 26);
-            this.label23.TabIndex = 19;
-            this.label23.Text = "$0.00";
-            // 
-            // label24
-            // 
-            this.label24.AutoSize = true;
-            this.label24.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label24.ForeColor = System.Drawing.Color.Black;
-            this.label24.Location = new System.Drawing.Point(518, 181);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(51, 26);
-            this.label24.TabIndex = 20;
-            this.label24.Text = "$0.00";
-            // 
-            // label25
-            // 
-            this.label25.AutoSize = true;
-            this.label25.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label25.ForeColor = System.Drawing.Color.Black;
-            this.label25.Location = new System.Drawing.Point(518, 243);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(51, 26);
-            this.label25.TabIndex = 21;
-            this.label25.Text = "$0.00";
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label26.ForeColor = System.Drawing.Color.Black;
-            this.label26.Location = new System.Drawing.Point(615, 120);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(90, 26);
-            this.label26.TabIndex = 22;
-            this.label26.Text = "24 Months";
-            // 
-            // label27
-            // 
-            this.label27.AutoSize = true;
-            this.label27.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label27.ForeColor = System.Drawing.Color.Black;
-            this.label27.Location = new System.Drawing.Point(615, 181);
-            this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(90, 26);
-            this.label27.TabIndex = 23;
-            this.label27.Text = "24 Months";
-            // 
-            // label28
-            // 
-            this.label28.AutoSize = true;
-            this.label28.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label28.ForeColor = System.Drawing.Color.Black;
-            this.label28.Location = new System.Drawing.Point(615, 241);
-            this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(90, 26);
-            this.label28.TabIndex = 23;
-            this.label28.Text = "24 Months";
+            this.QuickActions.AutoSize = true;
+            this.QuickActions.BackColor = System.Drawing.Color.Transparent;
+            this.QuickActions.Font = new System.Drawing.Font("Poppins", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.QuickActions.ForeColor = System.Drawing.Color.Black;
+            this.QuickActions.Location = new System.Drawing.Point(17, 17);
+            this.QuickActions.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.QuickActions.Name = "QuickActions";
+            this.QuickActions.Size = new System.Drawing.Size(145, 34);
+            this.QuickActions.TabIndex = 8;
+            this.QuickActions.Text = "Quick Actions";
             // 
             // button2
             // 
@@ -766,11 +754,23 @@
             this.button4.Text = "button4";
             this.button4.UseVisualStyleBackColor = true;
             // 
+            // panel8
+            // 
+            this.panel8.Controls.Add(this.button4);
+            this.panel8.Controls.Add(this.button3);
+            this.panel8.Controls.Add(this.button2);
+            this.panel8.Controls.Add(this.QuickActions);
+            this.panel8.Location = new System.Drawing.Point(1017, 293);
+            this.panel8.Name = "panel8";
+            this.panel8.Size = new System.Drawing.Size(400, 223);
+            this.panel8.TabIndex = 5;
+            this.panel8.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
+            // 
             // CustomerDashBoard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 19F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1532, 855);
+            this.ClientSize = new System.Drawing.Size(1508, 855);
             this.Controls.Add(this.panel10);
             this.Controls.Add(this.panel9);
             this.Controls.Add(this.panel8);
@@ -794,10 +794,10 @@
             this.panel3.PerformLayout();
             this.panel7.ResumeLayout(false);
             this.panel7.PerformLayout();
-            this.panel8.ResumeLayout(false);
-            this.panel8.PerformLayout();
             this.panel9.ResumeLayout(false);
             this.panel9.PerformLayout();
+            this.panel8.ResumeLayout(false);
+            this.panel8.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -817,7 +817,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Panel panel7;
-        private System.Windows.Forms.Panel panel8;
         private System.Windows.Forms.Panel panel9;
         private System.Windows.Forms.Panel panel10;
         private System.Windows.Forms.Label label5;
@@ -827,7 +826,6 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label RecentPayments;
-        private System.Windows.Forms.Label QuickActions;
         private System.Windows.Forms.Panel panel12;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Panel panel14;
@@ -860,8 +858,10 @@
         private System.Windows.Forms.Label label28;
         private System.Windows.Forms.Label label27;
         private System.Windows.Forms.Label label26;
-        private System.Windows.Forms.Button button4;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Label QuickActions;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Panel panel8;
     }
 }
