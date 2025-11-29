@@ -28,10 +28,10 @@ namespace LendingApp.Models
             // Implementation for user logout
         }
 
-        public void ChangePassword(string newPasswordHash)
+        public void ChangePassword(string NewPasswordHash)
         {
             // Implementation for changing password
-             PasswordHash = newPasswordHash;
+             PasswordHash = NewPasswordHash;
         }
 
     }

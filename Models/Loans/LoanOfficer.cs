@@ -8,7 +8,7 @@ namespace LendingApp.Models
 {
     public class LoanOfficer : User
     {
-        private decimal approvalLimit;
+        private decimal approvalLimit {  get; set; }
 
 
         public bool ProcessApplication()
