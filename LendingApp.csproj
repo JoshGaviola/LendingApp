@@ -49,7 +49,8 @@
     <Compile Include="Models\Admin.cs" />
     <Compile Include="Models\Borrower.cs" />
     <Compile Include="Models\Cashier.cs" />
-    <Compile Include="Models\LoanOfficer.cs" />
+    <Compile Include="Models\Loans\LoanApplication.cs" />
+    <Compile Include="Models\Loans\LoanOfficer.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
       <SubType>Form</SubType>
