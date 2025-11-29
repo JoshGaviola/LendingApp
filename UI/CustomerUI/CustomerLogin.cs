@@ -71,6 +71,9 @@ namespace LendingApp
             );
         }
 
-     
+        private void lblRegister_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

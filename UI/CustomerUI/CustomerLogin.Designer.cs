@@ -37,6 +37,7 @@
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.txtboxUserName = new System.Windows.Forms.TextBox();
             this.txtboxPassword = new System.Windows.Forms.TextBox();
+            this.lblRegister = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // CustomerLoginLabel
@@ -127,11 +128,25 @@
             this.txtboxPassword.Size = new System.Drawing.Size(281, 39);
             this.txtboxPassword.TabIndex = 10;
             // 
+            // lblRegister
+            // 
+            this.lblRegister.AutoSize = true;
+            this.lblRegister.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRegister.ForeColor = System.Drawing.SystemColors.MenuHighlight;
+            this.lblRegister.Location = new System.Drawing.Point(606, 403);
+            this.lblRegister.Name = "lblRegister";
+            this.lblRegister.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.lblRegister.Size = new System.Drawing.Size(58, 16);
+            this.lblRegister.TabIndex = 11;
+            this.lblRegister.Text = "Register";
+            this.lblRegister.Click += new System.EventHandler(this.lblRegister_Click);
+            // 
             // CustomerLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(717, 536);
+            this.Controls.Add(this.lblRegister);
             this.Controls.Add(this.txtboxPassword);
             this.Controls.Add(this.txtboxUserName);
             this.Controls.Add(this.checkBox1);
@@ -161,6 +176,7 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.TextBox txtboxUserName;
         private System.Windows.Forms.TextBox txtboxPassword;
+        private System.Windows.Forms.Label lblRegister;
     }
 }
 
