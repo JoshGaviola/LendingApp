@@ -32,21 +32,21 @@
             this.EnterCredentialsLbl = new System.Windows.Forms.Label();
             this.PanelLeftSideCustLogin = new System.Windows.Forms.Panel();
             this.label1 = new System.Windows.Forms.Label();
-            this.UsernamePanel = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
-            this.PassPanel = new System.Windows.Forms.Panel();
             this.SignInBtn = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.txtboxUserName = new System.Windows.Forms.TextBox();
+            this.txtboxPassword = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // CustomerLoginLabel
             // 
             this.CustomerLoginLabel.AutoSize = true;
-            this.CustomerLoginLabel.Font = new System.Drawing.Font("Poppins", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CustomerLoginLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CustomerLoginLabel.ForeColor = System.Drawing.Color.OrangeRed;
             this.CustomerLoginLabel.Location = new System.Drawing.Point(379, 42);
             this.CustomerLoginLabel.Name = "CustomerLoginLabel";
-            this.CustomerLoginLabel.Size = new System.Drawing.Size(210, 42);
+            this.CustomerLoginLabel.Size = new System.Drawing.Size(197, 29);
             this.CustomerLoginLabel.TabIndex = 1;
             this.CustomerLoginLabel.Text = "Customer Login";
             // 
@@ -71,46 +71,28 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Poppins", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(380, 142);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(77, 23);
+            this.label1.Size = new System.Drawing.Size(70, 16);
             this.label1.TabIndex = 4;
             this.label1.Text = "Username";
-            // 
-            // UsernamePanel
-            // 
-            this.UsernamePanel.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.UsernamePanel.Location = new System.Drawing.Point(384, 168);
-            this.UsernamePanel.Name = "UsernamePanel";
-            this.UsernamePanel.Size = new System.Drawing.Size(282, 44);
-            this.UsernamePanel.TabIndex = 5;
-            this.UsernamePanel.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Poppins", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(380, 258);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(74, 23);
+            this.label2.Size = new System.Drawing.Size(67, 16);
             this.label2.TabIndex = 6;
             this.label2.Text = "Password";
-            // 
-            // PassPanel
-            // 
-            this.PassPanel.ForeColor = System.Drawing.SystemColors.ActiveCaption;
-            this.PassPanel.Location = new System.Drawing.Point(384, 284);
-            this.PassPanel.Name = "PassPanel";
-            this.PassPanel.Size = new System.Drawing.Size(282, 44);
-            this.PassPanel.TabIndex = 6;
-            this.PassPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.BorderGray);
             // 
             // SignInBtn
             // 
             this.SignInBtn.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.SignInBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.SignInBtn.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SignInBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SignInBtn.ForeColor = System.Drawing.SystemColors.ButtonFace;
             this.SignInBtn.Location = new System.Drawing.Point(384, 440);
             this.SignInBtn.Name = "SignInBtn";
@@ -129,16 +111,32 @@
             this.checkBox1.Text = "Remember me";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
+            // txtboxUserName
+            // 
+            this.txtboxUserName.Location = new System.Drawing.Point(383, 161);
+            this.txtboxUserName.Multiline = true;
+            this.txtboxUserName.Name = "txtboxUserName";
+            this.txtboxUserName.Size = new System.Drawing.Size(281, 39);
+            this.txtboxUserName.TabIndex = 9;
+            // 
+            // txtboxPassword
+            // 
+            this.txtboxPassword.Location = new System.Drawing.Point(383, 277);
+            this.txtboxPassword.Multiline = true;
+            this.txtboxPassword.Name = "txtboxPassword";
+            this.txtboxPassword.Size = new System.Drawing.Size(281, 39);
+            this.txtboxPassword.TabIndex = 10;
+            // 
             // CustomerLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(717, 536);
+            this.Controls.Add(this.txtboxPassword);
+            this.Controls.Add(this.txtboxUserName);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.SignInBtn);
-            this.Controls.Add(this.PassPanel);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.UsernamePanel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.PanelLeftSideCustLogin);
             this.Controls.Add(this.EnterCredentialsLbl);
@@ -158,11 +156,11 @@
         private System.Windows.Forms.Label EnterCredentialsLbl;
         private System.Windows.Forms.Panel PanelLeftSideCustLogin;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Panel UsernamePanel;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Panel PassPanel;
         private System.Windows.Forms.Button SignInBtn;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.TextBox txtboxUserName;
+        private System.Windows.Forms.TextBox txtboxPassword;
     }
 }
 
