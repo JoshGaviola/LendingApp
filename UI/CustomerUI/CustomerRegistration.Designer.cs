@@ -23,49 +23,66 @@ namespace LendingApp.UI.CustomerUI
 
         private void InitializeComponent()
         {
-            this.components = new Container();
-            this.headerPanel = new Panel();
-            this.navigationPanel = new Panel();
-            this.contentHost = new Panel();
-            this.footerPanel = new Panel();
-
-            // Form
+            this.headerPanel = new System.Windows.Forms.Panel();
+            this.navigationPanel = new System.Windows.Forms.Panel();
+            this.contentHost = new System.Windows.Forms.Panel();
+            this.footerPanel = new System.Windows.Forms.Panel();
             this.SuspendLayout();
-            this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(1200, 800);
-            this.MinimumSize = new Size(1000, 700);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Customer Registration";
-
+            // 
             // headerPanel
-            this.headerPanel.Dock = DockStyle.Top;
-            this.headerPanel.Height = 70;
-            this.headerPanel.BackColor = ColorTranslator.FromHtml("#2C3E50");
-
+            // 
+            this.headerPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(44)))), ((int)(((byte)(62)))), ((int)(((byte)(80)))));
+            this.headerPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.headerPanel.Location = new System.Drawing.Point(0, 0);
+            this.headerPanel.Name = "headerPanel";
+            this.headerPanel.Size = new System.Drawing.Size(1200, 70);
+            this.headerPanel.TabIndex = 3;
+            // 
             // navigationPanel
-            this.navigationPanel.Dock = DockStyle.Left;
-            this.navigationPanel.Width = 260;
-            this.navigationPanel.BackColor = Color.White;
-            this.navigationPanel.BorderStyle = BorderStyle.FixedSingle;
-
+            // 
+            this.navigationPanel.BackColor = System.Drawing.Color.White;
+            this.navigationPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.navigationPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.navigationPanel.Location = new System.Drawing.Point(0, 70);
+            this.navigationPanel.Name = "navigationPanel";
+            this.navigationPanel.Size = new System.Drawing.Size(260, 665);
+            this.navigationPanel.TabIndex = 1;
+            // 
             // contentHost
-            this.contentHost.Dock = DockStyle.Fill;
-            this.contentHost.BackColor = Color.White;
-            this.contentHost.Padding = new Padding(10);
-
+            // 
+            this.contentHost.BackColor = System.Drawing.Color.White;
+            this.contentHost.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.contentHost.Location = new System.Drawing.Point(260, 70);
+            this.contentHost.Name = "contentHost";
+            this.contentHost.Padding = new System.Windows.Forms.Padding(10);
+            this.contentHost.Size = new System.Drawing.Size(940, 665);
+            this.contentHost.TabIndex = 0;
+            // 
             // footerPanel
-            this.footerPanel.Dock = DockStyle.Bottom;
-            this.footerPanel.Height = 65;
-            this.footerPanel.BackColor = Color.WhiteSmoke;
-            this.footerPanel.BorderStyle = BorderStyle.FixedSingle;
-
-            // Add to form (order matters for docking)
+            // 
+            this.footerPanel.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.footerPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.footerPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.footerPanel.Location = new System.Drawing.Point(0, 735);
+            this.footerPanel.Name = "footerPanel";
+            this.footerPanel.Size = new System.Drawing.Size(1200, 65);
+            this.footerPanel.TabIndex = 2;
+            // 
+            // CustomerRegistration
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1200, 800);
             this.Controls.Add(this.contentHost);
             this.Controls.Add(this.navigationPanel);
             this.Controls.Add(this.footerPanel);
             this.Controls.Add(this.headerPanel);
-
+            this.MinimumSize = new System.Drawing.Size(1000, 700);
+            this.Name = "CustomerRegistration";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Customer Registration";
             this.ResumeLayout(false);
+
         }
     }
 }
