@@ -50,7 +50,6 @@
     <Compile Include="Models\Borrower.cs" />
     <Compile Include="Models\Cashier.cs" />
     <Compile Include="Models\Loans\LoanApplication.cs" />
-    <Compile Include="Models\Loans\LoanOfficer.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
       <SubType>Form</SubType>
@@ -72,6 +71,12 @@
     <Compile Include="UI\CustomerUI\CustomerManagement.Designer.cs">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CustomerUI\CustomerRegistration.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CustomerUI\CustomerRegistration.Designer.cs">
+      <DependentUpon>CustomerRegistration.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -89,6 +94,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\CustomerUI\CustomerRegistration.resx">
+      <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
