@@ -21,9 +21,8 @@ namespace LendingApp
             lblRegister.Cursor = Cursors.Hand;
             lblRegister.ForeColor = Color.Blue;
             lblRegister.Font = new Font(lblRegister.Font, FontStyle.Underline);
-
-            // REMOVE this line if Designer already wires Click:
-            // lblRegister.Click += lblRegister_Click;   // <— deleted to avoid double subscription
+            // If the Designer already wires Click, do not add it again to avoid double firing.
+            // lblRegister.Click += lblRegister_Click;
         }
 
         bool movePosition;
@@ -88,9 +87,32 @@ namespace LendingApp
             );
         }
 
+        // Modified: Open dashboard and close (dispose) login after dashboard shuts down.
         private void SignInBtn_Click(object sender, EventArgs e)
         {
+            // TODO: Add real authentication logic here (validate username/password).
+            // If credentials invalid, return early.
 
+            if (_openCustomerDashBoardForm == null || _openCustomerDashBoardForm.IsDisposed)
+            {
+                _openCustomerDashBoardForm = new CustomerDashBoard();
+                // When dashboard closes, dispose login (if still around).
+                _openCustomerDashBoardForm.FormClosed += (s, args) =>
+                {
+                    if (!this.IsDisposed)
+                    {
+                        this.Close(); // Ends app if no other forms open.
+                    }
+                };
+
+                // Hide login so user perceives it as closed.
+                this.Hide();
+                _openCustomerDashBoardForm.Show();
+            }
+            else
+            {
+                _openCustomerDashBoardForm.Focus();
+            }
         }
     }
 }

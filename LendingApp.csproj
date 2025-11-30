@@ -46,25 +46,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\Admin.cs" />
-    <Compile Include="Models\Borrower.cs" />
-    <Compile Include="Models\Cashier.cs" />
+    <Compile Include="Models\Admin\Admin.cs" />
+    <Compile Include="Models\Borrower\Borrower.cs" />
+    <Compile Include="Models\Cashier\Cashier.cs" />
+    <Compile Include="Models\LoanOfficer.cs" />
     <Compile Include="Models\Loans\LoanApplication.cs" />
-    <Compile Include="Models\User.cs" />
+    <Compile Include="Models\User\User.cs" />
     <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerDashBoard.Designer.cs">
       <DependentUpon>CustomerDashBoard.cs</DependentUpon>
     </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\CustomerUI\CustomerLogin.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerLogin.Designer.cs">
       <DependentUpon>CustomerLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UI\CustomerUI\CustomerManagement.cs">
       <SubType>Form</SubType>
     </Compile>
