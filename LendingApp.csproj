@@ -90,6 +90,12 @@
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.Designer.cs">
       <DependentUpon>OfficerApplications.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCustomers.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCustomers.Designer.cs">
+      <DependentUpon>OfficerCustomers.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
