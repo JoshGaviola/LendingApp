@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LendingApp.UI.LoanOfficerUI
@@ -26,6 +21,10 @@ namespace LendingApp.UI.LoanOfficerUI
         private string activePortfolio = "₱85,000";
         private int overdueLoansCount = 3;
         private string todayCollections = "₱15,700";
+
+        // Keep a single instance of the Applications view to reuse
+        private OfficerApplications _applicationsForm;
+        private bool _homeResizeHooked;
 
         // Data models
         private class PendingApplication
@@ -198,7 +197,22 @@ namespace LendingApp.UI.LoanOfficerUI
                 btn.Click += (s, e) =>
                 {
                     activeNav = item;
-                    BuildSidebar(); // refresh highlight
+                    // Navigation handling
+                    if (item == "Applications")
+                    {
+                        ShowApplicationsView();
+                    }
+                    else if (item == "Dashboard")
+                    {
+                        ShowDashboardHome();
+                    }
+                    else
+                    {
+                        // keep sidebar highlight only
+                        contentPanel.Focus();
+                    }
+                    // Refresh highlight
+                    BuildSidebar();
                 };
                 sidebarPanel.Controls.Add(btn);
                 y += 42;
@@ -318,7 +332,17 @@ namespace LendingApp.UI.LoanOfficerUI
             Controls.Add(summaryPanel);
             Controls.Add(headerPanel);
 
-            // Place sections inside content panel
+            // Place initial home sections
+            PlaceHomeSections();
+            _homeResizeHooked = true;
+        }
+
+        private void PlaceHomeSections()
+        {
+            summaryPanel.Visible = true;
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
             int y = 10;
 
             sectionPending.Location = new Point(10, y);
@@ -333,7 +357,6 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.Controls.Add(sectionOverdue);
             y += sectionOverdue.Height + 10;
 
-            // Two column layout
             sectionTasks.Location = new Point(10, y);
             sectionTasks.Size = new Size((contentPanel.Width - 50) / 2, 260);
             sectionTasks.BorderStyle = BorderStyle.FixedSingle;
@@ -344,14 +367,59 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionActivity.BorderStyle = BorderStyle.FixedSingle;
             contentPanel.Controls.Add(sectionActivity);
 
-            contentPanel.Resize += (s, e) =>
+            if (!_homeResizeHooked)
             {
-                sectionPending.Width = contentPanel.Width - 40;
-                sectionOverdue.Width = contentPanel.Width - 40;
-                sectionTasks.Width = (contentPanel.Width - 50) / 2;
-                sectionActivity.Width = (contentPanel.Width - 50) / 2;
-                sectionActivity.Left = sectionTasks.Right + 10;
-            };
+                contentPanel.Resize += (s, e) =>
+                {
+                    sectionPending.Width = contentPanel.Width - 40;
+                    sectionOverdue.Width = contentPanel.Width - 40;
+                    sectionTasks.Width = (contentPanel.Width - 50) / 2;
+                    sectionActivity.Width = (contentPanel.Width - 50) / 2;
+                    sectionActivity.Left = sectionTasks.Right + 10;
+                };
+                _homeResizeHooked = true;
+            }
+
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowApplicationsView()
+        {
+            // Hide summary for a cleaner Applications view (optional)
+            summaryPanel.Visible = false;
+
+            // Clear current content and host OfficerApplications inside contentPanel
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            if (_applicationsForm == null || _applicationsForm.IsDisposed)
+            {
+                _applicationsForm = new OfficerApplications();
+                _applicationsForm.TopLevel = false;
+                _applicationsForm.FormBorderStyle = FormBorderStyle.None;
+                _applicationsForm.Dock = DockStyle.Fill;
+            }
+
+            contentPanel.Controls.Add(_applicationsForm);
+            _applicationsForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowDashboardHome()
+        {
+            // Hide applications view if present
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+
+            // Rebuild and show home sections
+            BuildPendingApplicationsSection();
+            BuildOverdueLoansSection();
+            BuildTasksSection();
+            BuildActivitySection();
+            PlaceHomeSections();
         }
 
         private void BuildPendingApplicationsSection()
@@ -362,7 +430,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 Text = "PENDING APPLICATIONS (URGENT)",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#2C3E50"),
-                BackColor = ColorTranslator.FromHtml("#FFF7ED"), // orange-50
+                BackColor = ColorTranslator.FromHtml("#FFF7ED"),
                 AutoSize = false,
                 Height = 32,
                 Dock = DockStyle.Top,
