@@ -2,14 +2,15 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using LendingApp.UI.CustomerUI; // For CustomerRegistration and CustomerDashBoard
+using LendingApp.UI.CustomerUI; // For CustomerRegistration
+using LendingApp.UI.LoanOfficerUI; // For OfficerDashboard
 
 namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerLogin : Form
     {
         private CustomerRegistration _openRegistrationForm;
-        private CustomerDashBoard _openCustomerDashBoardForm;
+        private OfficerDashboard _openOfficerDashboardForm;
 
         public OfficerLogin()
         {
@@ -87,15 +88,15 @@ namespace LendingApp.UI.LoanOfficerUI
             );
         }
 
-        private void SignInBtn_Click(object sender, EventArgs e)
+        private void SignInBtn_Click_1(object sender, EventArgs e)
         {
             // TODO: Add real authentication logic here (validate username/password).
             // If credentials invalid, return early.
 
-            if (_openCustomerDashBoardForm == null || _openCustomerDashBoardForm.IsDisposed)
+            if (_openOfficerDashboardForm == null || _openOfficerDashboardForm.IsDisposed)
             {
-                _openCustomerDashBoardForm = new CustomerDashBoard();
-                _openCustomerDashBoardForm.FormClosed += (s, args) =>
+                _openOfficerDashboardForm = new OfficerDashboard();
+                _openOfficerDashboardForm.FormClosed += (s, args) =>
                 {
                     if (!this.IsDisposed)
                     {
@@ -104,11 +105,11 @@ namespace LendingApp.UI.LoanOfficerUI
                 };
 
                 this.Hide();
-                _openCustomerDashBoardForm.Show();
+                _openOfficerDashboardForm.Show();
             }
             else
             {
-                _openCustomerDashBoardForm.Focus();
+                _openOfficerDashboardForm.Focus();
             }
         }
     }

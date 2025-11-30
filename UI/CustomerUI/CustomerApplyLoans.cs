@@ -16,5 +16,10 @@ namespace LendingApp.UI.CustomerUI
         {
             InitializeComponent();
         }
+
+        private void lblApplyForLoan_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

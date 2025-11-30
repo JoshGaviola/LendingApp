@@ -84,6 +84,12 @@
     <Compile Include="UI\CustomerUI\CustomerRegistration.Designer.cs">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerDashboard.Designer.cs">
+      <DependentUpon>OfficerDashboard.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerLogin.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -113,6 +119,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerRegistration.resx">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\LoanOfficerUI\OfficerDashboard.resx">
+      <DependentUpon>OfficerDashboard.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerLogin.resx">
       <DependentUpon>OfficerLogin.cs</DependentUpon>
