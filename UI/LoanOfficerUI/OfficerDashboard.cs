@@ -26,6 +26,9 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerApplications _applicationsForm;
         private bool _homeResizeHooked;
 
+        // Add a field to reuse the customers form instance
+        private OfficerCustomers _customersForm;
+
         // Data models
         private class PendingApplication
         {
@@ -201,6 +204,10 @@ namespace LendingApp.UI.LoanOfficerUI
                     if (item == "Applications")
                     {
                         ShowApplicationsView();
+                    }
+                    else if (item == "Customers")
+                    {
+                        ShowCustomersView();
                     }
                     else if (item == "Dashboard")
                     {
@@ -405,6 +412,37 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
+        // Add this method to show the customers view
+        private void ShowCustomersView()
+        {
+            // Optional: hide summary for full-page customers view
+            summaryPanel.Visible = false;
+
+            // Remove any embedded applications form
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+
+            // Clear current content and host OfficerCustomers inside contentPanel
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            if (_customersForm == null || _customersForm.IsDisposed)
+            {
+                _customersForm = new OfficerCustomers();
+                _customersForm.TopLevel = false;
+                _customersForm.FormBorderStyle = FormBorderStyle.None;
+                _customersForm.Dock = DockStyle.Fill;
+            }
+
+            contentPanel.Controls.Add(_customersForm);
+            _customersForm.Show();
+
+            contentPanel.ResumeLayout();
+        }
+
         private void ShowDashboardHome()
         {
             // Hide applications view if present
@@ -412,6 +450,12 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _applicationsForm.Hide();
                 contentPanel.Controls.Remove(_applicationsForm);
+            }
+            // Remove customers form if present
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
             }
 
             // Rebuild and show home sections
