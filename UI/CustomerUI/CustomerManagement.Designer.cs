@@ -66,9 +66,10 @@
             // lblCustomerManagement
             // 
             this.lblCustomerManagement.AutoSize = true;
-            this.lblCustomerManagement.Location = new System.Drawing.Point(325, 9);
+            this.lblCustomerManagement.Location = new System.Drawing.Point(488, 14);
+            this.lblCustomerManagement.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCustomerManagement.Name = "lblCustomerManagement";
-            this.lblCustomerManagement.Size = new System.Drawing.Size(148, 13);
+            this.lblCustomerManagement.Size = new System.Drawing.Size(218, 20);
             this.lblCustomerManagement.TabIndex = 0;
             this.lblCustomerManagement.Text = "CUSTOMER MANAGEMENT";
             this.lblCustomerManagement.Click += new System.EventHandler(this.label1_Click);
@@ -76,17 +77,19 @@
             // lblSearch
             // 
             this.lblSearch.AutoSize = true;
-            this.lblSearch.Location = new System.Drawing.Point(30, 38);
+            this.lblSearch.Location = new System.Drawing.Point(45, 58);
+            this.lblSearch.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblSearch.Name = "lblSearch";
-            this.lblSearch.Size = new System.Drawing.Size(47, 13);
+            this.lblSearch.Size = new System.Drawing.Size(68, 20);
             this.lblSearch.TabIndex = 2;
             this.lblSearch.Text = "Search: ";
             // 
             // txtSearchCustomers
             // 
-            this.txtSearchCustomers.Location = new System.Drawing.Point(83, 35);
+            this.txtSearchCustomers.Location = new System.Drawing.Point(124, 54);
+            this.txtSearchCustomers.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtSearchCustomers.Name = "txtSearchCustomers";
-            this.txtSearchCustomers.Size = new System.Drawing.Size(211, 20);
+            this.txtSearchCustomers.Size = new System.Drawing.Size(314, 26);
             this.txtSearchCustomers.TabIndex = 3;
             this.txtSearchCustomers.Text = "SearchCustomers...";
             // 
@@ -98,9 +101,11 @@
             this.gpCustomerList.Controls.Add(this.btnCustomer3);
             this.gpCustomerList.Controls.Add(this.btnCustomer2);
             this.gpCustomerList.Controls.Add(this.btnCustomer1);
-            this.gpCustomerList.Location = new System.Drawing.Point(33, 74);
+            this.gpCustomerList.Location = new System.Drawing.Point(50, 114);
+            this.gpCustomerList.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gpCustomerList.Name = "gpCustomerList";
-            this.gpCustomerList.Size = new System.Drawing.Size(231, 333);
+            this.gpCustomerList.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.gpCustomerList.Size = new System.Drawing.Size(346, 512);
             this.gpCustomerList.TabIndex = 4;
             this.gpCustomerList.TabStop = false;
             this.gpCustomerList.Text = "Customer List";
@@ -110,9 +115,10 @@
             this.pictureBox3.BackColor = System.Drawing.Color.White;
             this.pictureBox3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.pictureBox3.ImageLocation = ".\\icons\\person.png";
-            this.pictureBox3.Location = new System.Drawing.Point(16, 198);
+            this.pictureBox3.Location = new System.Drawing.Point(24, 305);
+            this.pictureBox3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new System.Drawing.Size(40, 43);
+            this.pictureBox3.Size = new System.Drawing.Size(60, 66);
             this.pictureBox3.TabIndex = 8;
             this.pictureBox3.TabStop = false;
             // 
@@ -121,9 +127,10 @@
             this.pictureBox2.BackColor = System.Drawing.Color.White;
             this.pictureBox2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.pictureBox2.ImageLocation = ".\\icons\\person.png";
-            this.pictureBox2.Location = new System.Drawing.Point(16, 123);
+            this.pictureBox2.Location = new System.Drawing.Point(24, 189);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(40, 43);
+            this.pictureBox2.Size = new System.Drawing.Size(60, 66);
             this.pictureBox2.TabIndex = 7;
             this.pictureBox2.TabStop = false;
             // 
@@ -131,19 +138,22 @@
             // 
             this.pictureBox1.BackColor = System.Drawing.Color.White;
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBox1.ImageLocation = ".\\icons\\person.png";
-            this.pictureBox1.Location = new System.Drawing.Point(16, 48);
+            this.pictureBox1.ImageLocation = "./icons/person.png";
+            this.pictureBox1.Location = new System.Drawing.Point(24, 74);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(40, 43);
+            this.pictureBox1.Size = new System.Drawing.Size(60, 66);
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // btnCustomer3
             // 
             this.btnCustomer3.BackColor = System.Drawing.Color.White;
-            this.btnCustomer3.Location = new System.Drawing.Point(6, 32);
+            this.btnCustomer3.Location = new System.Drawing.Point(9, 49);
+            this.btnCustomer3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnCustomer3.Name = "btnCustomer3";
-            this.btnCustomer3.Size = new System.Drawing.Size(188, 69);
+            this.btnCustomer3.Size = new System.Drawing.Size(282, 106);
             this.btnCustomer3.TabIndex = 2;
             this.btnCustomer3.Text = "                Alfred Rosenberg            \r\n                +63 952 84254";
             this.btnCustomer3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -152,9 +162,10 @@
             // btnCustomer2
             // 
             this.btnCustomer2.BackColor = System.Drawing.Color.White;
-            this.btnCustomer2.Location = new System.Drawing.Point(6, 188);
+            this.btnCustomer2.Location = new System.Drawing.Point(9, 289);
+            this.btnCustomer2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnCustomer2.Name = "btnCustomer2";
-            this.btnCustomer2.Size = new System.Drawing.Size(188, 69);
+            this.btnCustomer2.Size = new System.Drawing.Size(282, 106);
             this.btnCustomer2.TabIndex = 1;
             this.btnCustomer2.Text = "                Maria Santos\r\n                +63 952 84254";
             this.btnCustomer2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -163,9 +174,10 @@
             // btnCustomer1
             // 
             this.btnCustomer1.BackColor = System.Drawing.Color.White;
-            this.btnCustomer1.Location = new System.Drawing.Point(6, 112);
+            this.btnCustomer1.Location = new System.Drawing.Point(9, 172);
+            this.btnCustomer1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnCustomer1.Name = "btnCustomer1";
-            this.btnCustomer1.Size = new System.Drawing.Size(188, 68);
+            this.btnCustomer1.Size = new System.Drawing.Size(282, 105);
             this.btnCustomer1.TabIndex = 0;
             this.btnCustomer1.Text = "                Juan Dela Cruz\r\n                +63 952 84254";
             this.btnCustomer1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -188,115 +200,129 @@
             this.panel1.Controls.Add(this.textBox1);
             this.panel1.Controls.Add(this.lblName);
             this.panel1.Controls.Add(this.lblCustomerDetails);
-            this.panel1.Location = new System.Drawing.Point(390, 74);
+            this.panel1.Location = new System.Drawing.Point(585, 114);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(387, 333);
+            this.panel1.Size = new System.Drawing.Size(580, 512);
             this.panel1.TabIndex = 5;
             // 
             // lblStatus
             // 
             this.lblStatus.AutoSize = true;
-            this.lblStatus.Location = new System.Drawing.Point(25, 244);
+            this.lblStatus.Location = new System.Drawing.Point(38, 375);
+            this.lblStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(40, 13);
+            this.lblStatus.Size = new System.Drawing.Size(60, 20);
             this.lblStatus.TabIndex = 19;
             this.lblStatus.Text = "Status:";
             // 
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(28, 259);
+            this.comboBox1.Location = new System.Drawing.Point(42, 398);
+            this.comboBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(121, 21);
+            this.comboBox1.Size = new System.Drawing.Size(180, 28);
             this.comboBox1.TabIndex = 18;
             // 
             // lblCategory
             // 
             this.lblCategory.AutoSize = true;
             this.lblCategory.ForeColor = System.Drawing.Color.DarkGreen;
-            this.lblCategory.Location = new System.Drawing.Point(129, 224);
+            this.lblCategory.Location = new System.Drawing.Point(194, 345);
+            this.lblCategory.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCategory.Name = "lblCategory";
-            this.lblCategory.Size = new System.Drawing.Size(50, 13);
+            this.lblCategory.Size = new System.Drawing.Size(73, 20);
             this.lblCategory.TabIndex = 17;
             this.lblCategory.Text = "Excellent";
             // 
             // textBox5
             // 
-            this.textBox5.Location = new System.Drawing.Point(28, 221);
+            this.textBox5.Location = new System.Drawing.Point(42, 340);
+            this.textBox5.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox5.Name = "textBox5";
-            this.textBox5.Size = new System.Drawing.Size(95, 20);
+            this.textBox5.Size = new System.Drawing.Size(140, 26);
             this.textBox5.TabIndex = 16;
             // 
             // lblCreditScore
             // 
             this.lblCreditScore.AutoSize = true;
-            this.lblCreditScore.Location = new System.Drawing.Point(25, 205);
+            this.lblCreditScore.Location = new System.Drawing.Point(38, 315);
+            this.lblCreditScore.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCreditScore.Name = "lblCreditScore";
-            this.lblCreditScore.Size = new System.Drawing.Size(68, 13);
+            this.lblCreditScore.Size = new System.Drawing.Size(101, 20);
             this.lblCreditScore.TabIndex = 15;
             this.lblCreditScore.Text = "Credit Score:";
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(28, 183);
+            this.textBox4.Location = new System.Drawing.Point(42, 282);
+            this.textBox4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(328, 20);
+            this.textBox4.Size = new System.Drawing.Size(490, 26);
             this.textBox4.TabIndex = 14;
             // 
             // lblIncome
             // 
             this.lblIncome.AutoSize = true;
-            this.lblIncome.Location = new System.Drawing.Point(25, 167);
+            this.lblIncome.Location = new System.Drawing.Point(38, 257);
+            this.lblIncome.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblIncome.Name = "lblIncome";
-            this.lblIncome.Size = new System.Drawing.Size(45, 13);
+            this.lblIncome.Size = new System.Drawing.Size(66, 20);
             this.lblIncome.TabIndex = 13;
             this.lblIncome.Text = "Income:";
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(28, 139);
+            this.textBox3.Location = new System.Drawing.Point(42, 214);
+            this.textBox3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(328, 20);
+            this.textBox3.Size = new System.Drawing.Size(490, 26);
             this.textBox3.TabIndex = 12;
             // 
             // lblAddress
             // 
             this.lblAddress.AutoSize = true;
-            this.lblAddress.Location = new System.Drawing.Point(25, 123);
+            this.lblAddress.Location = new System.Drawing.Point(38, 189);
+            this.lblAddress.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblAddress.Name = "lblAddress";
-            this.lblAddress.Size = new System.Drawing.Size(48, 13);
+            this.lblAddress.Size = new System.Drawing.Size(72, 20);
             this.lblAddress.TabIndex = 11;
             this.lblAddress.Text = "Address:";
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(28, 93);
+            this.textBox2.Location = new System.Drawing.Point(42, 143);
+            this.textBox2.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(328, 20);
+            this.textBox2.Size = new System.Drawing.Size(490, 26);
             this.textBox2.TabIndex = 10;
             // 
             // lblPhone
             // 
             this.lblPhone.AutoSize = true;
-            this.lblPhone.Location = new System.Drawing.Point(25, 77);
+            this.lblPhone.Location = new System.Drawing.Point(38, 118);
+            this.lblPhone.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblPhone.Name = "lblPhone";
-            this.lblPhone.Size = new System.Drawing.Size(41, 13);
+            this.lblPhone.Size = new System.Drawing.Size(59, 20);
             this.lblPhone.TabIndex = 9;
             this.lblPhone.Text = "Phone:";
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(28, 48);
+            this.textBox1.Location = new System.Drawing.Point(42, 74);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(328, 20);
+            this.textBox1.Size = new System.Drawing.Size(490, 26);
             this.textBox1.TabIndex = 8;
             // 
             // lblName
             // 
             this.lblName.AutoSize = true;
-            this.lblName.Location = new System.Drawing.Point(25, 32);
+            this.lblName.Location = new System.Drawing.Point(38, 49);
+            this.lblName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblName.Name = "lblName";
-            this.lblName.Size = new System.Drawing.Size(38, 13);
+            this.lblName.Size = new System.Drawing.Size(55, 20);
             this.lblName.TabIndex = 7;
             this.lblName.Text = "Name:";
             this.lblName.Click += new System.EventHandler(this.lblName_Click);
@@ -304,9 +330,10 @@
             // lblCustomerDetails
             // 
             this.lblCustomerDetails.AutoSize = true;
-            this.lblCustomerDetails.Location = new System.Drawing.Point(3, 0);
+            this.lblCustomerDetails.Location = new System.Drawing.Point(4, 0);
+            this.lblCustomerDetails.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblCustomerDetails.Name = "lblCustomerDetails";
-            this.lblCustomerDetails.Size = new System.Drawing.Size(86, 13);
+            this.lblCustomerDetails.Size = new System.Drawing.Size(131, 20);
             this.lblCustomerDetails.TabIndex = 6;
             this.lblCustomerDetails.Text = "Customer Details";
             // 
@@ -314,9 +341,10 @@
             // 
             this.button1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.button1.ForeColor = System.Drawing.SystemColors.Control;
-            this.button1.Location = new System.Drawing.Point(289, 293);
+            this.button1.Location = new System.Drawing.Point(434, 451);
+            this.button1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 58);
+            this.button1.Size = new System.Drawing.Size(112, 89);
             this.button1.TabIndex = 20;
             this.button1.Text = "button1";
             this.button1.UseVisualStyleBackColor = false;
@@ -324,17 +352,18 @@
             // pictureBox4
             // 
             this.pictureBox4.ImageLocation = ".\\icons\\Save.png";
-            this.pictureBox4.Location = new System.Drawing.Point(299, 242);
+            this.pictureBox4.Location = new System.Drawing.Point(448, 372);
+            this.pictureBox4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pictureBox4.Name = "pictureBox4";
-            this.pictureBox4.Size = new System.Drawing.Size(52, 50);
+            this.pictureBox4.Size = new System.Drawing.Size(78, 77);
             this.pictureBox4.TabIndex = 6;
             this.pictureBox4.TabStop = false;
             // 
             // CustomerManagement
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1200, 692);
             this.Controls.Add(this.pictureBox4);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.panel1);
@@ -342,6 +371,7 @@
             this.Controls.Add(this.txtSearchCustomers);
             this.Controls.Add(this.lblSearch);
             this.Controls.Add(this.lblCustomerManagement);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "CustomerManagement";
             this.Text = "CustomerManagement";
             this.gpCustomerList.ResumeLayout(false);

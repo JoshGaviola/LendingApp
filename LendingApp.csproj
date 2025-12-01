@@ -90,6 +90,12 @@
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.Designer.cs">
       <DependentUpon>OfficerApplications.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCollections.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCollections.Designer.cs">
+      <DependentUpon>OfficerCollections.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerCustomers.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -150,10 +156,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="icons\person.png" />
-    <Content Include="icons\Save.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
