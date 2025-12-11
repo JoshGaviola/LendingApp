@@ -221,6 +221,10 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowSettingsView();
                     }
+                    else if (item == "Dashboard") // FIX: handle dashboard explicitly
+                    {
+                        ShowDashboardHome();
+                    }
                     else
                     {
                         summaryPanel.Visible = false;
@@ -581,6 +585,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowDashboardHome()
         {
+            // Hide/remove embedded views
             if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
                 _applicationsForm.Hide();
@@ -591,12 +596,23 @@ namespace LendingApp.UI.LoanOfficerUI
                 _collectionsForm.Hide();
                 contentPanel.Controls.Remove(_collectionsForm);
             }
-            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            if (_customersForm != null && !_customersForm.IsDisposed)
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
+            if (_calendarForm != null && !_calendarForm.IsDisposed) // ensure calendar removed
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+            if (_settingsForm != null && !_settingsForm.IsDisposed) // ensure settings removed
+            {
+                _settingsForm.Hide();
+                contentPanel.Controls.Remove(_settingsForm);
+            }
 
+            // Rebuild home sections
             BuildPendingApplicationsSection();
             BuildOverdueLoansSection();
             BuildTasksSection();
