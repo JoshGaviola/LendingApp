@@ -93,6 +93,12 @@
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.Designer.cs">
       <DependentUpon>OfficerApplications.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCalendar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\OfficerCalendar.Designer.cs">
+      <DependentUpon>OfficerCalendar.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerCollections.cs">
       <SubType>Form</SubType>
     </Compile>

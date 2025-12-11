@@ -26,6 +26,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerApplications _applicationsForm;
         private OfficerCollections _collectionsForm;
         private OfficerCustomers _customersForm; // Added for customers view
+        private OfficerCalendar _calendarForm; // Added for calendar view
         private bool _homeResizeHooked;
 
         // Data models
@@ -203,13 +204,17 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowApplicationsView();
                     }
-                    else if (item == "Customers")         // <— add this branch
+                    else if (item == "Customers")
                     {
                         ShowCustomersView();
                     }
                     else if (item == "Collections")
                     {
                         ShowCollectionsView();
+                    }
+                    else if (item == "Calendar")
+                    {
+                        ShowCalendarView();
                     }
                     else if (item == "Dashboard")
                     {
@@ -487,6 +492,45 @@ namespace LendingApp.UI.LoanOfficerUI
 
             contentPanel.Controls.Add(_customersForm);
             _customersForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowCalendarView()
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+
+            if (_calendarForm == null || _calendarForm.IsDisposed)
+            {
+                _calendarForm = new OfficerCalendar
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_calendarForm);
+            _calendarForm.Show();
             contentPanel.ResumeLayout();
         }
 
