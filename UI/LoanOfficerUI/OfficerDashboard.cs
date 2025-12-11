@@ -27,6 +27,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerCollections _collectionsForm;
         private OfficerCustomers _customersForm; // Added for customers view
         private OfficerCalendar _calendarForm; // Added for calendar view
+        private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
         // Data models
@@ -216,9 +217,9 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowCalendarView();
                     }
-                    else if (item == "Dashboard")
+                    else if (item == "Settings")
                     {
-                        ShowDashboardHome();
+                        ShowSettingsView();
                     }
                     else
                     {
@@ -531,6 +532,50 @@ namespace LendingApp.UI.LoanOfficerUI
 
             contentPanel.Controls.Add(_calendarForm);
             _calendarForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowSettingsView()
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+
+            if (_settingsForm == null || _settingsForm.IsDisposed)
+            {
+                _settingsForm = new OfficerSettings
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_settingsForm);
+            _settingsForm.Show();
             contentPanel.ResumeLayout();
         }
 
