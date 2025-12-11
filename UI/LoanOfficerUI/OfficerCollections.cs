@@ -9,7 +9,10 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerCollections : Form
     {
-        // Data model (mirrors the TypeScript interface)
+        // Host mode: when true, do not render our own header/sidebar (embed inside OfficerDashboard)
+        private readonly bool _hosted;
+
+        // Data model
         private class CollectionItem
         {
             public string Id { get; set; }
@@ -34,12 +37,12 @@ namespace LendingApp.UI.LoanOfficerUI
         private Button btnExport;
         private Button btnRecordPayment;
 
-        // Sidebar/nav (consistent with OfficerDashboard)
+        // Sidebar/nav (standalone only)
         private string activeNav = "Collections";
         private readonly List<string> navItems = new List<string>
-            {
-                "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
-            };
+        {
+            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
+        };
         private OfficerApplications _applicationsForm;
         private OfficerCustomers _customersForm;
 
@@ -78,26 +81,31 @@ namespace LendingApp.UI.LoanOfficerUI
         private string endDate = "Dec 21";
         private string searchTerm = "";
         private readonly Dictionary<string, string> summary = new Dictionary<string, string>
-            {
-                { "dueToday", "₱8,292" },
-                { "overdue", "₱12,442" },
-                { "thisWeek", "₱25,000" },
-                { "collectedToday", "₱5,250" }
-            };
+        {
+            { "dueToday", "₱8,292" },
+            { "overdue", "₱12,442" },
+            { "thisWeek", "₱25,000" },
+            { "collectedToday", "₱5,250" }
+        };
+
         private readonly List<CollectionItem> collections = new List<CollectionItem>
-            {
-                new CollectionItem { Id="1", LoanId="LN-001", Customer="Juan Cruz",  DueDate="Dec 15", Amount="₱4,442", DaysOverdue=0, Contact="+639123456789", Priority="High",     Status="Due Today" },
-                new CollectionItem { Id="2", LoanId="LN-002", Customer="Pedro Reyes",DueDate="Dec 10", Amount="₱3,850", DaysOverdue=5, Contact="+639456789012", Priority="Critical", Status="Overdue" },
-                new CollectionItem { Id="3", LoanId="LN-003", Customer="Maria Santos",DueDate="Dec 20", Amount="₱3,850", DaysOverdue=0, Contact="+639987654321", Priority="Medium",  Status="Upcoming" },
-                new CollectionItem { Id="4", LoanId="LN-004", Customer="Ana Lopez",   DueDate="Dec 15", Amount="₱2,500", DaysOverdue=0, Contact="+639111222333", Priority="Medium",  Status="Due Today" },
-                new CollectionItem { Id="5", LoanId="LN-005", Customer="Carlos Tan",  DueDate="Dec 12", Amount="₱4,150", DaysOverdue=3, Contact="+639444555666", Priority="High",    Status="Overdue" },
-                new CollectionItem { Id="6", LoanId="LN-006", Customer="Rosa Garcia", DueDate="Dec 18", Amount="₱3,200", DaysOverdue=0, Contact="+639777888999", Priority="Low",     Status="Upcoming" },
-            };
+        {
+            new CollectionItem { Id="1", LoanId="LN-001", Customer="Juan Cruz",  DueDate="Dec 15", Amount="₱4,442", DaysOverdue=0, Contact="+639123456789", Priority="High",     Status="Due Today" },
+            new CollectionItem { Id="2", LoanId="LN-002", Customer="Pedro Reyes",DueDate="Dec 10", Amount="₱3,850", DaysOverdue=5, Contact="+639456789012", Priority="Critical", Status="Overdue" },
+            new CollectionItem { Id="3", LoanId="LN-003", Customer="Maria Santos",DueDate="Dec 20", Amount="₱3,850", DaysOverdue=0, Contact="+639987654321", Priority="Medium",  Status="Upcoming" },
+            new CollectionItem { Id="4", LoanId="LN-004", Customer="Ana Lopez",   DueDate="Dec 15", Amount="₱2,500", DaysOverdue=0, Contact="+639111222333", Priority="Medium",  Status="Due Today" },
+            new CollectionItem { Id="5", LoanId="LN-005", Customer="Carlos Tan",  DueDate="Dec 12", Amount="₱4,150", DaysOverdue=3, Contact="+639444555666", Priority="High",    Status="Overdue" },
+            new CollectionItem { Id="6", LoanId="LN-006", Customer="Rosa Garcia", DueDate="Dec 18", Amount="₱3,200", DaysOverdue=0, Contact="+639777888999", Priority="Low",     Status="Upcoming" },
+        };
 
         private readonly string[] filterOptions = { "All", "Overdue", "Due Today", "Upcoming", "Collected" };
 
-        public OfficerCollections()
+        // Constructors
+        public OfficerCollections() : this(false) { }
+
+        public OfficerCollections(bool hosted)
         {
+            _hosted = hosted;
             InitializeComponent();
             BuildShell();
             BuildCollectionsHome();
@@ -113,23 +121,77 @@ namespace LendingApp.UI.LoanOfficerUI
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             WindowState = FormWindowState.Maximized;
 
-            // Header
-            headerPanel = new Panel { Dock = DockStyle.Top, Height = 60, BackColor = Color.White, Padding = new Padding(16), BorderStyle = BorderStyle.FixedSingle };
-            lblHeaderTitle = new Label { Text = "COLLECTIONS MANAGEMENT", Font = new Font("Segoe UI", 12, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#2C3E50"), AutoSize = true, Location = new Point(16, 12) };
-            lblHeaderSubtitle = new Label { Text = "Track and manage all payment collections", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#6B7280"), AutoSize = true, Location = new Point(16, 34) };
-            btnExport = new Button { Text = "Export", Width = 90, Height = 28, BackColor = Color.White, FlatStyle = FlatStyle.Flat };
+            if (_hosted)
+            {
+                // Hosted: no header/sidebar; only provide a fill content host
+                contentPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, AutoScroll = true };
+                Controls.Clear();
+                Controls.Add(contentPanel);
+                return;
+            }
+
+            // Standalone shell (header + sidebar) to match OfficerDashboard
+            headerPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 60,
+                BackColor = Color.White,
+                Padding = new Padding(16),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            lblHeaderTitle = new Label
+            {
+                Text = "COLLECTIONS MANAGEMENT",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = ColorTranslator.FromHtml("#2C3E50"),
+                AutoSize = true,
+                Location = new Point(16, 12)
+            };
+            lblHeaderSubtitle = new Label
+            {
+                Text = "Track and manage all payment collections",
+                Font = new Font("Segoe UI", 9),
+                ForeColor = ColorTranslator.FromHtml("#6B7280"),
+                AutoSize = true,
+                Location = new Point(16, 34)
+            };
+            btnExport = new Button
+            {
+                Text = "Export",
+                Width = 90,
+                Height = 28,
+                BackColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
             btnExport.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#D1D5DB");
-            btnRecordPayment = new Button { Text = "Record Payment", Width = 140, Height = 28, BackColor = ColorTranslator.FromHtml("#2563EB"), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+
+            btnRecordPayment = new Button
+            {
+                Text = "Record Payment",
+                Width = 140,
+                Height = 28,
+                BackColor = ColorTranslator.FromHtml("#2563EB"),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
             btnRecordPayment.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#1D4ED8");
 
-            // Sidebar
-            sidebarPanel = new Panel { Dock = DockStyle.Left, Width = 220, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
+            sidebarPanel = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 220,
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
             BuildSidebar();
 
-            // Content host
-            contentPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, AutoScroll = true };
+            contentPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White,
+                AutoScroll = true
+            };
 
-            // Add to form in the same order as OfficerDashboard
             Controls.Add(contentPanel);
             Controls.Add(sidebarPanel);
             Controls.Add(headerPanel);
@@ -147,6 +209,8 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BuildSidebar()
         {
+            if (_hosted) return;
+
             sidebarPanel.Controls.Clear();
             int y = 10;
             foreach (var item in navItems)
@@ -182,9 +246,14 @@ namespace LendingApp.UI.LoanOfficerUI
                     }
                     else
                     {
-                        // Placeholder for Calendar/Settings
                         contentPanel.Controls.Clear();
-                        var placeholder = new Label { Text = $"{item} view coming soon", AutoSize = true, Location = new Point(20, 20), ForeColor = ColorTranslator.FromHtml("#6B7280") };
+                        var placeholder = new Label
+                        {
+                            Text = $"{item} view coming soon",
+                            AutoSize = true,
+                            Location = new Point(20, 20),
+                            ForeColor = ColorTranslator.FromHtml("#6B7280")
+                        };
                         contentPanel.Controls.Add(placeholder);
                     }
                     BuildSidebar(); // refresh highlight
@@ -196,6 +265,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void NavigateToDashboard()
         {
+            if (_hosted) return; // host manages dashboard UI
             var dash = new OfficerDashboard();
             dash.Show();
             Close();
@@ -203,7 +273,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BuildCollectionsHome()
         {
-            // Build panels (do not add to Form; add to contentPanel)
+            // Build panels and add to contentPanel
             summaryPanel = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.Transparent, Padding = new Padding(10, 10, 10, 0) };
             cardDueToday = MakeSummaryCard("#FFEDD5", "#EA580C", "#F97316", "Due Today", summary["dueToday"], "3 payments");
             cardOverdue = MakeSummaryCard("#FEE2E2", "#DC2626", "#EF4444", "Overdue", summary["overdue"], "2 accounts");
@@ -233,7 +303,10 @@ namespace LendingApp.UI.LoanOfficerUI
             lblTableTitle = new Label { Text = "COLLECTIONS LIST", Font = new Font("Segoe UI", 10, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), AutoSize = true, Location = new Point(16, 16) };
             lblItemsCount = new Label { Text = "0 items", Font = new Font("Segoe UI", 8), ForeColor = ColorTranslator.FromHtml("#1D4ED8"), AutoSize = true, Location = new Point(170, 18), BackColor = ColorTranslator.FromHtml("#DBEAFE"), Padding = new Padding(6, 2, 6, 2) };
             lblShowingFilter = new Label { Text = "Showing: All", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#6B7280"), AutoSize = true };
-            tableHeader.Resize += (s, e) => { lblShowingFilter.Location = new Point(tableHeader.Width - lblShowingFilter.Width - 16, 16); };
+            tableHeader.Resize += (s, e) =>
+            {
+                lblShowingFilter.Location = new Point(tableHeader.Width - lblShowingFilter.Width - 16, 16);
+            };
 
             gridCollections = new DataGridView
             {
@@ -260,10 +333,20 @@ namespace LendingApp.UI.LoanOfficerUI
             var gridHost = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
             gridHost.Controls.Add(gridCollections);
 
-            tableFooter = new Panel { Height = 40, Dock = DockStyle.Bottom, BackColor = ColorTranslator.FromHtml("#F9FAFB"), BorderStyle = BorderStyle.FixedSingle, Padding = new Padding(12, 8, 12, 8) };
+            tableFooter = new Panel
+            {
+                Height = 40,
+                Dock = DockStyle.Bottom,
+                BackColor = ColorTranslator.FromHtml("#F9FAFB"),
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(12, 8, 12, 8)
+            };
             lblTotalItems = new Label { Text = "Total: 0 collections", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#4B5563"), AutoSize = true, Location = new Point(12, 10) };
             lblTotalAmount = new Label { Text = "Total Amount: ₱0", Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), AutoSize = true };
-            tableFooter.Resize += (s, e) => { lblTotalAmount.Location = new Point(tableFooter.Width - lblTotalAmount.Width - 12, 10); };
+            tableFooter.Resize += (s, e) =>
+            {
+                lblTotalAmount.Location = new Point(tableFooter.Width - lblTotalAmount.Width - 12, 10);
+            };
 
             tableContainer.Controls.Add(gridHost);
             tableContainer.Controls.Add(tableFooter);
@@ -280,7 +363,6 @@ namespace LendingApp.UI.LoanOfficerUI
             quickStatsPanel.Controls.Add(qsAverage);
             quickStatsPanel.Controls.Add(qsFollowups);
 
-            // Add to content host in docking order
             contentPanel.Controls.Clear();
             contentPanel.Controls.Add(quickStatsPanel);
             contentPanel.Controls.Add(tableContainer);
@@ -296,7 +378,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowCollectionsHome()
         {
-            // Hide embedded forms and show collections layout
+            // Standalone only: ensure our collections layout is visible
             if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
                 _applicationsForm.Hide();
@@ -313,6 +395,8 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowApplicationsView()
         {
+            if (_hosted) return; // hosted navigation handled by dashboard
+
             contentPanel.Controls.Clear();
             if (_applicationsForm == null || _applicationsForm.IsDisposed)
             {
@@ -329,6 +413,8 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowCustomersView()
         {
+            if (_hosted) return; // hosted navigation handled by dashboard
+
             contentPanel.Controls.Clear();
             if (_customersForm == null || _customersForm.IsDisposed)
             {
@@ -360,8 +446,11 @@ namespace LendingApp.UI.LoanOfficerUI
                 RefreshTable();
             };
 
-            btnExport.Click += (s, e) => MessageBox.Show("Export collections (CSV/Excel)", "Export");
-            btnRecordPayment.Click += (s, e) => MessageBox.Show("Record Payment workflow", "Record Payment");
+            if (!_hosted)
+            {
+                btnExport.Click += (s, e) => MessageBox.Show("Export collections (CSV/Excel)", "Export");
+                btnRecordPayment.Click += (s, e) => MessageBox.Show("Record Payment workflow", "Record Payment");
+            }
         }
 
         private void ApplyData()
@@ -516,7 +605,6 @@ namespace LendingApp.UI.LoanOfficerUI
             int gap = 10;
             int startX = 10;
             int y = 10;
-            // Distribute 4 cards horizontally
             cardDueToday.Location = new Point(startX, y);
             cardOverdue.Location = new Point(cardDueToday.Right + gap, y);
             cardThisWeek.Location = new Point(cardOverdue.Right + gap, y);
@@ -529,7 +617,6 @@ namespace LendingApp.UI.LoanOfficerUI
             int startX = 10;
             int y = 10;
 
-            // 3 cards grid responsive: 1/2/3 columns
             int w = quickStatsPanel.Width - quickStatsPanel.Padding.Left - quickStatsPanel.Padding.Right;
             int columns = w >= 1280 ? 3 : (w >= 900 ? 2 : 1);
             int cardWidth = (w - (gap * (columns - 1))) / columns;

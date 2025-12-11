@@ -22,12 +22,11 @@ namespace LendingApp.UI.LoanOfficerUI
         private int overdueLoansCount = 3;
         private string todayCollections = "₱15,700";
 
-        // Keep a single instance of the Applications view to reuse
+        // Embedded views
         private OfficerApplications _applicationsForm;
+        private OfficerCollections _collectionsForm;
+        private OfficerCustomers _customersForm; // Added for customers view
         private bool _homeResizeHooked;
-
-        // Add a field to reuse the customers form instance
-        private OfficerCustomers _customersForm;
 
         // Data models
         private class PendingApplication
@@ -200,14 +199,17 @@ namespace LendingApp.UI.LoanOfficerUI
                 btn.Click += (s, e) =>
                 {
                     activeNav = item;
-                    // Navigation handling
                     if (item == "Applications")
                     {
                         ShowApplicationsView();
                     }
-                    else if (item == "Customers")
+                    else if (item == "Customers")         // <— add this branch
                     {
                         ShowCustomersView();
+                    }
+                    else if (item == "Collections")
+                    {
+                        ShowCollectionsView();
                     }
                     else if (item == "Dashboard")
                     {
@@ -215,11 +217,18 @@ namespace LendingApp.UI.LoanOfficerUI
                     }
                     else
                     {
-                        // keep sidebar highlight only
-                        contentPanel.Focus();
+                        summaryPanel.Visible = false;
+                        contentPanel.Controls.Clear();
+                        var placeholder = new Label
+                        {
+                            Text = $"{item} view coming soon",
+                            AutoSize = true,
+                            Location = new Point(20, 20),
+                            ForeColor = ColorTranslator.FromHtml("#6B7280")
+                        };
+                        contentPanel.Controls.Add(placeholder);
                     }
-                    // Refresh highlight
-                    BuildSidebar();
+                    BuildSidebar(); // refresh highlight
                 };
                 sidebarPanel.Controls.Add(btn);
                 y += 42;
@@ -228,7 +237,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void LayoutHeader()
         {
-            // Simple horizontal layout
             lblTitle.Location = new Point(16, 18);
             lblWelcome.Location = new Point(200, 20);
             btnNotifications.Size = new Size(70, 28);
@@ -250,9 +258,8 @@ namespace LendingApp.UI.LoanOfficerUI
             int startX = 10;
             int startY = 10;
 
-            // Card 1
             cardPending.BorderStyle = BorderStyle.FixedSingle;
-            cardPending.BackColor = ColorTranslator.FromHtml("#EFF6FF"); // blue-50
+            cardPending.BackColor = ColorTranslator.FromHtml("#EFF6FF");
             cardPending.Location = new Point(startX, startY);
             cardPending.Size = new Size(cardWidth, 60);
 
@@ -265,14 +272,12 @@ namespace LendingApp.UI.LoanOfficerUI
             lblPendingSub.Text = "Applications";
             lblPendingSub.ForeColor = ColorTranslator.FromHtml("#2563EB");
             lblPendingSub.Location = new Point(90, 28);
-
             cardPending.Controls.Add(lblPendingTitle);
             cardPending.Controls.Add(lblPendingCount);
             cardPending.Controls.Add(lblPendingSub);
 
-            // Card 2
             cardActive.BorderStyle = BorderStyle.FixedSingle;
-            cardActive.BackColor = ColorTranslator.FromHtml("#ECFDF5"); // green-50
+            cardActive.BackColor = ColorTranslator.FromHtml("#ECFDF5");
             cardActive.Location = new Point(startX + (cardWidth + gap), startY);
             cardActive.Size = new Size(cardWidth, 60);
             lblActiveTitle.Text = "Active";
@@ -288,9 +293,8 @@ namespace LendingApp.UI.LoanOfficerUI
             cardActive.Controls.Add(lblActiveValue);
             cardActive.Controls.Add(lblActiveSub);
 
-            // Card 3
             cardOverdue.BorderStyle = BorderStyle.FixedSingle;
-            cardOverdue.BackColor = ColorTranslator.FromHtml("#FEE2E2"); // red-100
+            cardOverdue.BackColor = ColorTranslator.FromHtml("#FEE2E2");
             cardOverdue.Location = new Point(startX + 2 * (cardWidth + gap), startY);
             cardOverdue.Size = new Size(cardWidth, 60);
             lblOverdueTitle.Text = "Overdue";
@@ -306,9 +310,8 @@ namespace LendingApp.UI.LoanOfficerUI
             cardOverdue.Controls.Add(lblOverdueCount);
             cardOverdue.Controls.Add(lblOverdueSub);
 
-            // Card 4
             cardCollections.BorderStyle = BorderStyle.FixedSingle;
-            cardCollections.BackColor = ColorTranslator.FromHtml("#FFEDD5"); // orange-100
+            cardCollections.BackColor = ColorTranslator.FromHtml("#FFEDD5");
             cardCollections.Location = new Point(startX + 3 * (cardWidth + gap), startY);
             cardCollections.Size = new Size(cardWidth, 60);
             lblCollectionsTitle.Text = "Today";
@@ -327,19 +330,16 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void LayoutMain()
         {
-            // Dock panels
             headerPanel.Dock = DockStyle.Top;
             summaryPanel.Dock = DockStyle.Top;
             sidebarPanel.Dock = DockStyle.Left;
             contentPanel.Dock = DockStyle.Fill;
 
-            // Add to form in order
             Controls.Add(contentPanel);
             Controls.Add(sidebarPanel);
             Controls.Add(summaryPanel);
             Controls.Add(headerPanel);
 
-            // Place initial home sections
             PlaceHomeSections();
             _homeResizeHooked = true;
         }
@@ -392,19 +392,30 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowApplicationsView()
         {
-            // Hide summary for a cleaner Applications view (optional)
             summaryPanel.Visible = false;
 
-            // Clear current content and host OfficerApplications inside contentPanel
             contentPanel.SuspendLayout();
             contentPanel.Controls.Clear();
 
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+
             if (_applicationsForm == null || _applicationsForm.IsDisposed)
             {
-                _applicationsForm = new OfficerApplications();
-                _applicationsForm.TopLevel = false;
-                _applicationsForm.FormBorderStyle = FormBorderStyle.None;
-                _applicationsForm.Dock = DockStyle.Fill;
+                _applicationsForm = new OfficerApplications
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
             }
 
             contentPanel.Controls.Add(_applicationsForm);
@@ -412,53 +423,91 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
-        // Add this method to show the customers view
-        private void ShowCustomersView()
+        private void ShowCollectionsView()
         {
-            // Optional: hide summary for full-page customers view
             summaryPanel.Visible = false;
 
-            // Remove any embedded applications form
-            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
-            {
-                _applicationsForm.Hide();
-                contentPanel.Controls.Remove(_applicationsForm);
-            }
-
-            // Clear current content and host OfficerCustomers inside contentPanel
             contentPanel.SuspendLayout();
             contentPanel.Controls.Clear();
 
-            if (_customersForm == null || _customersForm.IsDisposed)
-            {
-                _customersForm = new OfficerCustomers();
-                _customersForm.TopLevel = false;
-                _customersForm.FormBorderStyle = FormBorderStyle.None;
-                _customersForm.Dock = DockStyle.Fill;
-            }
-
-            contentPanel.Controls.Add(_customersForm);
-            _customersForm.Show();
-
-            contentPanel.ResumeLayout();
-        }
-
-        private void ShowDashboardHome()
-        {
-            // Hide applications view if present
             if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
                 _applicationsForm.Hide();
                 contentPanel.Controls.Remove(_applicationsForm);
             }
-            // Remove customers form if present
-            if (_customersForm != null && !_customersForm.IsDisposed)
+            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
 
-            // Rebuild and show home sections
+            if (_collectionsForm == null || _collectionsForm.IsDisposed)
+            {
+                _collectionsForm = new OfficerCollections(true)
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_collectionsForm);
+            _collectionsForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowCustomersView()
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+
+            if (_customersForm == null || _customersForm.IsDisposed)
+            {
+                _customersForm = new OfficerCustomers
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_customersForm);
+            _customersForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowDashboardHome()
+        {
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+
             BuildPendingApplicationsSection();
             BuildOverdueLoansSection();
             BuildTasksSection();
@@ -646,7 +695,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void PopulateData()
         {
-            // Data already loaded in field initializers; SetUsername updates header.
             SetUsername(_username);
         }
     }

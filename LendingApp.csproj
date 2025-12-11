@@ -53,6 +53,8 @@
     <Compile Include="Models\LoanOfficer\LoanOfficer.cs" />
     <Compile Include="Models\Loans\LoanApplication.cs" />
     <Compile Include="Models\User\User.cs" />
+    <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <Compile Include="obj\Release\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -145,6 +147,8 @@
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerLogin.resx">
       <DependentUpon>OfficerLogin.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="bin\Debug\LendingApp.exe.config" />
+    <None Include="obj\Release\LendingApp.csproj.AssemblyReference.cache" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -157,6 +161,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\LendingApp.exe" />
+    <Content Include="bin\Debug\LendingApp.pdb" />
+    <Content Include="icons\person.png" />
+    <Content Include="icons\Save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Release\" />
+    <Folder Include="LendingApp\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

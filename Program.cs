@@ -18,7 +18,7 @@ namespace LendingApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerCollections());
+            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
         }
     }
-}
+}   
