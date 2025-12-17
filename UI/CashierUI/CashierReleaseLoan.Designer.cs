@@ -1,6 +1,6 @@
 ﻿namespace LendingApp.UI.CashierUI
 {
-    partial class OfficerReleaseLoan
+    partial class CashierReleaseLoan
     {
         /// <summary>
         /// Required designer variable.

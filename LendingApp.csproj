@@ -67,11 +67,11 @@
     <Compile Include="UI\CashierUI\CashierDashboard.Designer.cs">
       <DependentUpon>CashierDashboard.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CashierUI\OfficerReleaseLoan.cs">
+    <Compile Include="UI\CashierUI\CashierReleaseLoan.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\CashierUI\OfficerReleaseLoan.Designer.cs">
-      <DependentUpon>OfficerReleaseLoan.cs</DependentUpon>
+    <Compile Include="UI\CashierUI\CashierReleaseLoan.Designer.cs">
+      <DependentUpon>CashierReleaseLoan.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
