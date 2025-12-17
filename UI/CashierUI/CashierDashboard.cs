@@ -259,7 +259,6 @@ namespace LendingApp.UI.CashierUI
             int xCol1 = 14;
             int xCol2 = 360;
             int y = 12;
-            int labelH = 22;
 
             // Loan #
             var lblLoan = new Label { Text = "Loan #:", Location = new Point(xCol1, y + 4), AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
