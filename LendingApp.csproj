@@ -150,6 +150,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="UI\CashierUI\CashierDashboard.resx">
+      <DependentUpon>CashierDashboard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
     </EmbeddedResource>
