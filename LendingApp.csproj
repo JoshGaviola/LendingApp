@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+          Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -13,202 +16,82 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
+
   <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+
     <Compile Include="Models\Admin\Admin.cs" />
     <Compile Include="Models\Borrower\Borrower.cs" />
     <Compile Include="Models\Cashier\Cashier.cs" />
-<<<<<<< HEAD
     <Compile Include="Models\Loans\LoanApplication.cs" />
-    <Compile Include="Models\User\User.cs" />
-=======
-    <Compile Include="Models\Loan Product\LoanProduct.cs" />
     <Compile Include="Models\LoanOfficer\LoanOfficer.cs" />
-    <Compile Include="Models\Loans\LoanApplication.cs" />
+    <Compile Include="Models\Loan Product\LoanProduct.cs" />
     <Compile Include="Models\User\User.cs" />
-    <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
-    <Compile Include="obj\Release\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+
     <Compile Include="UI\AdminUI\AdminDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
+
     <Compile Include="UI\CashierUI\CashierDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CashierUI\CashierDashboard.Designer.cs">
       <DependentUpon>CashierDashboard.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CashierUI\CashierReleaseLoan.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\CashierUI\CashierReleaseLoan.Designer.cs">
-      <DependentUpon>CashierReleaseLoan.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\CustomerUI\CustomerApplyLoans.Designer.cs">
-      <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
-    </Compile>
->>>>>>> e9132d469b6846b74cc80e9f2252fa646b9211d8
+
     <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerDashBoard.Designer.cs">
       <DependentUpon>CustomerDashBoard.cs</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+
     <Compile Include="UI\CustomerUI\CustomerLogin.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerLogin.Designer.cs">
       <DependentUpon>CustomerLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CustomerUI\CustomerManagement.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\CustomerUI\CustomerManagement.Designer.cs">
-      <DependentUpon>CustomerManagement.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\CustomerUI\CustomerRegistration.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\CustomerUI\CustomerRegistration.Designer.cs">
-      <DependentUpon>CustomerRegistration.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerApplications.Designer.cs">
-      <DependentUpon>OfficerApplications.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCalendar.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCalendar.Designer.cs">
-      <DependentUpon>OfficerCalendar.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCollections.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCollections.Designer.cs">
-      <DependentUpon>OfficerCollections.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCustomers.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerCustomers.Designer.cs">
-      <DependentUpon>OfficerCustomers.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerDashboard.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerDashboard.Designer.cs">
-      <DependentUpon>OfficerDashboard.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerLogin.Designer.cs">
-      <DependentUpon>OfficerLogin.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerSettings.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerSettings.Designer.cs">
-      <DependentUpon>OfficerSettings.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="UI\CashierUI\CashierDashboard.resx">
-      <DependentUpon>CashierDashboard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
-      <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerDashBoard.resx">
-      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerLogin.resx">
-      <DependentUpon>CustomerLogin.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
-      <DependentUpon>CustomerManagement.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerRegistration.resx">
-      <DependentUpon>CustomerRegistration.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\LoanOfficerUI\OfficerDashboard.resx">
-      <DependentUpon>OfficerDashboard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\LoanOfficerUI\OfficerLogin.resx">
-      <DependentUpon>OfficerLogin.cs</DependentUpon>
-    </EmbeddedResource>
-    <None Include="bin\Debug\LendingApp.exe.config" />
-    <None Include="obj\Release\LendingApp.csproj.AssemblyReference.cache" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
+
   <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx" />
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="bin\Debug\LendingApp.exe" />
-    <Content Include="bin\Debug\LendingApp.pdb" />
-    <Content Include="icons\person.png" />
-    <Content Include="icons\Save.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="bin\Release\" />
-    <Folder Include="LendingApp\" />
-  </ItemGroup>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>
