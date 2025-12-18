@@ -18,7 +18,11 @@ namespace LendingApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+<<<<<<< HEAD
             Application.Run(new CustomerLogin());
+=======
+            Application.Run(new LendingApp.UI.CashierUI.CashierReleaseLoan());
+>>>>>>> e9132d469b6846b74cc80e9f2252fa646b9211d8
         }
     }
-}
+}   

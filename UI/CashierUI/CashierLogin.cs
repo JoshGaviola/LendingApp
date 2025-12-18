@@ -6,12 +6,12 @@ using System.Windows.Forms;
 
 namespace LendingApp
 {
-    public partial class CustomerLogin : Form
+    public partial class CashierLogin : Form
     {
         private CustomerRegistration _openRegistrationForm;
         private CustomerDashBoard _openCustomerDashBoardForm;
 
-        public CustomerLogin()
+        public CashierLogin()
         {
             InitializeComponent();
             CustomerLoginLabel.ForeColor = ColorTranslator.FromHtml("#2C3E50");

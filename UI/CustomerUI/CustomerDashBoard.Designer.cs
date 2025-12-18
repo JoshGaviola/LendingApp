@@ -82,6 +82,8 @@
             this.panel15 = new System.Windows.Forms.Panel();
             this.LoanStatus = new System.Windows.Forms.Label();
             this.panel10 = new System.Windows.Forms.Panel();
+            this.btnApplyLoans = new System.Windows.Forms.Button();
+            this.btnDashboard = new System.Windows.Forms.Button();
             this.QuickActions = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
@@ -93,6 +95,7 @@
             this.panel3.SuspendLayout();
             this.panel7.SuspendLayout();
             this.panel9.SuspendLayout();
+            this.panel10.SuspendLayout();
             this.panel8.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -111,11 +114,11 @@
             // 
             this.label1.AutoSize = true;
             this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Poppins Medium", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(31, 46);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(92, 23);
+            this.label1.Size = new System.Drawing.Size(84, 16);
             this.label1.TabIndex = 1;
             this.label1.Text = "Dashboard";
             // 
@@ -123,11 +126,11 @@
             // 
             this.CustomerDashBHeaderPanel.AutoSize = true;
             this.CustomerDashBHeaderPanel.BackColor = System.Drawing.Color.Transparent;
-            this.CustomerDashBHeaderPanel.Font = new System.Drawing.Font("Poppins", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CustomerDashBHeaderPanel.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CustomerDashBHeaderPanel.Location = new System.Drawing.Point(28, 18);
             this.CustomerDashBHeaderPanel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.CustomerDashBHeaderPanel.Name = "CustomerDashBHeaderPanel";
-            this.CustomerDashBHeaderPanel.Size = new System.Drawing.Size(243, 37);
+            this.CustomerDashBHeaderPanel.Size = new System.Drawing.Size(215, 25);
             this.CustomerDashBHeaderPanel.TabIndex = 0;
             this.CustomerDashBHeaderPanel.Text = "Customer Dashboard";
             // 
@@ -148,11 +151,11 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Poppins", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.ForeColor = System.Drawing.Color.Black;
             this.label8.Location = new System.Drawing.Point(14, 100);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(134, 22);
+            this.label8.Size = new System.Drawing.Size(138, 15);
             this.label8.TabIndex = 3;
             this.label8.Tag = "insidePanelGray";
             this.label8.Text = "+ 12% from last year";
@@ -171,11 +174,11 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Poppins", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Black;
             this.label2.Location = new System.Drawing.Point(14, 31);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(104, 22);
+            this.label2.Size = new System.Drawing.Size(104, 15);
             this.label2.TabIndex = 1;
             this.label2.Tag = "insidePanelGray";
             this.label2.Text = "Total Borrowed";
@@ -204,11 +207,11 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Font = new System.Drawing.Font("Poppins", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label9.ForeColor = System.Drawing.Color.Black;
             this.label9.Location = new System.Drawing.Point(19, 100);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(97, 22);
+            this.label9.Size = new System.Drawing.Size(95, 15);
             this.label9.TabIndex = 4;
             this.label9.Tag = "insidePanelGray";
             this.label9.Text = "3 active loans";
@@ -227,11 +230,11 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Poppins Medium", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.ForeColor = System.Drawing.Color.Black;
             this.label3.Location = new System.Drawing.Point(19, 31);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(155, 22);
+            this.label3.Size = new System.Drawing.Size(140, 15);
             this.label3.TabIndex = 2;
             this.label3.Tag = "insidePanelGray";
             this.label3.Text = "Outstanding Balance";
@@ -260,11 +263,11 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Font = new System.Drawing.Font("Poppins", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label10.ForeColor = System.Drawing.Color.Black;
             this.label10.Location = new System.Drawing.Point(19, 100);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(150, 22);
+            this.label10.Size = new System.Drawing.Size(161, 15);
             this.label10.TabIndex = 5;
             this.label10.Tag = "insidePanelGray";
             this.label10.Text = " Next due: Dec 25, 2025";
@@ -283,11 +286,11 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Poppins Medium", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.Black;
             this.label4.Location = new System.Drawing.Point(19, 31);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(130, 22);
+            this.label4.Size = new System.Drawing.Size(116, 15);
             this.label4.TabIndex = 3;
             this.label4.Tag = "insidePanelGray";
             this.label4.Text = "Monthly Payment";
@@ -363,12 +366,12 @@
             // 
             this.label14.AutoSize = true;
             this.label14.BackColor = System.Drawing.Color.Transparent;
-            this.label14.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label14.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label14.ForeColor = System.Drawing.Color.Black;
             this.label14.Location = new System.Drawing.Point(13, 154);
             this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(157, 28);
+            this.label14.Size = new System.Drawing.Size(134, 20);
             this.label14.TabIndex = 6;
             this.label14.Text = "Payment received";
             // 
@@ -384,14 +387,14 @@
             // 
             this.label13.AutoSize = true;
             this.label13.BackColor = System.Drawing.Color.Transparent;
-            this.label13.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label13.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label13.ForeColor = System.Drawing.Color.Black;
             this.label13.Location = new System.Drawing.Point(13, 110);
             this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(229, 28);
+            this.label13.Size = new System.Drawing.Size(197, 20);
             this.label13.TabIndex = 5;
-            this.label13.Text = "Laon Application approved";
+            this.label13.Text = "Loan Application approved";
             // 
             // panel11
             // 
@@ -405,14 +408,14 @@
             // 
             this.label12.AutoSize = true;
             this.label12.BackColor = System.Drawing.Color.Transparent;
-            this.label12.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label12.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label12.ForeColor = System.Drawing.Color.Black;
             this.label12.Location = new System.Drawing.Point(13, 66);
             this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(271, 28);
+            this.label12.Size = new System.Drawing.Size(239, 20);
             this.label12.TabIndex = 4;
-            this.label12.Text = "New Laon Application Submitted";
+            this.label12.Text = "New Loan Application Submitted";
             // 
             // panel12
             // 
@@ -426,12 +429,12 @@
             // 
             this.RecentPayments.AutoSize = true;
             this.RecentPayments.BackColor = System.Drawing.Color.Transparent;
-            this.RecentPayments.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.RecentPayments.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RecentPayments.ForeColor = System.Drawing.Color.Black;
             this.RecentPayments.Location = new System.Drawing.Point(12, 10);
             this.RecentPayments.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.RecentPayments.Name = "RecentPayments";
-            this.RecentPayments.Size = new System.Drawing.Size(151, 28);
+            this.RecentPayments.Size = new System.Drawing.Size(135, 20);
             this.RecentPayments.TabIndex = 2;
             this.RecentPayments.Text = "Recent Payments";
             // 
@@ -468,99 +471,99 @@
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label28.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label28.ForeColor = System.Drawing.Color.Black;
             this.label28.Location = new System.Drawing.Point(768, 241);
             this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(90, 26);
+            this.label28.Size = new System.Drawing.Size(78, 18);
             this.label28.TabIndex = 23;
             this.label28.Text = "24 Months";
             // 
             // label27
             // 
             this.label27.AutoSize = true;
-            this.label27.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label27.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label27.ForeColor = System.Drawing.Color.Black;
             this.label27.Location = new System.Drawing.Point(768, 181);
             this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(90, 26);
+            this.label27.Size = new System.Drawing.Size(78, 18);
             this.label27.TabIndex = 23;
             this.label27.Text = "24 Months";
             // 
             // label26
             // 
             this.label26.AutoSize = true;
-            this.label26.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label26.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label26.ForeColor = System.Drawing.Color.Black;
             this.label26.Location = new System.Drawing.Point(768, 120);
             this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(90, 26);
+            this.label26.Size = new System.Drawing.Size(78, 18);
             this.label26.TabIndex = 22;
             this.label26.Text = "24 Months";
             // 
             // label25
             // 
             this.label25.AutoSize = true;
-            this.label25.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label25.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label25.ForeColor = System.Drawing.Color.Black;
             this.label25.Location = new System.Drawing.Point(682, 241);
             this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(51, 26);
+            this.label25.Size = new System.Drawing.Size(44, 18);
             this.label25.TabIndex = 21;
             this.label25.Text = "$0.00";
             // 
             // label24
             // 
             this.label24.AutoSize = true;
-            this.label24.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label24.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label24.ForeColor = System.Drawing.Color.Black;
             this.label24.Location = new System.Drawing.Point(682, 181);
             this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(51, 26);
+            this.label24.Size = new System.Drawing.Size(44, 18);
             this.label24.TabIndex = 20;
             this.label24.Text = "$0.00";
             // 
             // label23
             // 
             this.label23.AutoSize = true;
-            this.label23.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label23.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label23.ForeColor = System.Drawing.Color.Black;
             this.label23.Location = new System.Drawing.Point(682, 120);
             this.label23.Name = "label23";
-            this.label23.Size = new System.Drawing.Size(51, 26);
+            this.label23.Size = new System.Drawing.Size(44, 18);
             this.label23.TabIndex = 19;
             this.label23.Text = "$0.00";
             // 
             // label22
             // 
             this.label22.AutoSize = true;
-            this.label22.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label22.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label22.ForeColor = System.Drawing.Color.Black;
             this.label22.Location = new System.Drawing.Point(229, 243);
             this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(118, 26);
+            this.label22.Size = new System.Drawing.Size(104, 18);
             this.label22.TabIndex = 18;
             this.label22.Text = "Personal Loan";
             // 
             // label21
             // 
             this.label21.AutoSize = true;
-            this.label21.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label21.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label21.ForeColor = System.Drawing.Color.Black;
             this.label21.Location = new System.Drawing.Point(229, 181);
             this.label21.Name = "label21";
-            this.label21.Size = new System.Drawing.Size(118, 26);
+            this.label21.Size = new System.Drawing.Size(104, 18);
             this.label21.TabIndex = 18;
             this.label21.Text = "Personal Loan";
             // 
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Font = new System.Drawing.Font("Poppins", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label20.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label20.ForeColor = System.Drawing.Color.Black;
             this.label20.Location = new System.Drawing.Point(229, 120);
             this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(118, 26);
+            this.label20.Size = new System.Drawing.Size(104, 18);
             this.label20.TabIndex = 17;
             this.label20.Text = "Personal Loan";
             // 
@@ -625,12 +628,12 @@
             // 
             this.Status.AutoSize = true;
             this.Status.BackColor = System.Drawing.Color.Transparent;
-            this.Status.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Status.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Status.ForeColor = System.Drawing.Color.Black;
             this.Status.Location = new System.Drawing.Point(871, 68);
             this.Status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.Status.Name = "Status";
-            this.Status.Size = new System.Drawing.Size(62, 28);
+            this.Status.Size = new System.Drawing.Size(56, 20);
             this.Status.TabIndex = 14;
             this.Status.Text = "Status";
             // 
@@ -638,12 +641,12 @@
             // 
             this.Term.AutoSize = true;
             this.Term.BackColor = System.Drawing.Color.Transparent;
-            this.Term.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Term.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Term.ForeColor = System.Drawing.Color.Black;
             this.Term.Location = new System.Drawing.Point(779, 68);
             this.Term.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.Term.Name = "Term";
-            this.Term.Size = new System.Drawing.Size(53, 28);
+            this.Term.Size = new System.Drawing.Size(45, 20);
             this.Term.TabIndex = 13;
             this.Term.Text = "Term";
             // 
@@ -651,12 +654,12 @@
             // 
             this.Amount.AutoSize = true;
             this.Amount.BackColor = System.Drawing.Color.Transparent;
-            this.Amount.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Amount.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Amount.ForeColor = System.Drawing.Color.Black;
             this.Amount.Location = new System.Drawing.Point(669, 68);
             this.Amount.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.Amount.Name = "Amount";
-            this.Amount.Size = new System.Drawing.Size(75, 28);
+            this.Amount.Size = new System.Drawing.Size(65, 20);
             this.Amount.TabIndex = 12;
             this.Amount.Text = "Amount";
             // 
@@ -664,12 +667,12 @@
             // 
             this.LoanType.AutoSize = true;
             this.LoanType.BackColor = System.Drawing.Color.Transparent;
-            this.LoanType.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoanType.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoanType.ForeColor = System.Drawing.Color.Black;
             this.LoanType.Location = new System.Drawing.Point(242, 68);
             this.LoanType.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LoanType.Name = "LoanType";
-            this.LoanType.Size = new System.Drawing.Size(93, 28);
+            this.LoanType.Size = new System.Drawing.Size(83, 20);
             this.LoanType.TabIndex = 11;
             this.LoanType.Text = "Loan Type";
             // 
@@ -677,12 +680,12 @@
             // 
             this.LoandID.AutoSize = true;
             this.LoandID.BackColor = System.Drawing.Color.Transparent;
-            this.LoandID.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoandID.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoandID.ForeColor = System.Drawing.Color.Black;
             this.LoandID.Location = new System.Drawing.Point(24, 68);
             this.LoandID.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LoandID.Name = "LoandID";
-            this.LoandID.Size = new System.Drawing.Size(69, 28);
+            this.LoandID.Size = new System.Drawing.Size(66, 20);
             this.LoandID.TabIndex = 10;
             this.LoandID.Text = "Loan ID";
             // 
@@ -698,32 +701,60 @@
             // 
             this.LoanStatus.AutoSize = true;
             this.LoanStatus.BackColor = System.Drawing.Color.Transparent;
-            this.LoanStatus.Font = new System.Drawing.Font("Poppins", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LoanStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoanStatus.ForeColor = System.Drawing.Color.Black;
             this.LoanStatus.Location = new System.Drawing.Point(13, 6);
             this.LoanStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LoanStatus.Name = "LoanStatus";
-            this.LoanStatus.Size = new System.Drawing.Size(182, 28);
+            this.LoanStatus.Size = new System.Drawing.Size(163, 20);
             this.LoanStatus.TabIndex = 9;
             this.LoanStatus.Text = "Loan Status Overview";
             // 
             // panel10
             // 
+            this.panel10.Controls.Add(this.btnApplyLoans);
+            this.panel10.Controls.Add(this.btnDashboard);
             this.panel10.Location = new System.Drawing.Point(-2, 92);
             this.panel10.Name = "panel10";
             this.panel10.Size = new System.Drawing.Size(258, 762);
             this.panel10.TabIndex = 7;
             // 
+            // btnApplyLoans
+            // 
+            this.btnApplyLoans.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.btnApplyLoans.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnApplyLoans.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnApplyLoans.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.btnApplyLoans.Location = new System.Drawing.Point(14, 95);
+            this.btnApplyLoans.Name = "btnApplyLoans";
+            this.btnApplyLoans.Size = new System.Drawing.Size(229, 77);
+            this.btnApplyLoans.TabIndex = 10;
+            this.btnApplyLoans.Text = "Apply Loans";
+            this.btnApplyLoans.UseVisualStyleBackColor = false;
+            // 
+            // btnDashboard
+            // 
+            this.btnDashboard.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.btnDashboard.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDashboard.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDashboard.ForeColor = System.Drawing.SystemColors.ButtonFace;
+            this.btnDashboard.Location = new System.Drawing.Point(14, 10);
+            this.btnDashboard.Name = "btnDashboard";
+            this.btnDashboard.Size = new System.Drawing.Size(229, 77);
+            this.btnDashboard.TabIndex = 9;
+            this.btnDashboard.Text = "Dashboard";
+            this.btnDashboard.UseVisualStyleBackColor = false;
+            // 
             // QuickActions
             // 
             this.QuickActions.AutoSize = true;
             this.QuickActions.BackColor = System.Drawing.Color.Transparent;
-            this.QuickActions.Font = new System.Drawing.Font("Poppins", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.QuickActions.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.QuickActions.ForeColor = System.Drawing.Color.Black;
             this.QuickActions.Location = new System.Drawing.Point(17, 17);
             this.QuickActions.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.QuickActions.Name = "QuickActions";
-            this.QuickActions.Size = new System.Drawing.Size(145, 34);
+            this.QuickActions.Size = new System.Drawing.Size(126, 24);
             this.QuickActions.TabIndex = 8;
             this.QuickActions.Text = "Quick Actions";
             // 
@@ -768,7 +799,7 @@
             // 
             // CustomerDashBoard
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 19F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1508, 855);
             this.Controls.Add(this.panel10);
@@ -779,7 +810,7 @@
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.CustDashHeaderPanel);
-            this.Font = new System.Drawing.Font("Poppins", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForeColor = System.Drawing.Color.White;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "CustomerDashBoard";
@@ -796,6 +827,7 @@
             this.panel7.PerformLayout();
             this.panel9.ResumeLayout(false);
             this.panel9.PerformLayout();
+            this.panel10.ResumeLayout(false);
             this.panel8.ResumeLayout(false);
             this.panel8.PerformLayout();
             this.ResumeLayout(false);
@@ -863,5 +895,7 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Panel panel8;
+        private System.Windows.Forms.Button btnDashboard;
+        private System.Windows.Forms.Button btnApplyLoans;
     }
 }

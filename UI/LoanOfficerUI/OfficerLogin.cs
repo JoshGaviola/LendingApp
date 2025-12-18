@@ -1,20 +1,21 @@
-﻿using LendingApp.UI.CustomerUI;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using LendingApp.UI.CustomerUI; // For CustomerRegistration
+using LendingApp.UI.LoanOfficerUI; // For OfficerDashboard
 
-namespace LendingApp
+namespace LendingApp.UI.LoanOfficerUI
 {
-    public partial class CustomerLogin : Form
+    public partial class OfficerLogin : Form
     {
         private CustomerRegistration _openRegistrationForm;
-        private CustomerDashBoard _openCustomerDashBoardForm;
+        private OfficerDashboard _openOfficerDashboardForm;
 
-        public CustomerLogin()
+        public OfficerLogin()
         {
             InitializeComponent();
-            CustomerLoginLabel.ForeColor = ColorTranslator.FromHtml("#2C3E50");
+            OfficerLoginLabel.ForeColor = ColorTranslator.FromHtml("#2C3E50");
             EnterCredentialsLbl.ForeColor = ColorTranslator.FromHtml("#898484");
             SignInBtn.BackColor = ColorTranslator.FromHtml("#3498DB");
 
@@ -43,14 +44,14 @@ namespace LendingApp
             }
         }
 
-        private void CustomerLogin_MouseDown(object sender, MouseEventArgs e)
+        private void OfficerLogin_MouseDown(object sender, MouseEventArgs e)
         {
             movePosition = true;
             xCoordinate = e.X;
             yCoordinate = e.Y;
         }
 
-        private void CustomerLogin_MouseMove(object sender, MouseEventArgs e)
+        private void OfficerLogin_MouseMove(object sender, MouseEventArgs e)
         {
             if (movePosition)
             {
@@ -58,7 +59,7 @@ namespace LendingApp
             }
         }
 
-        private void CustomerLogin_MouseUp(object sender, MouseEventArgs e)
+        private void OfficerLogin_MouseUp(object sender, MouseEventArgs e)
         {
             movePosition = false;
         }
@@ -87,31 +88,28 @@ namespace LendingApp
             );
         }
 
-        // Modified: Open dashboard and close (dispose) login after dashboard shuts down.
-        private void SignInBtn_Click(object sender, EventArgs e)
+        private void SignInBtn_Click_1(object sender, EventArgs e)
         {
             // TODO: Add real authentication logic here (validate username/password).
             // If credentials invalid, return early.
 
-            if (_openCustomerDashBoardForm == null || _openCustomerDashBoardForm.IsDisposed)
+            if (_openOfficerDashboardForm == null || _openOfficerDashboardForm.IsDisposed)
             {
-                _openCustomerDashBoardForm = new CustomerDashBoard();
-                // When dashboard closes, dispose login (if still around).
-                _openCustomerDashBoardForm.FormClosed += (s, args) =>
+                _openOfficerDashboardForm = new OfficerDashboard();
+                _openOfficerDashboardForm.FormClosed += (s, args) =>
                 {
                     if (!this.IsDisposed)
                     {
-                        this.Close(); // Ends app if no other forms open.
+                        this.Close();
                     }
                 };
 
-                // Hide login so user perceives it as closed.
                 this.Hide();
-                _openCustomerDashBoardForm.Show();
+                _openOfficerDashboardForm.Show();
             }
             else
             {
-                _openCustomerDashBoardForm.Focus();
+                _openOfficerDashboardForm.Focus();
             }
         }
     }

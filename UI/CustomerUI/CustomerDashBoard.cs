@@ -15,7 +15,7 @@ namespace LendingApp.UI.CustomerUI{
 
             InitializeComponent();
             SetLabelsGray();
-            formControls();
+            //formControls();
             this.BackColor = ColorTranslator.FromHtml("#F0F2F5");
             label1.ForeColor = ColorTranslator.FromHtml("#838383");
             panel4.BackColor = ColorTranslator.FromHtml("#3498DB");
