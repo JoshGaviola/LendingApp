@@ -112,5 +112,45 @@ namespace LendingApp.UI.LoanOfficerUI
                 _openOfficerDashboardForm.Focus();
             }
         }
+
+        private void txtboxPassword_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtboxUserName_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblRegister_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void EnterCredentialsLbl_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void OfficerLoginLabel_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

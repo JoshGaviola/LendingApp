@@ -1,6 +1,6 @@
-﻿namespace LendingApp.UI.LoanOfficerUI
+﻿namespace LendingApp.UI.CashierUI
 {
-    partial class OfficerLogin
+    partial class CashierLogin
     {
         /// <summary>
         /// Required designer variable.
@@ -45,42 +45,38 @@
             this.lblRegister.AutoSize = true;
             this.lblRegister.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblRegister.ForeColor = System.Drawing.SystemColors.MenuHighlight;
-            this.lblRegister.Location = new System.Drawing.Point(606, 402);
+            this.lblRegister.Location = new System.Drawing.Point(605, 400);
             this.lblRegister.Name = "lblRegister";
             this.lblRegister.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblRegister.Size = new System.Drawing.Size(58, 16);
-            this.lblRegister.TabIndex = 21;
+            this.lblRegister.TabIndex = 31;
             this.lblRegister.Text = "Register";
-            this.lblRegister.Click += new System.EventHandler(this.lblRegister_Click_1);
             // 
             // txtboxPassword
             // 
-            this.txtboxPassword.Location = new System.Drawing.Point(383, 276);
+            this.txtboxPassword.Location = new System.Drawing.Point(382, 274);
             this.txtboxPassword.Multiline = true;
             this.txtboxPassword.Name = "txtboxPassword";
             this.txtboxPassword.Size = new System.Drawing.Size(281, 39);
-            this.txtboxPassword.TabIndex = 20;
-            this.txtboxPassword.TextChanged += new System.EventHandler(this.txtboxPassword_TextChanged);
+            this.txtboxPassword.TabIndex = 30;
             // 
             // txtboxUserName
             // 
-            this.txtboxUserName.Location = new System.Drawing.Point(383, 160);
+            this.txtboxUserName.Location = new System.Drawing.Point(382, 158);
             this.txtboxUserName.Multiline = true;
             this.txtboxUserName.Name = "txtboxUserName";
             this.txtboxUserName.Size = new System.Drawing.Size(281, 39);
-            this.txtboxUserName.TabIndex = 19;
-            this.txtboxUserName.TextChanged += new System.EventHandler(this.txtboxUserName_TextChanged);
+            this.txtboxUserName.TabIndex = 29;
             // 
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(386, 401);
+            this.checkBox1.Location = new System.Drawing.Point(385, 399);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(94, 17);
-            this.checkBox1.TabIndex = 18;
+            this.checkBox1.TabIndex = 28;
             this.checkBox1.Text = "Remember me";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // SignInBtn
             // 
@@ -88,72 +84,67 @@
             this.SignInBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SignInBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SignInBtn.ForeColor = System.Drawing.SystemColors.ButtonFace;
-            this.SignInBtn.Location = new System.Drawing.Point(384, 439);
+            this.SignInBtn.Location = new System.Drawing.Point(383, 437);
             this.SignInBtn.Name = "SignInBtn";
             this.SignInBtn.Size = new System.Drawing.Size(280, 49);
-            this.SignInBtn.TabIndex = 17;
+            this.SignInBtn.TabIndex = 27;
             this.SignInBtn.Text = "Sign in";
             this.SignInBtn.UseVisualStyleBackColor = false;
-            this.SignInBtn.Click += new System.EventHandler(this.SignInBtn_Click_1);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(380, 257);
+            this.label2.Location = new System.Drawing.Point(379, 255);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(67, 16);
-            this.label2.TabIndex = 16;
+            this.label2.TabIndex = 26;
             this.label2.Text = "Password";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(380, 141);
+            this.label1.Location = new System.Drawing.Point(379, 139);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(70, 16);
-            this.label1.TabIndex = 15;
+            this.label1.TabIndex = 25;
             this.label1.Text = "Username";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // PanelLeftSideCustLogin
             // 
-            this.PanelLeftSideCustLogin.Location = new System.Drawing.Point(0, 0);
+            this.PanelLeftSideCustLogin.Location = new System.Drawing.Point(-1, -2);
             this.PanelLeftSideCustLogin.Name = "PanelLeftSideCustLogin";
             this.PanelLeftSideCustLogin.Size = new System.Drawing.Size(357, 549);
-            this.PanelLeftSideCustLogin.TabIndex = 3;
+            this.PanelLeftSideCustLogin.TabIndex = 22;
             this.PanelLeftSideCustLogin.Paint += new System.Windows.Forms.PaintEventHandler(this.PanelLeftSideCustLogin_Paint);
             // 
             // EnterCredentialsLbl
             // 
             this.EnterCredentialsLbl.AutoSize = true;
             this.EnterCredentialsLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.EnterCredentialsLbl.Location = new System.Drawing.Point(383, 74);
+            this.EnterCredentialsLbl.Location = new System.Drawing.Point(379, 68);
             this.EnterCredentialsLbl.Name = "EnterCredentialsLbl";
             this.EnterCredentialsLbl.Size = new System.Drawing.Size(322, 18);
-            this.EnterCredentialsLbl.TabIndex = 13;
+            this.EnterCredentialsLbl.TabIndex = 24;
             this.EnterCredentialsLbl.Text = " Enter your credentials to access the dashboard";
-            this.EnterCredentialsLbl.Click += new System.EventHandler(this.EnterCredentialsLbl_Click);
             // 
             // OfficerLoginLabel
             // 
             this.OfficerLoginLabel.AutoSize = true;
             this.OfficerLoginLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OfficerLoginLabel.ForeColor = System.Drawing.Color.OrangeRed;
-            this.OfficerLoginLabel.Location = new System.Drawing.Point(379, 41);
+            this.OfficerLoginLabel.Location = new System.Drawing.Point(378, 39);
             this.OfficerLoginLabel.Name = "OfficerLoginLabel";
-            this.OfficerLoginLabel.Size = new System.Drawing.Size(163, 29);
-            this.OfficerLoginLabel.TabIndex = 12;
-            this.OfficerLoginLabel.Text = "Officer Login";
-            this.OfficerLoginLabel.Click += new System.EventHandler(this.OfficerLoginLabel_Click);
+            this.OfficerLoginLabel.Size = new System.Drawing.Size(175, 29);
+            this.OfficerLoginLabel.TabIndex = 23;
+            this.OfficerLoginLabel.Text = "Cashier Login";
             // 
-            // OfficerLogin
+            // CashierLogin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(714, 506);
+            this.ClientSize = new System.Drawing.Size(715, 519);
             this.Controls.Add(this.lblRegister);
             this.Controls.Add(this.txtboxPassword);
             this.Controls.Add(this.txtboxUserName);
@@ -164,8 +155,8 @@
             this.Controls.Add(this.PanelLeftSideCustLogin);
             this.Controls.Add(this.EnterCredentialsLbl);
             this.Controls.Add(this.OfficerLoginLabel);
-            this.Name = "OfficerLogin";
-            this.Text = "OfficerLogin";
+            this.Name = "CashierLogin";
+            this.Text = "CashierLogin";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -55,6 +55,18 @@
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierDashboard.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierDashboard.Designer.cs">
+      <DependentUpon>CashierDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierLogin.Designer.cs">
+      <DependentUpon>CashierLogin.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -130,6 +142,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx" />
+    <EmbeddedResource Include="UI\CashierUI\CashierLogin.resx">
+      <DependentUpon>CashierLogin.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
     </EmbeddedResource>
@@ -153,8 +168,6 @@
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UI\CashierUI\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
