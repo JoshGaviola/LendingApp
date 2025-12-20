@@ -67,6 +67,12 @@
     <Compile Include="UI\CashierUI\CashierLogin.Designer.cs">
       <DependentUpon>CashierLogin.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierProcessPayment.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierProcessPayment.Designer.cs">
+      <DependentUpon>CashierProcessPayment.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -142,6 +148,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx" />
+    <EmbeddedResource Include="UI\CashierUI\CashierDashboard.resx">
+      <DependentUpon>CashierDashboard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\CashierUI\CashierLogin.resx">
       <DependentUpon>CashierLogin.cs</DependentUpon>
     </EmbeddedResource>

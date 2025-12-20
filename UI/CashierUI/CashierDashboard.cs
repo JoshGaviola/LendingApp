@@ -46,6 +46,9 @@ namespace LendingApp.UI.CashierUI
         private bool _summaryResizeHooked;
         private bool _contentResizeHooked;
 
+        // Embedded views
+        private CashierProcessPayment _processPaymentForm;
+
         public CashierDashboard()
         {
             InitializeComponent();
@@ -215,7 +218,7 @@ namespace LendingApp.UI.CashierUI
             {
                 Dock = DockStyle.Fill,
                 BackColor = Color.White,
-                AutoScroll = true
+                AutoScroll = false // hosted forms manage their own scrolling
             };
 
             Controls.Clear();
@@ -298,14 +301,9 @@ namespace LendingApp.UI.CashierUI
             contentPanel.SuspendLayout();
             contentPanel.Controls.Clear();
 
-            // Mimic the React conditional renders with WinForms placeholder cards.
             if (activeNav == "Process Payment")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Payment Processing",
-                    message: "Hook this to your `CashierPaymentProcessing` form/user control when available.",
-                    accentHex: "#15803D"
-                ));
+                ShowProcessPaymentView();
             }
             else if (activeNav == "Release Loan")
             {
@@ -314,6 +312,7 @@ namespace LendingApp.UI.CashierUI
                     message: "This section will handle approved loan disbursements.",
                     accentHex: "#1D4ED8"
                 ));
+                ApplyPlaceholderLayout();
             }
             else if (activeNav == "Daily Report")
             {
@@ -322,6 +321,7 @@ namespace LendingApp.UI.CashierUI
                     message: "View and generate daily cash reports.",
                     accentHex: "#C2410C"
                 ));
+                ApplyPlaceholderLayout();
             }
             else if (activeNav == "Receipts")
             {
@@ -330,6 +330,7 @@ namespace LendingApp.UI.CashierUI
                     message: "Search and manage official receipts.",
                     accentHex: "#6D28D9"
                 ));
+                ApplyPlaceholderLayout();
             }
             else if (activeNav == "Reports")
             {
@@ -338,6 +339,7 @@ namespace LendingApp.UI.CashierUI
                     message: "Generate cashier performance reports.",
                     accentHex: "#0F766E"
                 ));
+                ApplyPlaceholderLayout();
             }
             else if (activeNav == "Settings")
             {
@@ -346,6 +348,7 @@ namespace LendingApp.UI.CashierUI
                     message: "Configure cashier preferences.",
                     accentHex: "#374151"
                 ));
+                ApplyPlaceholderLayout();
             }
             else
             {
@@ -354,9 +357,31 @@ namespace LendingApp.UI.CashierUI
                     message: "View coming soon.",
                     accentHex: "#374151"
                 ));
+                ApplyPlaceholderLayout();
             }
 
-            // Center a single main card and keep responsive width
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowProcessPaymentView()
+        {
+            if (_processPaymentForm == null || _processPaymentForm.IsDisposed)
+            {
+                _processPaymentForm = new CashierProcessPayment
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_processPaymentForm);
+            _processPaymentForm.Show();
+        }
+
+        private void ApplyPlaceholderLayout()
+        {
+            // Center a single placeholder card and keep responsive width
             var card = contentPanel.Controls.Count > 0 ? contentPanel.Controls[0] as Panel : null;
             if (card != null)
             {
@@ -367,8 +392,6 @@ namespace LendingApp.UI.CashierUI
                     _contentResizeHooked = true;
                 }
             }
-
-            contentPanel.ResumeLayout();
         }
 
         private void ApplyMainCardLayout(Panel card)
