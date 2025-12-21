@@ -57,6 +57,12 @@
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierDailyReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierDailyReport.Designer.cs">
+      <DependentUpon>CashierDailyReport.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\CashierUI\CashierDashboard.cs">
       <SubType>Form</SubType>
     </Compile>

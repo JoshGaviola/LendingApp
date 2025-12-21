@@ -49,6 +49,7 @@ namespace LendingApp.UI.CashierUI
         // Embedded views
         private CashierProcessPayment _processPaymentForm;
         private CashierLoanRelease _loanReleaseForm;
+        private CashierDailyReport _dailyReportForm;
 
         public CashierDashboard()
         {
@@ -312,12 +313,7 @@ namespace LendingApp.UI.CashierUI
             }
             else if (activeNav == "Daily Report")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Daily Report",
-                    message: "View and generate daily cash reports.",
-                    accentHex: "#C2410C"
-                ));
-                ApplyPlaceholderLayout();
+                ShowDailyReportView();
             }
             else if (activeNav == "Receipts")
             {
@@ -389,6 +385,22 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.Controls.Add(_loanReleaseForm);
             _loanReleaseForm.Show();
+        }
+
+        private void ShowDailyReportView()
+        {
+            if (_dailyReportForm == null || _dailyReportForm.IsDisposed)
+            {
+                _dailyReportForm = new CashierDailyReport
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_dailyReportForm);
+            _dailyReportForm.Show();
         }
 
         private void ApplyPlaceholderLayout()
