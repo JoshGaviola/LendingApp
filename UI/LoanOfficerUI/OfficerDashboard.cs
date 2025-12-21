@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LendingApp.Models.LoanOfficer;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -7,6 +8,11 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerDashboard : Form
     {
+
+        OfficerDashboardLogic dashboard = new OfficerDashboardLogic();
+
+
+
         private string _username = "Officer";
         private Action _onLogout;
 
@@ -15,12 +21,6 @@ namespace LendingApp.UI.LoanOfficerUI
         {
             "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
         };
-
-        // Summary stats
-        private int pendingApplicationsCount = 12;
-        private string activePortfolio = "₱85,000";
-        private int overdueLoansCount = 3;
-        private string todayCollections = "₱15,700";
 
         // Embedded views
         private OfficerApplications _applicationsForm;
@@ -31,16 +31,6 @@ namespace LendingApp.UI.LoanOfficerUI
         private bool _homeResizeHooked;
 
         // Data models
-        private class PendingApplication
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string LoanType { get; set; }
-            public string Amount { get; set; }
-            public int DaysWaiting { get; set; }
-            public string Priority { get; set; } // High | Medium | Low
-        }
-
         private class OverdueLoan
         {
             public string Id { get; set; }
@@ -69,13 +59,6 @@ namespace LendingApp.UI.LoanOfficerUI
             public string Customer { get; set; }
             public string Amount { get; set; }
         }
-
-        private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
-        {
-            new PendingApplication { Id="APP-001", Customer="Juan Cruz", LoanType="Personal", Amount="₱50,000", DaysWaiting=2, Priority="High" },
-            new PendingApplication { Id="APP-002", Customer="Maria Santos", LoanType="Emergency", Amount="₱15,000", DaysWaiting=1, Priority="Medium" },
-            new PendingApplication { Id="APP-003", Customer="Pedro Reyes", LoanType="Salary", Amount="₱25,000", DaysWaiting=3, Priority="High" },
-        };
 
         private readonly List<OverdueLoan> overdueLoans = new List<OverdueLoan>
         {
@@ -263,6 +246,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void LayoutSummary()
         {
+
             int cardWidth = 220;
             int gap = 10;
             int startX = 10;
@@ -276,7 +260,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblPendingTitle.Text = "Pending";
             lblPendingTitle.ForeColor = ColorTranslator.FromHtml("#1D4ED8");
             lblPendingTitle.Location = new Point(10, 8);
-            lblPendingCount.Text = $"[{pendingApplicationsCount}]";
+            lblPendingCount.Text = $"[{dashboard.TotalPendingApplications}]";
             lblPendingCount.ForeColor = ColorTranslator.FromHtml("#1E3A8A");
             lblPendingCount.Location = new Point(10, 28);
             lblPendingSub.Text = "Applications";
@@ -293,7 +277,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblActiveTitle.Text = "Active";
             lblActiveTitle.ForeColor = ColorTranslator.FromHtml("#047857");
             lblActiveTitle.Location = new Point(10, 8);
-            lblActiveValue.Text = activePortfolio;
+            lblActiveValue.Text = dashboard.activePortfolio;
             lblActiveValue.ForeColor = ColorTranslator.FromHtml("#065F46");
             lblActiveValue.Location = new Point(10, 28);
             lblActiveSub.Text = "Portfolio";
@@ -310,7 +294,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblOverdueTitle.Text = "Overdue";
             lblOverdueTitle.ForeColor = ColorTranslator.FromHtml("#DC2626");
             lblOverdueTitle.Location = new Point(10, 8);
-            lblOverdueCount.Text = $"[{overdueLoansCount}]";
+            lblOverdueCount.Text = $"[{dashboard.overdueLoansCount}]";
             lblOverdueCount.ForeColor = ColorTranslator.FromHtml("#991B1B");
             lblOverdueCount.Location = new Point(10, 28);
             lblOverdueSub.Text = "Loans";
@@ -327,7 +311,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblCollectionsTitle.Text = "Today";
             lblCollectionsTitle.ForeColor = ColorTranslator.FromHtml("#EA580C");
             lblCollectionsTitle.Location = new Point(10, 8);
-            lblCollectionsValue.Text = todayCollections;
+            lblCollectionsValue.Text = dashboard.todayCollection;
             lblCollectionsValue.ForeColor = ColorTranslator.FromHtml("#9A3412");
             lblCollectionsValue.Location = new Point(10, 28);
             lblCollectionsSub.Text = "Collections";
@@ -666,7 +650,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            foreach (var app in pendingApplications)
+            foreach (var app in dashboard.AllPending)
             {
                 grid.Rows.Add(app.Customer, app.LoanType, app.Amount, app.DaysWaiting, app.Priority);
             }

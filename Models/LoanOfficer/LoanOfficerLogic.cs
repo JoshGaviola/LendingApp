@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace LendingApp.Models
 {
-    public class LoanOfficer : User
+
+    public class LoanOfficerLogic : User
     {
         private decimal approvalLimit {  get; set; }
 
