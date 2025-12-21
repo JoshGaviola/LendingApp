@@ -48,6 +48,7 @@ namespace LendingApp.UI.CashierUI
 
         // Embedded views
         private CashierProcessPayment _processPaymentForm;
+        private CashierLoanRelease _loanReleaseForm;
 
         public CashierDashboard()
         {
@@ -307,12 +308,7 @@ namespace LendingApp.UI.CashierUI
             }
             else if (activeNav == "Release Loan")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Loan Release",
-                    message: "This section will handle approved loan disbursements.",
-                    accentHex: "#1D4ED8"
-                ));
-                ApplyPlaceholderLayout();
+                ShowLoanReleaseView();
             }
             else if (activeNav == "Daily Report")
             {
@@ -377,6 +373,22 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.Controls.Add(_processPaymentForm);
             _processPaymentForm.Show();
+        }
+
+        private void ShowLoanReleaseView()
+        {
+            if (_loanReleaseForm == null || _loanReleaseForm.IsDisposed)
+            {
+                _loanReleaseForm = new CashierLoanRelease
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_loanReleaseForm);
+            _loanReleaseForm.Show();
         }
 
         private void ApplyPlaceholderLayout()
