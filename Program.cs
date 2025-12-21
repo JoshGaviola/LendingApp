@@ -1,11 +1,6 @@
-﻿using LendingApp.UI.CustomerUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-
 
 namespace LendingApp
 {
@@ -27,8 +22,9 @@ namespace LendingApp
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+
+            // Choose one:
             Application.Run(new LendingApp.UI.CashierUI.CashierDashboard());
         }
     }
-}   
+}
