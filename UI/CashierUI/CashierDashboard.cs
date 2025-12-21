@@ -50,6 +50,7 @@ namespace LendingApp.UI.CashierUI
         private CashierProcessPayment _processPaymentForm;
         private CashierLoanRelease _loanReleaseForm;
         private CashierDailyReport _dailyReportForm;
+        private CashierReciept _receiptsForm;
 
         public CashierDashboard()
         {
@@ -317,12 +318,7 @@ namespace LendingApp.UI.CashierUI
             }
             else if (activeNav == "Receipts")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Receipts Management",
-                    message: "Search and manage official receipts.",
-                    accentHex: "#6D28D9"
-                ));
-                ApplyPlaceholderLayout();
+                ShowReceiptsView();
             }
             else if (activeNav == "Reports")
             {
@@ -401,6 +397,22 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.Controls.Add(_dailyReportForm);
             _dailyReportForm.Show();
+        }
+
+        private void ShowReceiptsView()
+        {
+            if (_receiptsForm == null || _receiptsForm.IsDisposed)
+            {
+                _receiptsForm = new CashierReciept
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_receiptsForm);
+            _receiptsForm.Show();
         }
 
         private void ApplyPlaceholderLayout()
