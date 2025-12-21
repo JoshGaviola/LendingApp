@@ -83,50 +83,56 @@ namespace LendingApp.UI.CashierUI
         private LoanInfo _loanDetails;
         private AllocationInfo _allocation;
 
-        // UI
-        private Panel root;
-        private Panel mainCard;
-        private Panel mainHeader;
-        private Label lblMainTitle;
+        // Layout constants
+        private const int PagePadding = 16;
+        private const int Gap = 12;
 
+        // Root layout
+        private Panel root;
+        private TableLayoutPanel layout;
+
+        // Header
+        private Panel header;
+        private Label lblTitle;
+
+        // Search + customer
         private TextBox txtLoanNumber;
         private Button btnSearch;
-
-        private Panel pnlCustomerInfo;
+        private Panel customerCard;
         private Label lblCustomerName;
         private Label lblCustomerBalance;
 
+        // Payment details
         private TextBox txtPaymentAmount;
         private Label lblMonthlyDue;
-
         private RadioButton rbCash;
         private RadioButton rbGCash;
         private RadioButton rbBank;
 
-        private Button btnCalc;
-        private Panel pnlAllocation;
+        // Allocation + actions
+        private Panel allocationCard;
         private Label lblAllocInterest;
         private Label lblAllocPrincipal;
         private Label lblAllocPenalty;
         private Label lblAllocNewBalance;
 
+        private Button btnCalc;
         private Button btnProcess;
         private Button btnPrint;
 
-        private Panel transactionsCard;
-        private Panel transactionsHeader;
-        private Label lblTransactionsTitle;
+        // Transactions
         private DataGridView gridTransactions;
-
         private readonly List<TransactionRow> _transactions = new List<TransactionRow>();
+
+        // Toast
+        private Panel _toastPanel;
+        private Label _toastLabel;
+        private Timer _toastTimer;
 
         public CashierProcessPayment()
         {
             InitializeComponent();
 
-            // IMPORTANT when hosted inside `CashierDashboard`:
-            // - Do not maximize (it would try to maximize inside the MDI/parent)
-            // - Instead, let the parent dock+size us.
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
             TopLevel = false;
@@ -135,47 +141,69 @@ namespace LendingApp.UI.CashierUI
             SeedTransactions();
             BindTransactions();
             RefreshState();
-
-            // Ensure initial layout header positions run once
-            // (some child panels are using Resize to position inner labels)
-            PerformLayout();
         }
 
         private void BuildUI()
         {
-            Text = "Cashier - Payment Processing";
+            Controls.Clear();
 
             root = new Panel
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
-                BackColor = Color.Transparent,
-                Padding = new Padding(16)
+                Padding = new Padding(PagePadding),
+                BackColor = Color.Transparent
             };
-
-            Controls.Clear();
             Controls.Add(root);
 
-            // ===== Main card =====
-            mainCard = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
-            mainHeader = new Panel { Dock = DockStyle.Top, Height = 54, BackColor = ColorTranslator.FromHtml("#ECFDF5"), BorderStyle = BorderStyle.FixedSingle };
-            lblMainTitle = new Label
+            layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 1
+            };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            root.Controls.Add(layout);
+
+            header = MakeCard();
+            header.Padding = new Padding(16, 14, 16, 14);
+            header.BackColor = ColorTranslator.FromHtml("#ECFDF5");
+
+            lblTitle = new Label
             {
                 Text = "PAYMENT PROCESSING",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(16, 16)
+                ForeColor = ColorTranslator.FromHtml("#111827")
             };
-            mainHeader.Controls.Add(lblMainTitle);
-            mainCard.Controls.Add(mainHeader);
+            header.Controls.Add(lblTitle);
 
-            var body = new Panel { Dock = DockStyle.Fill, Padding = new Padding(90) };
-            mainCard.Controls.Add(body);
+            var searchCard = MakeCard();
+            searchCard.Padding = new Padding(16);
 
-            // Loan search
-            var lblLoan = new Label { Text = "Loan Number", AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
-            txtLoanNumber = new TextBox { Width = 240 };
+            var searchGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 2
+            };
+            searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60f));
+            searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+            searchCard.Controls.Add(searchGrid);
+
+            // Left: loan input
+            var left = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 3
+            };
+            left.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            left.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240));
+            left.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 96));
+
+            var lblLoan = MakeFieldLabel("Loan Number");
+            txtLoanNumber = new TextBox { Dock = DockStyle.Fill };
             txtLoanNumber.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Enter)
@@ -186,47 +214,80 @@ namespace LendingApp.UI.CashierUI
                 }
             };
 
-            btnSearch = new Button
-            {
-                Text = "Search",
-                Width = 90,
-                Height = 26,
-                BackColor = ColorTranslator.FromHtml("#2563EB"),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnSearch.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#1D4ED8");
+            btnSearch = MakePrimaryButton("Search", 90);
             btnSearch.Click += (s, e) => SearchLoan();
+
+            left.Controls.Add(lblLoan, 0, 0);
+            left.SetColumnSpan(lblLoan, 3);
+
+            left.Controls.Add(txtLoanNumber, 1, 1);
+            left.Controls.Add(btnSearch, 2, 1);
 
             var hint = new Label
             {
                 Text = "Try: LN-2024-001, LN-2024-002, or LN-2024-003",
                 AutoSize = true,
                 ForeColor = ColorTranslator.FromHtml("#6B7280"),
-                Font = new Font("Segoe UI", 8, FontStyle.Regular)
+                Font = new Font("Segoe UI", 8)
             };
+            left.Controls.Add(hint, 1, 2);
+            left.SetColumnSpan(hint, 2);
 
-            // Customer info panel
-            pnlCustomerInfo = new Panel
+            // Right: customer card
+            customerCard = new Panel
             {
+                Dock = DockStyle.Top,
+                AutoSize = true,
                 BackColor = ColorTranslator.FromHtml("#DBEAFE"),
                 BorderStyle = BorderStyle.FixedSingle,
-                Visible = false,
                 Padding = new Padding(10),
-                Height = 70
+                Visible = false
             };
-            lblCustomerName = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#111827"), Font = new Font("Segoe UI", 9, FontStyle.Bold) };
-            lblCustomerBalance = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151"), Font = new Font("Segoe UI", 8, FontStyle.Regular) };
-            pnlCustomerInfo.Controls.Add(lblCustomerName);
-            pnlCustomerInfo.Controls.Add(lblCustomerBalance);
-            pnlCustomerInfo.Resize += (s, e) =>
+            lblCustomerName = new Label
+            {
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#111827"),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
+            lblCustomerBalance = new Label
+            {
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#374151"),
+                Font = new Font("Segoe UI", 8)
+            };
+            customerCard.Controls.Add(lblCustomerName);
+            customerCard.Controls.Add(lblCustomerBalance);
+            customerCard.Layout += (s, e) =>
             {
                 lblCustomerName.Location = new Point(10, 10);
                 lblCustomerBalance.Location = new Point(10, 32);
             };
 
-            // Payment details
-            var lblAmount = new Label { Text = "Payment Amount", AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
+            searchGrid.Controls.Add(left, 0, 0);
+            searchGrid.Controls.Add(customerCard, 1, 0);
+
+            var paymentCard = MakeCard();
+            paymentCard.Padding = new Padding(16);
+
+            var paymentGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 2
+            };
+            paymentGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60f));
+            paymentGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+            paymentCard.Controls.Add(paymentGrid);
+
+            // Amount section
+            var amountPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false
+            };
+            amountPanel.Controls.Add(MakeFieldLabel("Payment Amount"));
             txtPaymentAmount = new TextBox { Width = 240 };
             txtPaymentAmount.TextChanged += (s, e) =>
             {
@@ -234,213 +295,161 @@ namespace LendingApp.UI.CashierUI
                 UpdateAllocationPanel();
                 UpdateButtons();
             };
+            amountPanel.Controls.Add(txtPaymentAmount);
 
             lblMonthlyDue = new Label
             {
-                Text = "",
                 AutoSize = true,
                 ForeColor = ColorTranslator.FromHtml("#6B7280"),
-                Font = new Font("Segoe UI", 8, FontStyle.Regular)
+                Font = new Font("Segoe UI", 8)
             };
+            amountPanel.Controls.Add(lblMonthlyDue);
 
-            var lblMethod = new Label { Text = "Payment Method", AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
+            // Method section
+            var methodPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false
+            };
+            methodPanel.Controls.Add(MakeFieldLabel("Payment Method"));
+            var methodRow = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false
+            };
             rbCash = MakeMethodRadio("Cash", true);
             rbGCash = MakeMethodRadio("GCash", false);
             rbBank = MakeMethodRadio("Bank", false);
+            methodRow.Controls.Add(rbCash);
+            methodRow.Controls.Add(rbGCash);
+            methodRow.Controls.Add(rbBank);
+            methodPanel.Controls.Add(methodRow);
 
-            btnCalc = new Button
-            {
-                Text = "Calculate Allocation",
-                Width = 160,
-                Height = 28,
-                BackColor = Color.White,
-                ForeColor = ColorTranslator.FromHtml("#1D4ED8"),
-                FlatStyle = FlatStyle.Flat
-            };
-            btnCalc.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#93C5FD");
-            btnCalc.Click += (s, e) => CalculateAllocation();
+            paymentGrid.Controls.Add(amountPanel, 0, 0);
+            paymentGrid.Controls.Add(methodPanel, 1, 0);
 
-            // Allocation panel
-            pnlAllocation = new Panel
-            {
-                BackColor = ColorTranslator.FromHtml("#F9FAFB"),
-                BorderStyle = BorderStyle.FixedSingle,
-                Visible = false,
-                Padding = new Padding(16),
-                Height = 170
-            };
+            // Actions
+            var actionsCard = MakeCard();
+            actionsCard.Padding = new Padding(16);
 
-            var lblAllocTitle = new Label
-            {
-                Text = "Payment Allocation",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(16, 14)
-            };
-            lblAllocInterest = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
-            lblAllocPrincipal = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
-            lblAllocPenalty = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#374151") };
-            lblAllocNewBalance = new Label { AutoSize = true, ForeColor = ColorTranslator.FromHtml("#16A34A"), Font = new Font("Segoe UI", 9, FontStyle.Bold) };
-
-            pnlAllocation.Controls.Add(lblAllocTitle);
-            pnlAllocation.Controls.Add(lblAllocInterest);
-            pnlAllocation.Controls.Add(lblAllocPrincipal);
-            pnlAllocation.Controls.Add(lblAllocPenalty);
-            pnlAllocation.Controls.Add(lblAllocNewBalance);
-
-            pnlAllocation.Resize += (s, e) =>
-            {
-                int y = 44;
-                lblAllocInterest.Location = new Point(16, y); y += 24;
-                lblAllocPrincipal.Location = new Point(16, y); y += 24;
-                lblAllocPenalty.Location = new Point(16, y); y += 30;
-                lblAllocNewBalance.Location = new Point(16, y);
-            };
-
-            // Action buttons
-            btnProcess = new Button
-            {
-                Text = "Process Payment",
-                Width = 140,
-                Height = 30,
-                BackColor = ColorTranslator.FromHtml("#16A34A"),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnProcess.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#15803D");
-            btnProcess.Click += (s, e) => ProcessPayment();
-
-            btnPrint = new Button
-            {
-                Text = "Print Receipt",
-                Width = 120,
-                Height = 30,
-                BackColor = Color.White,
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                FlatStyle = FlatStyle.Flat
-            };
-            btnPrint.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#D1D5DB");
-            btnPrint.Click += (s, e) => PrintReceipt();
-
-            // Empty state
-            var emptyState = new Label
-            {
-                Text = "Enter a loan number to begin processing payment",
-                AutoSize = true,
-                ForeColor = ColorTranslator.FromHtml("#6B7280"),
-                Font = new Font("Segoe UI", 9, FontStyle.Regular)
-            };
-            var emptyPanel = new Panel { Dock = DockStyle.Top, Height = 90, Margin = new Padding(0, 12, 0, 0) };
-            emptyPanel.Controls.Add(emptyState);
-            emptyPanel.Resize += (s, e) =>
-            {
-                emptyState.Left = (emptyPanel.Width - emptyState.Width) / 2;
-                emptyState.Top = (emptyPanel.Height - emptyState.Height) / 2;
-            };
-
-            // Layout with TableLayoutPanel
-            var tlp = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2 };
-            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55f));
-            tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45f));
-
-            var left = new Panel { Dock = DockStyle.Fill, AutoSize = true };
-            var right = new Panel { Dock = DockStyle.Fill, AutoSize = true };
-
-            left.Controls.Add(lblLoan);
-            lblLoan.Location = new Point(0, 0);
-
-            left.Controls.Add(txtLoanNumber);
-            left.Controls.Add(btnSearch);
-            txtLoanNumber.Location = new Point(0, 22);
-            btnSearch.Location = new Point(txtLoanNumber.Right + 8, 21);
-
-            left.Controls.Add(hint);
-            hint.Location = new Point(0, 52);
-
-            right.Controls.Add(pnlCustomerInfo);
-            pnlCustomerInfo.Dock = DockStyle.Top;
-
-            tlp.Controls.Add(left, 0, 0);
-            tlp.Controls.Add(right, 1, 0);
-
-            // Payment details row
-            var tlp2 = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Margin = new Padding(0, 14, 0, 0) };
-            tlp2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55f));
-            tlp2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45f));
-
-            var pAmount = new Panel { Dock = DockStyle.Fill, AutoSize = true };
-            pAmount.Controls.Add(lblAmount);
-            lblAmount.Location = new Point(0, 0);
-            pAmount.Controls.Add(txtPaymentAmount);
-            txtPaymentAmount.Location = new Point(0, 22);
-            pAmount.Controls.Add(lblMonthlyDue);
-            lblMonthlyDue.Location = new Point(0, 52);
-
-            var pMethod = new Panel { Dock = DockStyle.Fill, AutoSize = true };
-            pMethod.Controls.Add(lblMethod);
-            lblMethod.Location = new Point(0, 0);
-            pMethod.Controls.Add(rbCash);
-            pMethod.Controls.Add(rbGCash);
-            pMethod.Controls.Add(rbBank);
-            rbCash.Location = new Point(0, 22);
-            rbGCash.Location = new Point(80, 22);
-            rbBank.Location = new Point(160, 22);
-
-            tlp2.Controls.Add(pAmount, 0, 0);
-            tlp2.Controls.Add(pMethod, 1, 0);
-
-            // Buttons row
-            var actionsRow = new FlowLayoutPanel
+            var actions = new FlowLayoutPanel
             {
                 Dock = DockStyle.Top,
                 AutoSize = true,
                 FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = false,
-                Margin = new Padding(0, 12, 0, 0)
+                WrapContents = false
             };
-            actionsRow.Controls.Add(btnCalc);
-            actionsRow.Controls.Add(btnProcess);
-            actionsRow.Controls.Add(btnPrint);
-            btnCalc.Margin = new Padding(0, 0, 10, 0);
-            btnProcess.Margin = new Padding(10, 0, 10, 0);
 
-            body.Controls.Add(emptyPanel);
-            body.Controls.Add(actionsRow);
-            body.Controls.Add(pnlAllocation);
-            body.Controls.Add(tlp2);
-            body.Controls.Add(tlp);
+            btnCalc = MakeOutlineButton("Calculate Allocation", 160);
+            btnCalc.Click += (s, e) => CalculateAllocation();
 
-            // Initial visibility state (FIX: ensure correct state without needing a resize/visible change)
-            emptyPanel.Visible = (_loanDetails == null);
-            tlp2.Visible = (_loanDetails != null);
-            actionsRow.Visible = (_loanDetails != null);
-            pnlAllocation.Visible = (_allocation != null);
+            btnProcess = MakeSuccessButton("Process Payment", 140);
+            btnProcess.Click += (s, e) => ProcessPayment();
 
-            // Visibility controller
-            EventHandler refreshVisibility = (s, e) =>
+            btnPrint = MakeOutlineButton("Print Receipt", 120);
+            btnPrint.Click += (s, e) => PrintReceipt();
+
+            actions.Controls.Add(btnCalc);
+            actions.Controls.Add(btnProcess);
+            actions.Controls.Add(btnPrint);
+            actionsCard.Controls.Add(actions);
+
+            // Allocation card (starts hidden)
+            allocationCard = MakeCard();
+            allocationCard.Padding = new Padding(16);
+            allocationCard.Visible = false;
+
+            var allocTitle = new Label
             {
-                emptyPanel.Visible = (_loanDetails == null);
-                tlp2.Visible = (_loanDetails != null);
-                actionsRow.Visible = (_loanDetails != null);
-                pnlAllocation.Visible = (_allocation != null);
+                Text = "Payment Allocation",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = ColorTranslator.FromHtml("#111827")
             };
-            body.VisibleChanged += refreshVisibility;
-            body.Resize += refreshVisibility;
 
-            // ===== Transactions card =====
-            transactionsCard = new Panel { BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
-            transactionsHeader = new Panel { Dock = DockStyle.Top, Height = 1, BackColor = ColorTranslator.FromHtml("#DBEAFE"), BorderStyle = BorderStyle.FixedSingle };
-            lblTransactionsTitle = new Label
+            var allocGrid = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 2,
+                Padding = new Padding(0, 10, 0, 0)
+            };
+            allocGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60f));
+            allocGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+
+            lblAllocInterest = MakeValueLabel();
+            lblAllocPrincipal = MakeValueLabel();
+            lblAllocPenalty = MakeValueLabel();
+            lblAllocNewBalance = new Label
+            {
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#16A34A"),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleRight,
+                Dock = DockStyle.Fill
+            };
+
+            AddAllocRow(allocGrid, "Interest:", lblAllocInterest, 0);
+            AddAllocRow(allocGrid, "Principal:", lblAllocPrincipal, 1);
+            AddAllocRow(allocGrid, "Penalty:", lblAllocPenalty, 2);
+
+            var divider = new Panel
+            {
+                Height = 1,
+                Dock = DockStyle.Top,
+                BackColor = ColorTranslator.FromHtml("#D1D5DB"),
+                Margin = new Padding(0, 10, 0, 10)
+            };
+
+            var nbLeft = new Label
+            {
+                Text = "New Balance:",
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#111827"),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Margin = new Padding(0, 4, 0, 4)
+            };
+            allocGrid.RowCount += 1;
+            allocGrid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            allocGrid.Controls.Add(nbLeft, 0, 3);
+            allocGrid.Controls.Add(lblAllocNewBalance, 1, 3);
+
+            allocationCard.Controls.Add(allocGrid);
+            allocationCard.Controls.Add(divider);
+            allocationCard.Controls.Add(allocTitle);
+
+            // Transactions card
+            var txCard = MakeCard();
+            txCard.Padding = new Padding(0);
+
+            var txHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                BackColor = ColorTranslator.FromHtml("#DBEAFE"),
+                Padding = new Padding(16, 12, 16, 12),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            var txTitle = new Label
             {
                 Text = "RECENT TRANSACTIONS",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(16, 14)
+                ForeColor = ColorTranslator.FromHtml("#111827")
             };
-            transactionsHeader.Controls.Add(lblTransactionsTitle);
-            transactionsCard.Controls.Add(transactionsHeader);
+            txHeader.Controls.Add(txTitle);
+
+            // NEW: grid host with fixed height so the grid is visible inside AutoSize card
+            var txBody = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 260,
+                Padding = new Padding(0),
+                BackColor = Color.White
+            };
 
             gridTransactions = new DataGridView
             {
@@ -452,12 +461,10 @@ namespace LendingApp.UI.CashierUI
                 RowHeadersVisible = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
 
-                // FIX: prevents the first visible row from being hidden under the header area
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing,
                 ColumnHeadersHeight = 36,
-
-                // FIX: adds a bit more breathing room so the first row is fully visible
                 RowTemplate = { Height = 28 }
             };
 
@@ -469,59 +476,149 @@ namespace LendingApp.UI.CashierUI
 
             var reprintCol = new DataGridViewButtonColumn
             {
+                Name = "Actions",
                 HeaderText = "Actions",
                 Text = "Reprint",
                 UseColumnTextForButtonValue = true
             };
             gridTransactions.Columns.Add(reprintCol);
+
             gridTransactions.CellContentClick += GridTransactions_CellContentClick;
 
-            // FIX: ensure the DataGridView is not flush against the header border
-            var gridHost = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(0, 2, 0, 0) // tiny top padding so first row isn't visually covered
-            };
-            gridHost.Controls.Add(gridTransactions);
+            txBody.Controls.Add(gridTransactions);
+            txCard.Controls.Add(txBody);
+            txCard.Controls.Add(txHeader);
 
-            transactionsCard.Controls.Add(gridHost);
+            // Add to main layout (top to bottom)
+            AddRow(header);
+            AddRow(searchCard);
+            AddRow(paymentCard);
+            AddRow(actionsCard);
+            AddRow(allocationCard);
+            AddRow(txCard);
 
-            // Place on root (order matters: last added appears on top visually)
-            root.Controls.Add(transactionsCard);
-            root.Controls.Add(mainCard);
+            BuildToast();
 
-            root.Resize += (s, e) => LayoutCards();
-            LayoutCards();
+            allocationCard.Visible = false;
         }
 
-        private RadioButton MakeMethodRadio(string text, bool isChecked)
+        private void AddRow(Control c)
+        {
+            c.Margin = new Padding(0, 0, 0, Gap);
+            layout.RowCount += 1;
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            layout.Controls.Add(c, 0, layout.RowCount - 1);
+        }
+
+        private Panel MakeCard()
+        {
+            return new Panel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+        }
+
+        private static Label MakeFieldLabel(string text)
+        {
+            return new Label
+            {
+                Text = text,
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#374151"),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                Margin = new Padding(0, 0, 0, 6)
+            };
+        }
+
+        private static RadioButton MakeMethodRadio(string text, bool isChecked)
         {
             return new RadioButton
             {
                 Text = text,
                 AutoSize = true,
                 Checked = isChecked,
-                ForeColor = ColorTranslator.FromHtml("#374151")
+                ForeColor = ColorTranslator.FromHtml("#374151"),
+                Margin = new Padding(0, 0, 12, 0)
             };
         }
 
-        private void LayoutCards()
+        private static Button MakePrimaryButton(string text, int width)
         {
-            int pad = root.Padding.Left;
-            int gap = 16;
+            var b = new Button
+            {
+                Text = text,
+                Width = width,
+                Height = 28,
+                BackColor = ColorTranslator.FromHtml("#2563EB"),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            b.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#1D4ED8");
+            return b;
+        }
 
-            int availableW = root.ClientSize.Width - (pad * 2);
-            if (availableW < 400) availableW = 400;
+        private static Button MakeOutlineButton(string text, int width)
+        {
+            var b = new Button
+            {
+                Text = text,
+                Width = width,
+                Height = 30,
+                BackColor = Color.White,
+                ForeColor = ColorTranslator.FromHtml("#111827"),
+                FlatStyle = FlatStyle.Flat
+            };
+            b.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#D1D5DB");
+            return b;
+        }
 
-            int x = pad;
-            int y = pad;
+        private static Button MakeSuccessButton(string text, int width)
+        {
+            var b = new Button
+            {
+                Text = text,
+                Width = width,
+                Height = 30,
+                BackColor = ColorTranslator.FromHtml("#16A34A"),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            b.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#15803D");
+            return b;
+        }
 
-            // Let the cards size naturally based on host; avoid forcing giant heights.
-            mainCard.SetBounds(x, y, availableW, 420);
-            y += mainCard.Height + gap;
+        private static Label MakeValueLabel()
+        {
+            return new Label
+            {
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#111827"),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                TextAlign = ContentAlignment.MiddleRight,
+                Dock = DockStyle.Fill
+            };
+        }
 
-            int remainingH = Math.Max(260, root.ClientSize.Height - y - pad);
-            transactionsCard.SetBounds(x, y, availableW, remainingH);
+        private static void AddAllocRow(TableLayoutPanel grid, string label, Label valueLabel, int row)
+        {
+            if (grid.RowCount <= row) grid.RowCount = row + 1;
+            grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            var left = new Label
+            {
+                Text = label,
+                AutoSize = true,
+                ForeColor = ColorTranslator.FromHtml("#374151"),
+                Margin = new Padding(0, 4, 0, 4)
+            };
+
+            valueLabel.Margin = new Padding(0, 4, 0, 4);
+
+            grid.Controls.Add(left, 0, row);
+            grid.Controls.Add(valueLabel, 1, row);
         }
 
         private void SeedTransactions()
@@ -534,8 +631,9 @@ namespace LendingApp.UI.CashierUI
 
         private void BindTransactions()
         {
-            gridTransactions.Rows.Clear();
+            if (gridTransactions == null) return;
 
+            gridTransactions.Rows.Clear();
             foreach (var t in _transactions)
             {
                 int idx = gridTransactions.Rows.Add(t.Time, t.Customer, t.Amount, t.ReceiptNo, "Reprint");
@@ -544,22 +642,19 @@ namespace LendingApp.UI.CashierUI
 
                 var amtCell = row.Cells["Amount"] as DataGridViewTextBoxCell;
                 if (amtCell != null) amtCell.Style.ForeColor = ColorTranslator.FromHtml("#16A34A");
-
-                var receiptCell = row.Cells["Receipt"] as DataGridViewTextBoxCell;
-                if (receiptCell != null) receiptCell.Style.ForeColor = ColorTranslator.FromHtml("#374151");
-
-                var btnCell = row.Cells[gridTransactions.Columns.Count - 1] as DataGridViewButtonCell;
-                if (btnCell != null) btnCell.Value = "Reprint";
             }
         }
 
         private void GridTransactions_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
+
+            // NEW: only handle clicks on the Actions button column
             if (gridTransactions.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
             {
                 var tx = gridTransactions.Rows[e.RowIndex].Tag as TransactionRow;
                 if (tx == null) return;
+
                 ShowToast("Receipt " + tx.ReceiptNo + " sent to printer");
             }
         }
@@ -618,7 +713,9 @@ namespace LendingApp.UI.CashierUI
                 NewBalance = RoundMoney(newBalance)
             };
 
-            RefreshState();
+            allocationCard.Visible = true;
+            UpdateAllocationPanel();
+            UpdateButtons();
         }
 
         private void ProcessPayment()
@@ -653,7 +750,6 @@ namespace LendingApp.UI.CashierUI
 
             ShowToast("Payment processed! Receipt: " + receiptNo);
 
-            // Reset
             txtLoanNumber.Text = "";
             txtPaymentAmount.Text = "";
             _loanDetails = null;
@@ -677,38 +773,35 @@ namespace LendingApp.UI.CashierUI
         {
             if (_loanDetails != null)
             {
-                pnlCustomerInfo.Visible = true;
+                customerCard.Visible = true;
                 lblCustomerName.Text = _loanDetails.Customer;
                 lblCustomerBalance.Text = "Balance: ₱" + _loanDetails.Balance.ToString("N0", CultureInfo.InvariantCulture);
                 lblMonthlyDue.Text = "Monthly Due: ₱" + _loanDetails.MonthlyPayment.ToString("N2", CultureInfo.InvariantCulture);
             }
             else
             {
-                pnlCustomerInfo.Visible = false;
+                customerCard.Visible = false;
                 lblMonthlyDue.Text = "";
             }
 
+            allocationCard.Visible = (_allocation != null);
             UpdateAllocationPanel();
             UpdateButtons();
         }
 
         private void UpdateAllocationPanel()
         {
-            pnlAllocation.Visible = (_allocation != null);
+            if (_allocation == null) return;
 
-            if (_allocation == null)
-                return;
-
-            lblAllocInterest.Text = "Interest: ₱" + _allocation.Interest.ToString("N2", CultureInfo.InvariantCulture);
-            lblAllocPrincipal.Text = "Principal: ₱" + _allocation.Principal.ToString("N2", CultureInfo.InvariantCulture);
-            lblAllocPenalty.Text = "Penalty: ₱" + _allocation.Penalty.ToString("N2", CultureInfo.InvariantCulture);
-            lblAllocNewBalance.Text = "New Balance: ₱" + _allocation.NewBalance.ToString("N2", CultureInfo.InvariantCulture);
+            lblAllocInterest.Text = "₱" + _allocation.Interest.ToString("N2", CultureInfo.InvariantCulture);
+            lblAllocPrincipal.Text = "₱" + _allocation.Principal.ToString("N2", CultureInfo.InvariantCulture);
+            lblAllocPenalty.Text = "₱" + _allocation.Penalty.ToString("N2", CultureInfo.InvariantCulture);
+            lblAllocNewBalance.Text = "₱" + _allocation.NewBalance.ToString("N2", CultureInfo.InvariantCulture);
         }
 
         private void UpdateButtons()
         {
             btnCalc.Enabled = (_loanDetails != null) && !string.IsNullOrWhiteSpace(txtPaymentAmount.Text);
-
             bool canAct = (_allocation != null);
             btnProcess.Enabled = canAct;
             btnPrint.Enabled = canAct;
@@ -725,14 +818,59 @@ namespace LendingApp.UI.CashierUI
             return Math.Round(v, 2, MidpointRounding.AwayFromZero);
         }
 
+        private void BuildToast()
+        {
+            _toastPanel = new Panel
+            {
+                AutoSize = true,
+                BackColor = ColorTranslator.FromHtml("#111827"),
+                Padding = new Padding(12, 8, 12, 8),
+                Visible = false
+            };
+            _toastLabel = new Label
+            {
+                AutoSize = true,
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9)
+            };
+            _toastPanel.Controls.Add(_toastLabel);
+            Controls.Add(_toastPanel);
+            _toastPanel.BringToFront();
+
+            _toastTimer = new Timer { Interval = 2200 };
+            _toastTimer.Tick += (s, e) =>
+            {
+                _toastTimer.Stop();
+                _toastPanel.Visible = false;
+            };
+
+            Resize += (s, e) => PositionToast();
+            PositionToast();
+        }
+
+        private void PositionToast()
+        {
+            if (_toastPanel == null) return;
+            _toastPanel.Left = ClientSize.Width - _toastPanel.Width - 12;
+            _toastPanel.Top = 12;
+        }
+
         private void ShowToast(string message, bool isError = false)
         {
-            MessageBox.Show(
-                message,
-                isError ? "Error" : "Info",
-                MessageBoxButtons.OK,
-                isError ? MessageBoxIcon.Warning : MessageBoxIcon.Information
-            );
+            if (_toastPanel == null || _toastLabel == null) return;
+
+            _toastPanel.BackColor = isError
+                ? ColorTranslator.FromHtml("#991B1B")
+                : ColorTranslator.FromHtml("#111827");
+
+            _toastLabel.Text = message;
+            _toastPanel.Visible = true;
+            _toastPanel.BringToFront();
+            _toastPanel.PerformLayout();
+            PositionToast();
+
+            _toastTimer.Stop();
+            _toastTimer.Start();
         }
     }
 }
