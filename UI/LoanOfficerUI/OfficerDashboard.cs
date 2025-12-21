@@ -30,26 +30,6 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
-        // Data models
-        private class OverdueLoan
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string AmountDue { get; set; }
-            public int DaysOverdue { get; set; }
-            public string Contact { get; set; }
-            public string Priority { get; set; } // Critical | High | Medium
-        }
-
-        private class TaskItem
-        {
-            public string Id { get; set; }
-            public string Time { get; set; }
-            public string Customer { get; set; }
-            public string TaskType { get; set; }
-            public string LoanId { get; set; }
-            public string Status { get; set; } // Due | Pending | Completed
-        }
 
         private class ActivityItem
         {
@@ -59,28 +39,6 @@ namespace LendingApp.UI.LoanOfficerUI
             public string Customer { get; set; }
             public string Amount { get; set; }
         }
-
-        private readonly List<OverdueLoan> overdueLoans = new List<OverdueLoan>
-        {
-            new OverdueLoan { Id="LN-001", Customer="Pedro Reyes", AmountDue="₱4,442", DaysOverdue=5, Contact="+639123456789", Priority="Critical" },
-            new OverdueLoan { Id="LN-002", Customer="Ana Lopez", AmountDue="₱3,250", DaysOverdue=3, Contact="+639987654321", Priority="High" },
-            new OverdueLoan { Id="LN-003", Customer="Carlos Tan", AmountDue="₱2,100", DaysOverdue=2, Contact="+639456789012", Priority="Medium" },
-        };
-
-        private readonly List<TaskItem> todayTasks = new List<TaskItem>
-        {
-            new TaskItem { Id="T-001", Time="9:00 AM", Customer="Juan Cruz", TaskType="Payment Follow-up", LoanId="PLN-001", Status="Due" },
-            new TaskItem { Id="T-002", Time="2:00 PM", Customer="Maria Santos", TaskType="Doc Review", LoanId="ELN-002", Status="Pending" },
-            new TaskItem { Id="T-003", Time="4:00 PM", Customer="Pedro Reyes", TaskType="Credit Assessment", LoanId="SLN-003", Status="Pending" },
-        };
-
-        private readonly List<ActivityItem> recentActivity = new List<ActivityItem>
-        {
-            new ActivityItem { Id="A-001", Time="08:30 AM", Activity="Payment Received", Customer="Ana Lopez", Amount="₱5,250" },
-            new ActivityItem { Id="A-002", Time="Yesterday", Activity="App Approved", Customer="Juan Cruz", Amount="₱50,000" },
-            new ActivityItem { Id="A-003", Time="Yesterday", Activity="Payment Received", Customer="Carlos Tan", Amount="₱3,100" },
-            new ActivityItem { Id="A-004", Time="2 days ago", Activity="Loan Disbursed", Customer="Maria Santos", Amount="₱15,000" },
-        };
 
         public OfficerDashboard()
         {
@@ -277,7 +235,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblActiveTitle.Text = "Active";
             lblActiveTitle.ForeColor = ColorTranslator.FromHtml("#047857");
             lblActiveTitle.Location = new Point(10, 8);
-            lblActiveValue.Text = dashboard.activePortfolio;
+            lblActiveValue.Text = dashboard.activePortfolio = "6000";
             lblActiveValue.ForeColor = ColorTranslator.FromHtml("#065F46");
             lblActiveValue.Location = new Point(10, 28);
             lblActiveSub.Text = "Portfolio";
@@ -294,7 +252,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblOverdueTitle.Text = "Overdue";
             lblOverdueTitle.ForeColor = ColorTranslator.FromHtml("#DC2626");
             lblOverdueTitle.Location = new Point(10, 8);
-            lblOverdueCount.Text = $"[{dashboard.overdueLoansCount}]";
+            lblOverdueCount.Text = $"[{dashboard.TotalOverdueLoans}]";
             lblOverdueCount.ForeColor = ColorTranslator.FromHtml("#991B1B");
             lblOverdueCount.Location = new Point(10, 28);
             lblOverdueSub.Text = "Loans";
@@ -311,7 +269,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblCollectionsTitle.Text = "Today";
             lblCollectionsTitle.ForeColor = ColorTranslator.FromHtml("#EA580C");
             lblCollectionsTitle.Location = new Point(10, 8);
-            lblCollectionsValue.Text = dashboard.todayCollection;
+            lblCollectionsValue.Text = $"[{dashboard.todayCollection = "5000"}]";
             lblCollectionsValue.ForeColor = ColorTranslator.FromHtml("#9A3412");
             lblCollectionsValue.Location = new Point(10, 28);
             lblCollectionsSub.Text = "Collections";
@@ -702,7 +660,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionOverdue.Controls.Add(grid);
             sectionOverdue.Controls.Add(header);
 
-            foreach (var loan in overdueLoans)
+            foreach (var loan in dashboard.AllOverdueLoans)
             {
                 grid.Rows.Add(loan.Customer, loan.AmountDue, loan.DaysOverdue, loan.Contact, loan.Priority);
             }
@@ -739,7 +697,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionTasks.Controls.Add(grid);
             sectionTasks.Controls.Add(header);
 
-            foreach (var task in todayTasks)
+            foreach (var task in dashboard.AllTodayTasks)
             {
                 grid.Rows.Add(task.Time, task.Customer, task.TaskType, task.Status);
             }
@@ -776,7 +734,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionActivity.Controls.Add(grid);
             sectionActivity.Controls.Add(header);
 
-            foreach (var act in recentActivity)
+            foreach (var act in dashboard.AllRecentActivity)
             {
                 grid.Rows.Add(act.Time, act.Activity, act.Customer, act.Amount);
             }
