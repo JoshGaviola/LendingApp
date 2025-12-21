@@ -52,9 +52,6 @@ namespace LendingApp.Models.LoanOfficer
             public string Amount { get; set; }
         }
 
-
-
-
         private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
         {
             new PendingApplication { Id="APP-001", Customer="Juan Cruz", LoanType="Personal", Amount="₱50,000", DaysWaiting=2, Priority="High" },
