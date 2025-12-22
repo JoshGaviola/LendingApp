@@ -92,6 +92,13 @@ namespace LendingApp.UI.CashierUI
 
             previewControl = new ReportPreviewControl();
             previewControl.ViewFullReportClicked += (s, e) => ShowFullReport();
+
+            previewControl.GenerateFullReportClicked += (s, e) => ShowToast("Generating full report...");
+            previewControl.ExportPdfClicked += (s, e) => ShowToast("Exporting report to PDF...");
+            previewControl.ExportExcelClicked += (s, e) => ShowToast("Exporting report to Excel...");
+            previewControl.ExportCsvClicked += (s, e) => ShowToast("Exporting report to CSV...");
+            previewControl.PrintClicked += (s, e) => ShowToast("Sending report to printer...");
+
             content.Controls.Add(previewControl);
 
             quickStatsControl = new QuickStatsControl();
