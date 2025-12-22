@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using LendingApp.UI.CashierUI.Controls;
 
@@ -135,6 +136,22 @@ namespace LendingApp.UI.CashierUI
                 totalTransactions,
                 avgDaily,
                 breakdown);
+
+            // Update Quick Stats
+            decimal thisMonth = 128592.44m;
+            decimal lastMonth = 115420.00m;
+
+            var chartData = breakdown.Select(b => (b.DateLabel, b.Amount)).ToArray();
+
+            quickStatsControl.SetStats(
+                thisMonth: thisMonth,
+                lastMonth: lastMonth,
+                topLoanType: "Personal Loan",
+                topLoanTypePercent: "65%",
+                topPaymentMode: "Cash",
+                topPaymentModePercent: "58%",
+                collectionRate: "94.2%",
+                dailyBreakdown: chartData);
         }
 
         private void ShowFullReport()
