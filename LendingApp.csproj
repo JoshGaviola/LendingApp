@@ -40,6 +40,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="Models\LoanOfficer\OfficerDashboardLogic.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <Compile Include="Program.cs" />
@@ -161,6 +162,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\CustomerUI\CustomerDashBoard.resx">
+      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
       <DependentUpon>CustomerManagement.cs</DependentUpon>

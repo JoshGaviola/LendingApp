@@ -14,16 +14,6 @@ namespace LendingApp.Models.LoanOfficer
         public int overdueLoansCount { get; set; }
         public string todayCollection { get; set; }
 
-        public class PendingApplication
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string LoanType { get; set; }
-            public string Amount { get; set; }
-            public int DaysWaiting { get; set; }
-            public string Priority { get; set; } // High | Medium | Low
-        }
-
         public class OverdueLoan
         {
             public string Id { get; set; }
@@ -52,18 +42,6 @@ namespace LendingApp.Models.LoanOfficer
             public string Amount { get; set; }
         }
 
-
-
-
-        private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
-        {
-            new PendingApplication { Id="APP-001", Customer="Juan Cruz", LoanType="Personal", Amount="₱50,000", DaysWaiting=2, Priority="High" },
-            new PendingApplication { Id="APP-002", Customer="Maria Santos", LoanType="Emergency", Amount="₱15,000", DaysWaiting=1, Priority="Medium" },
-            new PendingApplication { Id="APP-003", Customer="Pedro Reyes", LoanType="Salary", Amount="₱25,000", DaysWaiting=3, Priority="High" },
-            new PendingApplication { Id="APP-001", Customer="Juan Cruz", LoanType="Personal", Amount="₱50,000", DaysWaiting=2, Priority="High" },
-            new PendingApplication { Id="APP-002", Customer="Maria Santos", LoanType="Emergency", Amount="₱15,000", DaysWaiting=1, Priority="Medium" },
-            new PendingApplication { Id="APP-003", Customer="Pedro Reyes", LoanType="Salary", Amount="₱25,000", DaysWaiting=3, Priority="High" },
-        };
 
         private readonly List<OverdueLoan> overdueLoans = new List<OverdueLoan>
         {
@@ -97,14 +75,9 @@ namespace LendingApp.Models.LoanOfficer
             new ActivityItem { Id="A-004", Time="2 days ago", Activity="Loan Disbursed", Customer="Maria Santos", Amount="₱15,000" },
         };
 
-
-
-
-        public IReadOnlyList<PendingApplication> AllPending => pendingApplications;
-        public IReadOnlyList<OverdueLoan> AllOverdueLoans => overdueLoans;
+        public IReadOnlyList<OverdueLoan> AllOverdueLoans => overdueLoans;      
         public IReadOnlyList<TaskItem> AllTodayTasks => todayTasks;
         public IReadOnlyList<ActivityItem> AllRecentActivity => recentActivity;
-        public int TotalPendingApplications => pendingApplications.Count;
         public int TotalTodayTasks => todayTasks.Count;
         public int TotalOverdueLoans => overdueLoans.Count;
 
