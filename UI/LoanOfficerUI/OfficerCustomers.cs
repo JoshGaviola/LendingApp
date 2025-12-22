@@ -235,5 +235,10 @@ namespace LendingApp.UI.LoanOfficerUI
             lblVIP.Text = customers.Count(c => c.Type == "VIP").ToString();
             lblDelinquent.Text = customers.Count(c => c.Type == "Delinquent").ToString();
         }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace LendingApp.UI.CustomerUI
 {
-    partial class CustomerDashBoard
+    partial class CustomerDashBoard2
     {
         /// <summary>
         /// Required designer variable.

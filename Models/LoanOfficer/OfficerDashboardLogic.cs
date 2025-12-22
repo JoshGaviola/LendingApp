@@ -14,6 +14,16 @@ namespace LendingApp.Models.LoanOfficer
         public int overdueLoansCount { get; set; }
         public string todayCollection { get; set; }
 
+        public class PendingApplication
+        {
+            public string Id { get; set; }
+            public string Customer { get; set; }
+            public string LoanType { get; set; }
+            public string Amount { get; set; }
+            public int DaysWaiting { get; set; }
+            public string Priority { get; set; } // High | Medium | Low
+        }
+
         public class OverdueLoan
         {
             public string Id { get; set; }
@@ -40,16 +50,6 @@ namespace LendingApp.Models.LoanOfficer
             public string Activity { get; set; }
             public string Customer { get; set; }
             public string Amount { get; set; }
-        }
-
-        public class PendingApplication
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string LoanType { get; set; }
-            public string Amount { get; set; }
-            public int DaysWaiting { get; set; }
-            public string Priority { get; set; } // High | Medium | Low
         }
 
         private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
@@ -94,10 +94,15 @@ namespace LendingApp.Models.LoanOfficer
             new ActivityItem { Id="A-004", Time="2 days ago", Activity="Loan Disbursed", Customer="Maria Santos", Amount="₱15,000" },
         };
 
-        public IReadOnlyList<OverdueLoan> AllOverdueLoans => overdueLoans;      
+        public IReadOnlyList<OverdueLoan> AllOverdueLoans => overdueLoans;     
+        
+        public IReadOnlyList<PendingApplication> AllPendingApplications => pendingApplications;
+
         public IReadOnlyList<TaskItem> AllTodayTasks => todayTasks;
         public IReadOnlyList<ActivityItem> AllRecentActivity => recentActivity;
         public int TotalTodayTasks => todayTasks.Count;
+
+        public int TotalPendingApplications => pendingApplications.Count;
         public int TotalOverdueLoans => overdueLoans.Count;
 
 

@@ -97,6 +97,12 @@
     <Compile Include="UI\CashierUI\CashierReport.Designer.cs">
       <DependentUpon>CashierReport.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\Controls\FullReportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\CashierUI\Controls\QuickStatsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -115,11 +121,11 @@
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.Designer.cs">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CustomerUI\CustomerDashBoard.cs">
+    <Compile Include="UI\CustomerUI\CustomerDashBoard2.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\CustomerUI\CustomerDashBoard.Designer.cs">
-      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
+    <Compile Include="UI\CustomerUI\CustomerDashBoard2.Designer.cs">
+      <DependentUpon>CustomerDashBoard2.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\CustomerUI\CustomerLogin.cs">
       <SubType>Form</SubType>
@@ -184,6 +190,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx" />
+    <EmbeddedResource Include="UI\AdminUI\AdminDashboard.resx">
+      <DependentUpon>AdminDashboard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\CashierUI\CashierDashboard.resx">
       <DependentUpon>CashierDashboard.cs</DependentUpon>
     </EmbeddedResource>
@@ -193,8 +202,8 @@
     <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerDashBoard.resx">
-      <DependentUpon>CustomerDashBoard.cs</DependentUpon>
+    <EmbeddedResource Include="UI\CustomerUI\CustomerDashBoard2.resx">
+      <DependentUpon>CustomerDashBoard2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
@@ -204,6 +213,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerApplications.resx">
       <DependentUpon>OfficerApplications.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\LoanOfficerUI\OfficerCustomers.resx">
+      <DependentUpon>OfficerCustomers.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerDashboard.resx">
       <DependentUpon>OfficerDashboard.cs</DependentUpon>
