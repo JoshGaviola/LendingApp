@@ -51,6 +51,7 @@ namespace LendingApp.UI.CashierUI
         private CashierLoanRelease _loanReleaseForm;
         private CashierDailyReport _dailyReportForm;
         private CashierReciept _receiptsForm;
+        private CashierReport _cashierReportForm;
 
         public CashierDashboard()
         {
@@ -322,12 +323,7 @@ namespace LendingApp.UI.CashierUI
             }
             else if (activeNav == "Reports")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Reports",
-                    message: "Generate cashier performance reports.",
-                    accentHex: "#0F766E"
-                ));
-                ApplyPlaceholderLayout();
+                ShowReportsView();
             }
             else if (activeNav == "Settings")
             {
@@ -413,6 +409,22 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.Controls.Add(_receiptsForm);
             _receiptsForm.Show();
+        }
+
+        private void ShowReportsView()
+        {
+            if (_cashierReportForm == null || _cashierReportForm.IsDisposed)
+            {
+                _cashierReportForm = new CashierReport
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_cashierReportForm);
+            _cashierReportForm.Show();
         }
 
         private void ApplyPlaceholderLayout()

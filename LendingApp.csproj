@@ -90,6 +90,24 @@
     <Compile Include="UI\CashierUI\CashierReciept.Designer.cs">
       <DependentUpon>CashierReciept.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierReport.Designer.cs">
+      <DependentUpon>CashierReport.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CashierUI\Controls\QuickStatsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\Controls\ReportParametersControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\Controls\ReportPreviewControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\Controls\ReportSelectionControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
     </Compile>
