@@ -10,6 +10,7 @@ namespace LendingApp.UI.LoanOfficerUI
     {
 
         OfficerDashboardLogic dashboard = new OfficerDashboardLogic();
+        OfficerApplicationLogic officerApp = new OfficerApplicationLogic();
 
 
 
@@ -218,7 +219,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblPendingTitle.Text = "Pending";
             lblPendingTitle.ForeColor = ColorTranslator.FromHtml("#1D4ED8");
             lblPendingTitle.Location = new Point(10, 8);
-            lblPendingCount.Text = $"[{dashboard.TotalPendingApplications}]";
+            lblPendingCount.Text = $"[{officerApp.TotalApplications}]";
             lblPendingCount.ForeColor = ColorTranslator.FromHtml("#1E3A8A");
             lblPendingCount.Location = new Point(10, 28);
             lblPendingSub.Text = "Applications";
@@ -608,9 +609,9 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            foreach (var app in dashboard.AllPending)
+            foreach (var app in officerApp.Allapplications)
             {
-                grid.Rows.Add(app.Customer, app.LoanType, app.Amount, app.DaysWaiting, app.Priority);
+                grid.Rows.Add(app.Customer, app.LoanType, app.Amount, app.Priority);
             }
         }
 
