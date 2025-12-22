@@ -95,16 +95,11 @@ namespace LendingApp.Models.LoanOfficer
         };
 
         public IReadOnlyList<OverdueLoan> AllOverdueLoans => overdueLoans;     
-        
         public IReadOnlyList<PendingApplication> AllPendingApplications => pendingApplications;
-
         public IReadOnlyList<TaskItem> AllTodayTasks => todayTasks;
         public IReadOnlyList<ActivityItem> AllRecentActivity => recentActivity;
-        public int TotalTodayTasks => todayTasks.Count;
-
         public int TotalPendingApplications => pendingApplications.Count;
         public int TotalOverdueLoans => overdueLoans.Count;
-
 
     }
 }

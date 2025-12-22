@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using static LendingApp.Models.LoanOfficer.OfficerDashboardLogic;
+using LendingApp.Models.LoanOfiicerModels;
 
 namespace LendingApp.Models.LoanOfficer
 {
@@ -15,12 +15,6 @@ namespace LendingApp.Models.LoanOfficer
             public string AppliedDate { get; set; }
             public string Status { get; set; }
             public string Priority { get; set; }
-        }
-
-        public class StatusSummary
-        {
-            public string Status { get; set; }
-            public int Count { get; set; }
         }
 
 

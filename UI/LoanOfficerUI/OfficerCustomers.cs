@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LendingApp.Models.LoanOfficer;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -11,40 +12,18 @@ namespace LendingApp.UI.LoanOfficerUI
         private string customerFilter = "all";
         private string searchQuery = "";
 
-        private class CustomerItem
-        {
-            public string Id { get; set; }
-            public string Name { get; set; }
-            public string Contact { get; set; }
-            public string Email { get; set; }
-            public string Type { get; set; } // New | Regular | VIP | Delinquent
-            public int CreditScore { get; set; }
-            public int TotalLoans { get; set; }
-            public string Balance { get; set; }
-            public int BalanceAmount { get; set; }
-            public string RegisteredDate { get; set; }
-            public string LastActivity { get; set; }
-        }
+        private OfficerCustomersLogic CustomerLogic;
 
-        private readonly List<CustomerItem> customers = new List<CustomerItem>
-        {
-            new CustomerItem { Id="CUST-001", Name="Juan Cruz", Contact="+639123456789", Email="juan.cruz@email.com", Type="Regular",  CreditScore=750, TotalLoans=2, Balance="₱85,000",  BalanceAmount=85000,  RegisteredDate="Jan 15, 2024", LastActivity="2 days ago" },
-            new CustomerItem { Id="CUST-002", Name="Maria Santos", Contact="+639987654321", Email="maria.santos@email.com", Type="New",     CreditScore=680, TotalLoans=1, Balance="₱35,000",  BalanceAmount=35000,  RegisteredDate="Nov 20, 2025", LastActivity="5 days ago" },
-            new CustomerItem { Id="CUST-003", Name="Pedro Reyes", Contact="+639456789012", Email="pedro.reyes@email.com", Type="VIP",     CreditScore=820, TotalLoans=0, Balance="₱0",       BalanceAmount=0,      RegisteredDate="Mar 10, 2024", LastActivity="1 hour ago" },
-            new CustomerItem { Id="CUST-004", Name="Ana Lopez",   Contact="+639234567890", Email="ana.lopez@email.com",   Type="Regular", CreditScore=710, TotalLoans=3, Balance="₱120,500", BalanceAmount=120500, RegisteredDate="Feb 28, 2024", LastActivity="Yesterday" },
-            new CustomerItem { Id="CUST-005", Name="Carlos Tan",  Contact="+639345678901", Email="carlos.tan@email.com",  Type="VIP",     CreditScore=795, TotalLoans=5, Balance="₱250,000", BalanceAmount=250000, RegisteredDate="Jan 05, 2024", LastActivity="3 hours ago" },
-            new CustomerItem { Id="CUST-006", Name="Sofia Garcia",Contact="+639567890123", Email="sofia.garcia@email.com",Type="Delinquent", CreditScore=580, TotalLoans=1, Balance="₱15,000", BalanceAmount=15000, RegisteredDate="Aug 12, 2024", LastActivity="15 days ago" },
-            new CustomerItem { Id="CUST-007", Name="Miguel Ramos",Contact="+639678901234", Email="miguel.ramos@email.com",Type="Regular", CreditScore=720, TotalLoans=2, Balance="₱60,000",  BalanceAmount=60000,  RegisteredDate="Apr 18, 2024", LastActivity="1 day ago" },
-            new CustomerItem { Id="CUST-008", Name="Isabel Cruz", Contact="+639789012345", Email="isabel.cruz@email.com", Type="New",     CreditScore=650, TotalLoans=0, Balance="₱0",       BalanceAmount=0,      RegisteredDate="Nov 28, 2025", LastActivity="Today" },
-        };
 
         public OfficerCustomers()
         {
             InitializeComponent();
+            CustomerLogic = new OfficerCustomersLogic();
+            StatusUpdate();
+
             BuildUI();
             BindFilters();
             RefreshTable();
-            UpdateStatsCards();
         }
 
         private void BuildUI()
@@ -135,9 +114,18 @@ namespace LendingApp.UI.LoanOfficerUI
             cmbCustomerType.SelectedIndex = 0; // All Customers
         }
 
-        private IEnumerable<CustomerItem> Filtered()
+        private void StatusUpdate()
         {
-            return customers.Where(c =>
+            lblTotalCustomers.Text = CustomerLogic.TotalCustomers.ToString();
+            lblNew.Text = CustomerLogic.GetStatusSummary().Find(s => s.Type == "New")?.Count.ToString() ?? "0";
+            lblRegular.Text = CustomerLogic.GetStatusSummary().Find(s => s.Type == "Regular")?.Count.ToString() ?? "0";
+            lblVIP.Text = CustomerLogic.GetStatusSummary().Find(s => s.Type == "VIP")?.Count.ToString() ?? "0";
+            lblDelinquent.Text = CustomerLogic.GetStatusSummary().Find(s => s.Type == "Delinquent")?.Count.ToString() ?? "0";
+        }
+
+        private IEnumerable<OfficerCustomersLogic.CustomerItem> Filtered()
+        {
+            return CustomerLogic.AllCustomers.Where(c =>
             {
                 bool matchesType = customerFilter == "all" || c.Type.Equals(customerFilter, StringComparison.OrdinalIgnoreCase);
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery)
@@ -155,7 +143,17 @@ namespace LendingApp.UI.LoanOfficerUI
             gridCustomers.Rows.Clear();
             foreach (var c in filtered)
             {
-                int rowIndex = gridCustomers.Rows.Add(c.Id, ToNameWithEmail(c), c.Contact, c.Type, c.CreditScore.ToString(), c.TotalLoans, c.Balance, "View");
+                int rowIndex = gridCustomers.Rows.Add(
+                    c.Id,                   // Cust ID
+                    $"{c.Name} ({c.Email})",// Name with email
+                    c.Contact,              // Contact
+                    c.Type,                 // Type
+                    c.CreditScore,          // Score
+                    c.TotalLoans,           // Loans
+                    c.Balance,              // Balance
+                    "View"                  // Action button
+                );
+
                 var row = gridCustomers.Rows[rowIndex];
 
                 // Style type pill-like
@@ -175,14 +173,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
-            lblResults.Text = $"Showing {filtered.Count} of {customers.Count} customers";
-            UpdateStatsCards();
-        }
-
-        private string ToNameWithEmail(CustomerItem c)
-        {
-            if (string.IsNullOrWhiteSpace(c.Email)) return c.Name;
-            return $"{c.Name}  ({c.Email})";
+            lblResults.Text = $"Showing {filtered.Count} of {CustomerLogic.TotalCustomers} customers";
         }
 
         private Color GetTypeBackColor(string type)
@@ -225,15 +216,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 var custId = gridCustomers.Rows[e.RowIndex].Cells[0].Value?.ToString();
                 MessageBox.Show($"View {custId}", "Customer", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-        }
-
-        private void UpdateStatsCards()
-        {
-            lblTotalCustomers.Text = customers.Count.ToString();
-            lblNew.Text = customers.Count(c => c.Type == "New").ToString();
-            lblRegular.Text = customers.Count(c => c.Type == "Regular").ToString();
-            lblVIP.Text = customers.Count(c => c.Type == "VIP").ToString();
-            lblDelinquent.Text = customers.Count(c => c.Type == "Delinquent").ToString();
         }
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
