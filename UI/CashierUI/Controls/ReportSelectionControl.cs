@@ -24,7 +24,7 @@ namespace LendingApp.UI.CashierUI.Controls
             BackColor = ColorTranslator.FromHtml("#F9FAFB");
             BorderStyle = BorderStyle.FixedSingle;
             Width = 850;
-            Height = 200;
+            Height = 270;
 
             var title = new Label
             {
@@ -42,7 +42,11 @@ namespace LendingApp.UI.CashierUI.Controls
                 "Payment History",
                 "Released Loans",
                 "Active Loans",
-                "Overdue Accounts"
+                "Overdue Accounts",
+                "Interest Income Report",
+                "Service Charge Income Report",
+                "Portfolio at Risk (PAR)",
+                "Customer Payment Behavior"
             };
 
             int y = 40;

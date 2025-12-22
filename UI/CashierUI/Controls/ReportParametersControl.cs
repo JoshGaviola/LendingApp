@@ -23,11 +23,13 @@ namespace LendingApp.UI.CashierUI.Controls
 
         public string SelectedCashier => cmbCashier.SelectedItem?.ToString() ?? "All";
         public string SelectedPaymentMode => cmbPaymentMode.SelectedItem?.ToString() ?? "All";
+        public string SelectedLoanType => cmbLoanType.SelectedItem?.ToString() ?? "All";
 
         private DateTimePicker dtpFrom;
         private DateTimePicker dtpTo;
         private ComboBox cmbCashier;
         private ComboBox cmbPaymentMode;
+        private ComboBox cmbLoanType;
 
         public ReportParametersControl()
         {
@@ -58,13 +60,16 @@ namespace LendingApp.UI.CashierUI.Controls
             AddLabel("Payment Mode", 460, 40);
             cmbPaymentMode = AddComboBox(460, 60, new[] { "All", "Cash", "GCash", "Bank" });
 
+            AddLabel("Loan Type", 620, 40);
+            cmbLoanType = AddComboBox(620, 60, new[] { "All", "Personal Loan", "Emergency Loan", "Salary Loan" });
+
             var btnApply = CreateButton("🔍 Apply", 80, ColorTranslator.FromHtml("#2563EB"), Color.White);
-            btnApply.Location = new Point(620, 56);
+            btnApply.Location = new Point(620, 96);
             btnApply.Click += (s, e) => ApplyClicked?.Invoke(this, EventArgs.Empty);
             Controls.Add(btnApply);
 
             var btnReset = CreateButton("Reset", 80, Color.White, ColorTranslator.FromHtml("#374151"));
-            btnReset.Location = new Point(710, 56);
+            btnReset.Location = new Point(710, 96);
             btnReset.Click += (s, e) => ResetClicked?.Invoke(this, EventArgs.Empty);
             Controls.Add(btnReset);
         }
