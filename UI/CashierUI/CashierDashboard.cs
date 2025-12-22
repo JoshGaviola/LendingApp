@@ -52,6 +52,7 @@ namespace LendingApp.UI.CashierUI
         private CashierDailyReport _dailyReportForm;
         private CashierReciept _receiptsForm;
         private CashierReport _cashierReportForm;
+        private CashierSettings _settingsForm;
 
         public CashierDashboard()
         {
@@ -327,12 +328,7 @@ namespace LendingApp.UI.CashierUI
             }
             else if (activeNav == "Settings")
             {
-                contentPanel.Controls.Add(MakePlaceholderCard(
-                    title: "Settings",
-                    message: "Configure cashier preferences.",
-                    accentHex: "#374151"
-                ));
-                ApplyPlaceholderLayout();
+                ShowSettingsView();
             }
             else
             {
@@ -425,6 +421,22 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.Controls.Add(_cashierReportForm);
             _cashierReportForm.Show();
+        }
+
+        private void ShowSettingsView()
+        {
+            if (_settingsForm == null || _settingsForm.IsDisposed)
+            {
+                _settingsForm = new CashierSettings
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_settingsForm);
+            _settingsForm.Show();
         }
 
         private void ApplyPlaceholderLayout()
