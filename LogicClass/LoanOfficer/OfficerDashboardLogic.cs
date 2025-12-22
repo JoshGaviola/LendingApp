@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LendingApp.Models.LoanOfiicerModels;
 
 namespace LendingApp.Models.LoanOfficer
 {
@@ -13,44 +14,6 @@ namespace LendingApp.Models.LoanOfficer
         public string activePortfolio { get; set; }
         public int overdueLoansCount { get; set; }
         public string todayCollection { get; set; }
-
-        public class PendingApplication
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string LoanType { get; set; }
-            public string Amount { get; set; }
-            public int DaysWaiting { get; set; }
-            public string Priority { get; set; } // High | Medium | Low
-        }
-
-        public class OverdueLoan
-        {
-            public string Id { get; set; }
-            public string Customer { get; set; }
-            public string AmountDue { get; set; }
-            public int DaysOverdue { get; set; }
-            public string Contact { get; set; }
-            public string Priority { get; set; } // Critical | High | Medium
-        }
-        public class TaskItem
-        {
-            public string Id { get; set; }
-            public string Time { get; set; }
-            public string Customer { get; set; }
-            public string TaskType { get; set; }
-            public string LoanId { get; set; }
-            public string Status { get; set; } // Due | Pending | Completed
-        }
-
-       public class ActivityItem
-        {
-            public string Id { get; set; }
-            public string Time { get; set; }
-            public string Activity { get; set; }
-            public string Customer { get; set; }
-            public string Amount { get; set; }
-        }
 
         private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
         {

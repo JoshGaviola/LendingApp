@@ -40,10 +40,17 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interface\IStatusProvider.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
+    <Compile Include="Models\LoanOfiicerModels\ActivityItem.cs" />
+    <Compile Include="Models\LoanOfiicerModels\ApplicationItem.cs" />
+    <Compile Include="Models\LoanOfiicerModels\CustomerItem.cs" />
+    <Compile Include="Models\LoanOfiicerModels\OverdueLoan.cs" />
+    <Compile Include="Models\LoanOfiicerModels\PendingApplication.cs" />
     <Compile Include="Models\LoanOfiicerModels\StatusSummary.cs" />
+    <Compile Include="Models\LoanOfiicerModels\TaskItem.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

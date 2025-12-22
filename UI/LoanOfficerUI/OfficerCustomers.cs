@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-
+using LendingApp.Models.LoanOfiicerModels;
 namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerCustomers : Form
@@ -123,7 +123,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblDelinquent.Text = CustomerLogic.GetStatusSummary().Find(s => s.Type == "Delinquent")?.Count.ToString() ?? "0";
         }
 
-        private IEnumerable<OfficerCustomersLogic.CustomerItem> Filtered()
+        private IEnumerable<CustomerItem> Filtered()
         {
             return CustomerLogic.AllCustomers.Where(c =>
             {
