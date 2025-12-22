@@ -212,6 +212,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.lblTotalTitle.Size = new System.Drawing.Size(31, 13);
             this.lblTotalTitle.TabIndex = 0;
             this.lblTotalTitle.Text = "Total";
+            this.lblTotalTitle.Click += new System.EventHandler(this.lblTotalTitle_Click);
             // 
             // lblTotal
             // 
@@ -221,6 +222,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.lblTotal.Size = new System.Drawing.Size(13, 13);
             this.lblTotal.TabIndex = 1;
             this.lblTotal.Text = "0";
+            this.lblTotal.Click += new System.EventHandler(this.lblTotal_Click);
             // 
             // cardPending
             // 

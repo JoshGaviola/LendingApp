@@ -9,7 +9,7 @@ namespace LendingApp
     public partial class CustomerLogin : Form
     {
         private CustomerRegistration _openRegistrationForm;
-        private CustomerDashBoard _openCustomerDashBoardForm;
+        private CustomerDashBoard2 _openCustomerDashBoardForm;
 
         public CustomerLogin()
         {
@@ -95,7 +95,7 @@ namespace LendingApp
 
             if (_openCustomerDashBoardForm == null || _openCustomerDashBoardForm.IsDisposed)
             {
-                _openCustomerDashBoardForm = new CustomerDashBoard();
+                _openCustomerDashBoardForm = new CustomerDashBoard2();
                 // When dashboard closes, dispose login (if still around).
                 _openCustomerDashBoardForm.FormClosed += (s, args) =>
                 {

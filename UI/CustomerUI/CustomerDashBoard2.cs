@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LendingApp.UI.CustomerUI{
-    public partial class CustomerDashBoard : Form{
-        public CustomerDashBoard(){
+    public partial class CustomerDashBoard2 : Form{
+        public CustomerDashBoard2(){
 
             InitializeComponent();
             SetLabelsGray();
