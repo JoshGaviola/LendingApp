@@ -7,14 +7,25 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerApplications : Form
     {
-        private readonly OfficerApplicationLogic logic = new OfficerApplicationLogic();
+        private OfficerApplicationLogic logic;
 
         public OfficerApplications()
         {
             InitializeComponent();
+            logic = new OfficerApplicationLogic();
+            updateStatusSummary();
             BuildUI();
             BindFilters();
             LoadApplications();
+        }
+
+        private void updateStatusSummary()
+        {
+            lblTotal.Text = logic.TotalApplications.ToString();
+            lblPending.Text = logic.GetStatusSummary().Find(s => s.Status == "Pending")?.Count.ToString() ?? "0";
+            lblReview.Text = logic.GetStatusSummary().Find(s => s.Status == "Review")?.Count.ToString() ?? "0";
+            lblApproved.Text = logic.GetStatusSummary().Find(s => s.Status == "Approved")?.Count.ToString() ?? "0";
+            lblDisbursed.Text = logic.GetStatusSummary().Find(s => s.Status == "Disbursed")?.Count.ToString() ?? "0";
         }
 
         private void BuildUI()
@@ -24,8 +35,8 @@ namespace LendingApp.UI.LoanOfficerUI
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             WindowState = FormWindowState.Maximized;
 
-            // Header
-            lblHeaderTitle.Text = "Loan Applications";
+            // Headers
+            lblHeaderTitle.Text = "Loan Applications";  
             lblHeaderTitle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 
             lblHeaderSubtitle.Text = "Manage and review customer loan applications";

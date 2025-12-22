@@ -17,6 +17,14 @@ namespace LendingApp.Models.LoanOfficer
             public string Priority { get; set; }
         }
 
+        public class StatusSummary
+        {
+            public string Status { get; set; }
+            public int Count { get; set; }
+        }
+
+
+
         private readonly List<ApplicationItem> applications = new List<ApplicationItem>
          {
             new ApplicationItem { Id="APP-001", Customer="Juan Dela Cruz", LoanType="Personal", Amount="₱50,000", AppliedDate="Dec 10", Status="Pending", Priority="High" },
@@ -24,9 +32,6 @@ namespace LendingApp.Models.LoanOfficer
             new ApplicationItem { Id="APP-003", Customer="Pedro Reyes", LoanType="Salary", Amount="₱25,000", AppliedDate="Dec 12", Status="Approved" },
             new ApplicationItem { Id="APP-004", Customer="Ana Lopez", LoanType="Personal", Amount="₱75,000", AppliedDate="Dec 09", Status="Review", Priority="High" },
             new ApplicationItem { Id="APP-005", Customer="Carlos Tan", LoanType="Emergency", Amount="₱10,000", AppliedDate="Dec 13", Status="Approved" },
-            new ApplicationItem { Id="APP-006", Customer="Sofia Garcia", LoanType="Salary", Amount="₱30,000", AppliedDate="Dec 08", Status="Rejected" },
-            new ApplicationItem { Id="APP-007", Customer="Miguel Ramos", LoanType="Personal", Amount="₱60,000", AppliedDate="Dec 07", Status="Disbursed" },
-            new ApplicationItem { Id="APP-008", Customer="Isabel Cruz", LoanType="Emergency", Amount="₱8,000", AppliedDate="Dec 13", Status="Pending", Priority="Low" }
          };
 
         public IReadOnlyList<ApplicationItem> Allapplications => applications;
@@ -52,6 +57,18 @@ namespace LendingApp.Models.LoanOfficer
             return query.ToList();
         }
 
+        public List<StatusSummary> GetStatusSummary()
+        {
+            return applications
+                .GroupBy(a => a.Status)
+                .Select(g => new  StatusSummary{ Status = g.Key, Count = g.Count() })
+                .ToList();
+        }
+
+
+
         public int TotalApplications => applications.Count;
+
+        
     }
 }

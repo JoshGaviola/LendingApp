@@ -42,8 +42,16 @@ namespace LendingApp.Models.LoanOfficer
             public string Amount { get; set; }
         }
 
-<<<<<<< HEAD
-=======
+        public class PendingApplication
+        {
+            public string Id { get; set; }
+            public string Customer { get; set; }
+            public string LoanType { get; set; }
+            public string Amount { get; set; }
+            public int DaysWaiting { get; set; }
+            public string Priority { get; set; } // High | Medium | Low
+        }
+
         private readonly List<PendingApplication> pendingApplications = new List<PendingApplication>
         {
             new PendingApplication { Id="APP-001", Customer="Juan Cruz", LoanType="Personal", Amount="₱50,000", DaysWaiting=2, Priority="High" },
@@ -53,7 +61,6 @@ namespace LendingApp.Models.LoanOfficer
             new PendingApplication { Id="APP-002", Customer="Maria Santos", LoanType="Emergency", Amount="₱15,000", DaysWaiting=1, Priority="Medium" },
             new PendingApplication { Id="APP-003", Customer="Pedro Reyes", LoanType="Salary", Amount="₱25,000", DaysWaiting=3, Priority="High" },
         };
->>>>>>> 6f46d1fc4fcabfc5b685e2f83c02ba46b2e81cac
 
         private readonly List<OverdueLoan> overdueLoans = new List<OverdueLoan>
         {
