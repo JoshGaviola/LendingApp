@@ -32,6 +32,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
@@ -63,11 +64,26 @@
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="LogicClass\Loan Product\LoanProduct.cs" />
     <Compile Include="LogicClass\User\User.cs" />
+    <Compile Include="UI\AdminUI\AddUserDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\AdminDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdminUI\AdminOverviewControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\AdminOverviewControl.Designer.cs">
+      <DependentUpon>AdminOverviewControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdminUI\AdminUserManagementControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\EditUserForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
       <SubType>Form</SubType>

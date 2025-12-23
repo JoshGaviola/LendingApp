@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LendingApp.UI.AdminUI.Views;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -252,19 +253,15 @@ namespace LendingApp.UI.AdminUI
 
             if (activeNav == "Dashboard")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Dashboard",
-                    message: "Admin overview coming soon.",
-                    accentHex: "#2563EB",
-                    iconText: "🏠"));
+                var adminOverview = new AdminOverviewControl();
+                adminOverview.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(adminOverview);
             }
             else if (activeNav == "User Management")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "User Management",
-                    message: "Manage system users and roles",
-                    accentHex: "#374151",
-                    iconText: "👥"));
+                var userManagement = new AdminUserManagementControl();
+                userManagement.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(userManagement);
             }
             else if (activeNav == "Loan Products")
             {
@@ -315,13 +312,17 @@ namespace LendingApp.UI.AdminUI
                     iconText: "ℹ"));
             }
 
-            // layout card nicely
-            var card = contentPanel.Controls.Count > 0 ? contentPanel.Controls[0] as Panel : null;
-            if (card != null)
+            // Only layout placeholder cards (Panels). UserControls manage their own layout.
+            var first = contentPanel.Controls.Count > 0 ? contentPanel.Controls[0] : null;
+            if (first is Panel card)
             {
                 ApplyMainCardLayout(card);
                 contentPanel.Resize -= ContentPanel_Resize;
                 contentPanel.Resize += ContentPanel_Resize;
+            }
+            else
+            {
+                contentPanel.Resize -= ContentPanel_Resize;
             }
 
             contentPanel.ResumeLayout();

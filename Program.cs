@@ -22,9 +22,13 @@ namespace LendingApp
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+<<<<<<< HEAD
            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
             //Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerCollections());
 
+=======
+            Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+>>>>>>> 028db4dd3751d8eb9e508f4fd681719c46aea516
         }
     }
 }
