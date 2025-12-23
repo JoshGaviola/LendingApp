@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LendingApp.UI.AdminUI.Views;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -252,11 +253,9 @@ namespace LendingApp.UI.AdminUI
 
             if (activeNav == "Dashboard")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Dashboard",
-                    message: "Admin overview coming soon.",
-                    accentHex: "#2563EB",
-                    iconText: "🏠"));
+                var adminOverview = new AdminOverviewControl();
+                adminOverview.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(adminOverview); // Add to contentPanel, not this.Controls
             }
             else if (activeNav == "User Management")
             {
