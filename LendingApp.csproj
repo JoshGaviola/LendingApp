@@ -62,6 +62,9 @@
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="LogicClass\Loan Product\LoanProduct.cs" />
     <Compile Include="LogicClass\User\User.cs" />
+    <Compile Include="UI\AdminUI\AddUserDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\AdminDashboard.cs">
       <SubType>Form</SubType>
     </Compile>

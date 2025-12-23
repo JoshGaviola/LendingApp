@@ -919,7 +919,7 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             var btnAddUser = CreateButton("➕ Add New User", "#16A34A", Color.White);
-            btnAddUser.Click += (s, e) => ShowMessage("Opening new user creation form...");
+            btnAddUser.Click += (s, e) => ShowAddUserDialog();
 
             var btnExportUsers = CreateOutlineButton("📥 Export Users");
             btnExportUsers.Click += (s, e) => ShowMessage("Exporting user list...");
@@ -934,6 +934,70 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             return panel;
+        }
+
+        private void ShowAddUserDialog()
+        {
+            var addUserDialog = new AddUserDialog();
+            addUserDialog.UserCreated += (userData) =>
+            {
+                // Map role from dialog format to our format using traditional switch
+                string mappedRole;
+                switch (userData.Role)
+                {
+                    case "Loan Officer":
+                        mappedRole = "LoanOfficer";
+                        break;
+                    default:
+                        mappedRole = userData.Role; // Admin or Cashier stay the same
+                        break;
+                }
+
+                // Add the new user to the list
+                var newUser = new User
+                {
+                    Id = (allUsers.Count + 1).ToString(),
+                    Username = userData.Username,
+                    FullName = userData.FullName,
+                    Role = mappedRole,
+                    EmployeeId = userData.EmployeeId,
+                    Email = userData.Email,
+                    Phone = userData.Phone,
+                    LastLogin = "Never"
+                };
+
+                allUsers.Add(newUser);
+
+                // Refresh the user list
+                UpdateUserList();
+
+                // Show success message
+                ShowMessage($"User '{userData.Username}' added successfully!");
+
+                // Auto-select the new user in the grid
+                SelectNewUserInGrid(newUser.Username);
+            };
+
+            addUserDialog.ShowDialog();
+        }
+
+        private void SelectNewUserInGrid(string username)
+        {
+            if (dgvUsers == null) return;
+
+            // Find and select the new user in the DataGridView
+            foreach (DataGridViewRow row in dgvUsers.Rows)
+            {
+                if (row.Cells["Username"].Value?.ToString() == username)
+                {
+                    row.Selected = true;
+                    dgvUsers.CurrentCell = row.Cells[0];
+
+                    // Ensure the row is visible
+                    dgvUsers.FirstDisplayedScrollingRowIndex = row.Index;
+                    break;
+                }
+            }
         }
 
         private Panel CreateStatisticsCard()
