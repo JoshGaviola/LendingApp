@@ -80,6 +80,9 @@
     <Compile Include="UI\AdminUI\AdminUserManagementControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\AdminUI\EditUserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
       <SubType>Form</SubType>
     </Compile>

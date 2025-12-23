@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using EditUserForm = LendingSystem.UI.EditUserForm;
+using EditFormUser = LendingSystem.UI.User;
 
 namespace LendingApp.UI.AdminUI.Views
 {
@@ -856,11 +858,7 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             var btnEdit = CreateOutlineButton("✏ Edit User");
-            btnEdit.Click += (s, e) =>
-            {
-                if (selectedUser != null)
-                    ShowMessage($"Editing user: {selectedUser.Username}");
-            };
+            btnEdit.Click += (s, e) => CreateAndShowEditUserForm();
 
             var btnResetPassword = CreateOutlineButton("🔑 Reset Password");
             btnResetPassword.Click += (s, e) =>
@@ -1237,6 +1235,66 @@ namespace LendingApp.UI.AdminUI.Views
             AddDetailRow("Status:", selectedUser.Status, 8);
 
             pnlUserDetails.Controls.Add(detailsGrid);
+        }
+
+        private void CreateAndShowEditUserForm()
+        {
+            if (selectedUser == null)
+            {
+                ShowMessage("Please select a user to edit.", true);
+                return;
+            }
+
+            // Map our internal user model to the form's user model
+            var editUser = new EditFormUser
+            {
+                Username = selectedUser.Username,
+                FullName = selectedUser.FullName,
+                Email = selectedUser.Email,
+                Phone = selectedUser.Phone,
+                Role = MapRoleToEditFormDisplay(selectedUser.Role),
+                EmployeeId = selectedUser.EmployeeId,
+                Status = selectedUser.Status,
+                CreatedDate = selectedUser.CreatedDate,
+                LastLogin = selectedUser.LastLogin
+            };
+
+            using (var form = new EditUserForm(editUser))
+            {
+                form.OnUserUpdated += updated =>
+                {
+                    // Copy edits back into our internal user model
+                    selectedUser.FullName = updated.FullName;
+                    selectedUser.Email = updated.Email;
+                    selectedUser.Phone = updated.Phone;
+                    selectedUser.Role = MapRoleFromEditFormDisplay(updated.Role);
+                    selectedUser.Status = updated.Status;
+
+                    // Refresh UI
+                    UpdateUserList();
+                    SelectNewUserInGrid(selectedUser.Username);
+                    UpdateUserDetails();
+                };
+
+                form.ShowDialog(FindForm());
+            }
+        }
+
+        private static string MapRoleToEditFormDisplay(string role)
+        {
+            // Our list uses "LoanOfficer" while the edit form dropdown uses "Loan Officer".
+            if (string.Equals(role, "LoanOfficer", StringComparison.OrdinalIgnoreCase))
+                return "Loan Officer";
+
+            return role ?? string.Empty;
+        }
+
+        private static string MapRoleFromEditFormDisplay(string role)
+        {
+            if (string.Equals(role, "Loan Officer", StringComparison.OrdinalIgnoreCase))
+                return "LoanOfficer";
+
+            return role ?? string.Empty;
         }
 
         private Button CreateButton(string text, string backHex, Color foreColor)
