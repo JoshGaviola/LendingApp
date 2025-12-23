@@ -42,10 +42,12 @@
   <ItemGroup>
     <Compile Include="Interface\IStatusProvider.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
+    <Compile Include="LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
     <Compile Include="Models\LoanOfiicerModels\ActivityItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\ApplicationItem.cs" />
+    <Compile Include="Models\LoanOfiicerModels\CollectionItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\CustomerItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\OverdueLoan.cs" />
     <Compile Include="Models\LoanOfiicerModels\PendingApplication.cs" />

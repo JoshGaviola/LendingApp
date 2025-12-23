@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LendingApp.LogicClass.LoanOfficer;
+using LendingApp.Models.LoanOfficer;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -9,22 +11,11 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerCollections : Form
     {
-        // Host mode: when true, do not render our own header/sidebar (embed inside OfficerDashboard)
+        // Host mode: when true, do not render our own header/sidebar (embed inside OfficerDashboard
         private readonly bool _hosted;
+        private OfficerCollectionLogic collectionLogic;
 
         // Data model
-        private class CollectionItem
-        {
-            public string Id { get; set; }
-            public string LoanId { get; set; }
-            public string Customer { get; set; }
-            public string DueDate { get; set; }
-            public string Amount { get; set; }
-            public int DaysOverdue { get; set; }
-            public string Contact { get; set; }
-            public string Priority { get; set; } // Critical | High | Medium | Low
-            public string Status { get; set; }   // Overdue | Due Today | Upcoming
-        }
 
         // Shell (consistent with OfficerDashboard)
         private Panel headerPanel;
@@ -80,23 +71,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private string startDate = "Dec 14";
         private string endDate = "Dec 21";
         private string searchTerm = "";
-        private readonly Dictionary<string, string> summary = new Dictionary<string, string>
-        {
-            { "dueToday", "₱8,292" },
-            { "overdue", "₱12,442" },
-            { "thisWeek", "₱25,000" },
-            { "collectedToday", "₱5,250" }
-        };
-
-        private readonly List<CollectionItem> collections = new List<CollectionItem>
-        {
-            new CollectionItem { Id="1", LoanId="LN-001", Customer="Juan Cruz",  DueDate="Dec 15", Amount="₱4,442", DaysOverdue=0, Contact="+639123456789", Priority="High",     Status="Due Today" },
-            new CollectionItem { Id="2", LoanId="LN-002", Customer="Pedro Reyes",DueDate="Dec 10", Amount="₱3,850", DaysOverdue=5, Contact="+639456789012", Priority="Critical", Status="Overdue" },
-            new CollectionItem { Id="3", LoanId="LN-003", Customer="Maria Santos",DueDate="Dec 20", Amount="₱3,850", DaysOverdue=0, Contact="+639987654321", Priority="Medium",  Status="Upcoming" },
-            new CollectionItem { Id="4", LoanId="LN-004", Customer="Ana Lopez",   DueDate="Dec 15", Amount="₱2,500", DaysOverdue=0, Contact="+639111222333", Priority="Medium",  Status="Due Today" },
-            new CollectionItem { Id="5", LoanId="LN-005", Customer="Carlos Tan",  DueDate="Dec 12", Amount="₱4,150", DaysOverdue=3, Contact="+639444555666", Priority="High",    Status="Overdue" },
-            new CollectionItem { Id="6", LoanId="LN-006", Customer="Rosa Garcia", DueDate="Dec 18", Amount="₱3,200", DaysOverdue=0, Contact="+639777888999", Priority="Low",     Status="Upcoming" },
-        };
+      
 
         private readonly string[] filterOptions = { "All", "Overdue", "Due Today", "Upcoming", "Collected" };
 
@@ -108,6 +83,8 @@ namespace LendingApp.UI.LoanOfficerUI
             _hosted = hosted;
             InitializeComponent();
             BuildShell();
+            collectionLogic = new OfficerCollectionLogic();
+
             BuildCollectionsHome();
             BindEvents();
             ApplyData();
@@ -275,10 +252,10 @@ namespace LendingApp.UI.LoanOfficerUI
         {
             // Build panels and add to contentPanel
             summaryPanel = new Panel { Dock = DockStyle.Top, Height = 100, BackColor = Color.Transparent, Padding = new Padding(10, 10, 10, 0) };
-            cardDueToday = MakeSummaryCard("#FFEDD5", "#EA580C", "#F97316", "Due Today", summary["dueToday"], "3 payments");
-            cardOverdue = MakeSummaryCard("#FEE2E2", "#DC2626", "#EF4444", "Overdue", summary["overdue"], "2 accounts");
-            cardThisWeek = MakeSummaryCard("#DBEAFE", "#1D4ED8", "#2563EB", "This Week", summary["thisWeek"], "Expected");
-            cardCollectedToday = MakeSummaryCard("#ECFDF5", "#065F46", "#10B981", "Collected Today", summary["collectedToday"], "2 payments");
+            cardDueToday = MakeSummaryCard("#FFEDD5", "#EA580C", "#F97316", "Due Today", collectionLogic.summary["dueToday"], "3 payments");
+            cardOverdue = MakeSummaryCard("#FEE2E2", "#DC2626", "#EF4444", "Overdue", collectionLogic.summary["overdue"], "2 accounts");
+            cardThisWeek = MakeSummaryCard("#DBEAFE", "#1D4ED8", "#2563EB", "This Week", collectionLogic.summary["thisWeek"], "Expected");
+            cardCollectedToday = MakeSummaryCard("#ECFDF5", "#065F46", "#10B981", "Collected Today", collectionLogic.summary["collectedToday"], "2 payments");
             summaryPanel.Controls.Add(cardDueToday);
             summaryPanel.Controls.Add(cardOverdue);
             summaryPanel.Controls.Add(cardThisWeek);
@@ -356,12 +333,12 @@ namespace LendingApp.UI.LoanOfficerUI
             tableHeader.Controls.Add(lblShowingFilter);
 
             quickStatsPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(10, 0, 10, 10) };
-            qsRate = MakeQuickStatCard("Collection Rate", "78.5%", "+5.2% from last week", "#EDE9FE", "#7C3AED");
-            qsAverage = MakeQuickStatCard("Average Collection", "₱3,548", "Per payment", "#DBEAFE", "#2563EB");
-            qsFollowups = MakeQuickStatCard("Follow-ups Today", "5 Required", "2 high priority", "#FFEDD5", "#EA580C");
+             qsRate = MakeQuickStatCard("Collection Rate", collectionLogic.CollectionRate = "75.5%", "+5.2% from last week", "#EDE9FE", "#7C3AED");
+            qsAverage = MakeQuickStatCard("Average Collection", collectionLogic.AverageCollection = "3,548", "Per payment", "#DBEAFE", "#2563EB");
+            qsFollowups = MakeQuickStatCard("Follow-ups Today", collectionLogic.FollowUp = "5"," 2 high priority", "#FFEDD5", "#EA580C");
             quickStatsPanel.Controls.Add(qsRate);
-            quickStatsPanel.Controls.Add(qsAverage);
-            quickStatsPanel.Controls.Add(qsFollowups);
+           quickStatsPanel.Controls.Add(qsAverage);
+           quickStatsPanel.Controls.Add(qsFollowups);
 
             contentPanel.Controls.Clear();
             contentPanel.Controls.Add(quickStatsPanel);
@@ -461,7 +438,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void RefreshTable()
         {
-            var filtered = collections.Where(item =>
+            var filtered = collectionLogic.Allcollections.Where(item =>
             {
                 bool matchesFilter = selectedFilter == "All" || item.Status == selectedFilter;
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchTerm)
@@ -512,9 +489,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
-            lblItemsCount.Text = $"{filtered.Count} items";
-            lblTotalItems.Text = $"Total: {filtered.Count} collection{(filtered.Count != 1 ? "s" : "")}";
-            lblTotalAmount.Text = $"Total Amount: ₱{ComputeTotalAmount(filtered).ToString("N0", CultureInfo.InvariantCulture)}";
         }
 
         private void GridCollections_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -537,18 +511,6 @@ namespace LendingApp.UI.LoanOfficerUI
         private string DaysCellText(int days)
         {
             return days > 0 ? $"+{days}" : "0";
-        }
-
-        private decimal ComputeTotalAmount(List<CollectionItem> items)
-        {
-            decimal sum = 0;
-            foreach (var i in items)
-            {
-                var cleaned = i.Amount.Replace("₱", "").Replace(",", "");
-                if (decimal.TryParse(cleaned, NumberStyles.Any, CultureInfo.InvariantCulture, out var val))
-                    sum += val;
-            }
-            return sum;
         }
 
         private (Color back, Color fore) GetPriorityColors(string priority)
