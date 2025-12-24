@@ -321,25 +321,27 @@ namespace LendingSystem.Admin
             {
                 Text = "Loan Information",
                 Location = new Point(padding, yPos),
-                Size = new Size(groupWidth, 90),
+                Size = new Size(groupWidth, 80), // Reduced height from 90 to 80
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 BackColor = Color.White
             };
 
+            // REMOVED "Reason: \"Insufficient income\"" from the text
             Label loanInfoLabel = new Label
             {
-                Text = "Loan ID: 101 | Juan Dela Cruz\nType: Personal Loan | ₱50,000 | 12 months\nStatus: Rejected (by Officer: John Smith)\nReason: \"Insufficient income\"",
+                Text = "Loan ID: 101 | Juan Dela Cruz\nType: Personal Loan | ₱50,000 | 12 months\nStatus: Rejected (by Officer: John Smith)",
                 Location = new Point(10, 20),
-                Size = new Size(groupWidth - 20, 60),
+                Size = new Size(groupWidth - 20, 50), // Reduced height from 60 to 50
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Color.FromArgb(55, 65, 81)
             };
 
             loanDetailsGroup.Controls.Add(loanInfoLabel);
             selectedLoanPanel.Controls.Add(loanDetailsGroup);
-            yPos += 100;
+            yPos += 90; // Reduced from 100 to 90
 
+            // ... rest of the code remains the same ...
             // Override Actions Group
             overrideActionsGroup = new GroupBox
             {
@@ -555,6 +557,7 @@ namespace LendingSystem.Admin
 
             selectedLoanPanel.ResumeLayout(true);
         }
+
         private void AddPlaceholderText(TextBox textBox, string placeholder)
         {
             textBox.ForeColor = Color.Gray;
@@ -689,17 +692,16 @@ namespace LendingSystem.Admin
             string loanType = "Personal Loan";
             string term = "12 months";
             string officer = "John Smith";
-            string reason = "Insufficient income";
 
             // Find and update the label in loanDetailsGroup
             foreach (Control control in loanDetailsGroup.Controls)
             {
                 if (control is Label label)
                 {
+                    // REMOVED the Reason line
                     label.Text = $"Loan ID: {loanId} | {customer}\n" +
                                  $"Type: {loanType} | {amount} | {term}\n" +
-                                 $"Status: {status} (by Officer: {officer})\n" +
-                                 $"Reason: \"{reason}\"";
+                                 $"Status: {status} (by Officer: {officer})";
                     break;
                 }
             }
