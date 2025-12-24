@@ -1,0 +1,725 @@
+﻿using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace LendingApp.UI.AdminUI
+{
+    public partial class AddNewLoanProductControl : UserControl
+    {
+        // Form fields
+        private TextBox txtLoanTypeName;
+        private TextBox txtDescription;
+        private RadioButton rdoFixedInterest;
+        private RadioButton rdoVariableInterest;
+        private TextBox txtInterestRate;
+        private ComboBox cmbInterestPeriod;
+        private TextBox txtServiceFeePercentage;
+        private TextBox txtServiceFeeFixed;
+        private TextBox txtMinLoanAmount;
+        private TextBox txtMaxLoanAmount;
+        private CheckBox[] termCheckboxes;
+        private CheckBox chkValidId;
+        private CheckBox chkProofOfIncome;
+        private CheckBox chkPayslip;
+        private CheckBox chkBankStatement;
+        private CheckBox chkComakerForm;
+        private CheckBox chkOthers;
+        private TextBox txtOthersDescription;
+        private RadioButton rdoCollateralYes;
+        private RadioButton rdoCollateralNo;
+        private TextBox txtGracePeriod;
+        private TextBox txtLatePenalty;
+        private ComboBox cmbLatePenaltyPeriod;
+        private RadioButton rdoStatusActive;
+        private RadioButton rdoStatusInactive;
+        private Button btnSaveProduct;
+        private Button btnClearForm;
+
+        // Plus icon label needs to be accessible at class level
+        private Label lblPlusIcon;
+
+        public AddNewLoanProductControl()
+        {
+            InitializeControl();
+        }
+
+        private void InitializeControl()
+        {
+            // Control settings
+            this.BackColor = Color.White;
+            this.Dock = DockStyle.Fill;
+            this.Font = new Font("Segoe UI", 9);
+            this.AutoScroll = true; // Enable scrolling on the UserControl
+
+            // Main container - MUST have AutoScroll = true
+            var mainPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(20),
+                AutoScroll = true, // This is CRITICAL for scrolling
+                AutoSize = false // Don't auto-size, let it scroll
+            };
+
+            // Create a content panel that holds all the controls
+            var contentPanel = new Panel
+            {
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Width = mainPanel.Width - 40 // Account for padding
+            };
+
+            int yPos = 10;
+
+            // ===== HEADER =====
+            var headerPanel = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 20, 60),
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.FromArgb(240, 255, 240)
+            };
+
+            var lblHeader = new Label
+            {
+                Text = "ADD NEW LOAN PRODUCT",
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Location = new Point(10, 10),
+                AutoSize = true,
+                ForeColor = Color.DarkGreen
+            };
+
+            // Plus icon (using text symbol) - now declared at class level
+            lblPlusIcon = new Label
+            {
+                Text = "+",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                Location = new Point(headerPanel.Width - 40, 10),
+                Size = new Size(30, 30),
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.Green,
+                Name = "lblPlusIcon" // Give it a name for easier identification
+            };
+
+            headerPanel.Controls.Add(lblHeader);
+            headerPanel.Controls.Add(lblPlusIcon);
+            contentPanel.Controls.Add(headerPanel);
+
+            yPos += 70;
+
+            // ===== LOAN TYPE NAME & DESCRIPTION =====
+            var lblSection1 = new Label
+            {
+                Text = "Loan Type Name & Description",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection1);
+
+            yPos += 25;
+
+            var panel1 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 80),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Loan Type Name
+            var lblLoanTypeName = new Label
+            {
+                Text = "Loan Type Name:",
+                Location = new Point(10, 15),
+                AutoSize = true
+            };
+            panel1.Controls.Add(lblLoanTypeName);
+
+            txtLoanTypeName = new TextBox
+            {
+                Location = new Point(120, 12),
+                Size = new Size(300, 25),
+                Text = "Enter loan type name"
+            };
+            panel1.Controls.Add(txtLoanTypeName);
+
+            // Description
+            var lblDescription = new Label
+            {
+                Text = "Description:",
+                Location = new Point(450, 15),
+                AutoSize = true
+            };
+            panel1.Controls.Add(lblDescription);
+
+            txtDescription = new TextBox
+            {
+                Location = new Point(530, 12),
+                Size = new Size(250, 25),
+                Text = "Enter description"
+            };
+            panel1.Controls.Add(txtDescription);
+
+            contentPanel.Controls.Add(panel1);
+            yPos += 90;
+
+            // ===== INTEREST TYPE & RATE =====
+            var lblSection2 = new Label
+            {
+                Text = "Interest Type & Rate",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection2);
+
+            yPos += 25;
+
+            var panel2 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 120),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Interest Type
+            var lblInterestType = new Label
+            {
+                Text = "Interest Type:",
+                Location = new Point(10, 15),
+                AutoSize = true
+            };
+            panel2.Controls.Add(lblInterestType);
+
+            rdoFixedInterest = new RadioButton
+            {
+                Text = "Fixed",
+                Location = new Point(120, 15),
+                AutoSize = true,
+                Checked = true
+            };
+            panel2.Controls.Add(rdoFixedInterest);
+
+            rdoVariableInterest = new RadioButton
+            {
+                Text = "Variable",
+                Location = new Point(200, 15),
+                AutoSize = true
+            };
+            panel2.Controls.Add(rdoVariableInterest);
+
+            // Interest Rate
+            var lblInterestRate = new Label
+            {
+                Text = "Interest Rate:",
+                Location = new Point(10, 50),
+                AutoSize = true
+            };
+            panel2.Controls.Add(lblInterestRate);
+
+            txtInterestRate = new TextBox
+            {
+                Location = new Point(120, 47),
+                Size = new Size(80, 25),
+                Text = "0.00"
+            };
+            panel2.Controls.Add(txtInterestRate);
+
+            var lblPercent = new Label
+            {
+                Text = "% per",
+                Location = new Point(210, 50),
+                AutoSize = true
+            };
+            panel2.Controls.Add(lblPercent);
+
+            cmbInterestPeriod = new ComboBox
+            {
+                Location = new Point(260, 47),
+                Size = new Size(100, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cmbInterestPeriod.Items.AddRange(new object[] { "Month", "Year" });
+            cmbInterestPeriod.SelectedIndex = 0;
+            panel2.Controls.Add(cmbInterestPeriod);
+
+            // Service Fee
+            var lblServiceFee = new Label
+            {
+                Text = "Service Fee:",
+                Location = new Point(10, 85),
+                AutoSize = true
+            };
+            panel2.Controls.Add(lblServiceFee);
+
+            txtServiceFeePercentage = new TextBox
+            {
+                Location = new Point(120, 82),
+                Size = new Size(80, 25),
+                Text = "0.00"
+            };
+            panel2.Controls.Add(txtServiceFeePercentage);
+
+            var lblOr = new Label
+            {
+                Text = "% or ₱",
+                Location = new Point(210, 85),
+                AutoSize = true
+            };
+            panel2.Controls.Add(lblOr);
+
+            txtServiceFeeFixed = new TextBox
+            {
+                Location = new Point(260, 82),
+                Size = new Size(100, 25),
+                Text = "0.00"
+            };
+            panel2.Controls.Add(txtServiceFeeFixed);
+
+            contentPanel.Controls.Add(panel2);
+            yPos += 130;
+
+            // ===== LOAN AMOUNT =====
+            var lblSection3 = new Label
+            {
+                Text = "Loan Amount",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection3);
+
+            yPos += 25;
+
+            var panel3 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 70),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Min Loan Amount
+            var lblMinLoanAmount = new Label
+            {
+                Text = "Min Loan Amount: ₱",
+                Location = new Point(10, 25),
+                AutoSize = true
+            };
+            panel3.Controls.Add(lblMinLoanAmount);
+
+            txtMinLoanAmount = new TextBox
+            {
+                Location = new Point(150, 22),
+                Size = new Size(200, 25),
+                Text = "0.00"
+            };
+            panel3.Controls.Add(txtMinLoanAmount);
+
+            // Max Loan Amount
+            var lblMaxLoanAmount = new Label
+            {
+                Text = "Max Loan Amount: ₱",
+                Location = new Point(400, 25),
+                AutoSize = true
+            };
+            panel3.Controls.Add(lblMaxLoanAmount);
+
+            txtMaxLoanAmount = new TextBox
+            {
+                Location = new Point(540, 22),
+                Size = new Size(200, 25),
+                Text = "0.00"
+            };
+            panel3.Controls.Add(txtMaxLoanAmount);
+
+            contentPanel.Controls.Add(panel3);
+            yPos += 80;
+
+            // ===== AVAILABLE TERMS =====
+            var lblSection4 = new Label
+            {
+                Text = "AVAILABLE TERMS (months):",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection4);
+
+            yPos += 25;
+
+            var panel4 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 60),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            int[] terms = { 3, 6, 12, 18, 24, 36, 48, 60 };
+            termCheckboxes = new CheckBox[terms.Length];
+
+            int xPos = 10;
+            for (int i = 0; i < terms.Length; i++)
+            {
+                termCheckboxes[i] = new CheckBox
+                {
+                    Text = terms[i].ToString(),
+                    Location = new Point(xPos, 20),
+                    AutoSize = true
+                };
+                panel4.Controls.Add(termCheckboxes[i]);
+                xPos += 80;
+            }
+
+            contentPanel.Controls.Add(panel4);
+            yPos += 70;
+
+            // ===== REQUIRED DOCUMENTS =====
+            var lblSection5 = new Label
+            {
+                Text = "REQUIRED DOCUMENTS:",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection5);
+
+            yPos += 25;
+
+            var panel5 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 100),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Document checkboxes
+            chkValidId = new CheckBox
+            {
+                Text = "Valid ID",
+                Location = new Point(10, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkValidId);
+
+            chkProofOfIncome = new CheckBox
+            {
+                Text = "Proof of Income",
+                Location = new Point(100, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkProofOfIncome);
+
+            chkPayslip = new CheckBox
+            {
+                Text = "Payslip",
+                Location = new Point(220, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkPayslip);
+
+            chkBankStatement = new CheckBox
+            {
+                Text = "Bank Statement",
+                Location = new Point(300, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkBankStatement);
+
+            chkComakerForm = new CheckBox
+            {
+                Text = "Co-maker Form",
+                Location = new Point(420, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkComakerForm);
+
+            chkOthers = new CheckBox
+            {
+                Text = "Others:",
+                Location = new Point(540, 20),
+                AutoSize = true
+            };
+            panel5.Controls.Add(chkOthers);
+
+            txtOthersDescription = new TextBox
+            {
+                Location = new Point(610, 17),
+                Size = new Size(170, 25),
+                Text = "Specify other documents",
+                Enabled = false
+            };
+            chkOthers.CheckedChanged += (s, e) =>
+            {
+                txtOthersDescription.Enabled = chkOthers.Checked;
+            };
+            panel5.Controls.Add(txtOthersDescription);
+
+            contentPanel.Controls.Add(panel5);
+            yPos += 110;
+
+            // ===== COLLATERAL REQUIRED =====
+            var lblSection6 = new Label
+            {
+                Text = "Collateral Required?",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection6);
+
+            yPos += 25;
+
+            var panel6 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 50),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            rdoCollateralYes = new RadioButton
+            {
+                Text = "Yes",
+                Location = new Point(20, 15),
+                AutoSize = true
+            };
+            panel6.Controls.Add(rdoCollateralYes);
+
+            rdoCollateralNo = new RadioButton
+            {
+                Text = "No",
+                Location = new Point(100, 15),
+                AutoSize = true,
+                Checked = true
+            };
+            panel6.Controls.Add(rdoCollateralNo);
+
+            contentPanel.Controls.Add(panel6);
+            yPos += 60;
+
+            // ===== GRACE PERIOD & LATE PAYMENT =====
+            var lblSection7 = new Label
+            {
+                Text = "Grace Period & Late Payment",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection7);
+
+            yPos += 25;
+
+            var panel7 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 100),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            // Grace Period
+            var lblGracePeriod = new Label
+            {
+                Text = "Grace Period: (days)",
+                Location = new Point(10, 20),
+                AutoSize = true
+            };
+            panel7.Controls.Add(lblGracePeriod);
+
+            txtGracePeriod = new TextBox
+            {
+                Location = new Point(150, 17),
+                Size = new Size(100, 25),
+                Text = "0"
+            };
+            panel7.Controls.Add(txtGracePeriod);
+
+            // Late Payment Penalty
+            var lblLatePenalty = new Label
+            {
+                Text = "Late Payment Penalty:",
+                Location = new Point(10, 60),
+                AutoSize = true
+            };
+            panel7.Controls.Add(lblLatePenalty);
+
+            txtLatePenalty = new TextBox
+            {
+                Location = new Point(150, 57),
+                Size = new Size(80, 25),
+                Text = "0.00"
+            };
+            panel7.Controls.Add(txtLatePenalty);
+
+            var lblPer = new Label
+            {
+                Text = "% per",
+                Location = new Point(240, 60),
+                AutoSize = true
+            };
+            panel7.Controls.Add(lblPer);
+
+            cmbLatePenaltyPeriod = new ComboBox
+            {
+                Location = new Point(290, 57),
+                Size = new Size(100, 25),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            cmbLatePenaltyPeriod.Items.AddRange(new object[] { "Day", "Week", "Month" });
+            cmbLatePenaltyPeriod.SelectedIndex = 0;
+            panel7.Controls.Add(cmbLatePenaltyPeriod);
+
+            contentPanel.Controls.Add(panel7);
+            yPos += 110;
+
+            // ===== STATUS =====
+            var lblSection8 = new Label
+            {
+                Text = "Status:",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(10, yPos),
+                AutoSize = true
+            };
+            contentPanel.Controls.Add(lblSection8);
+
+            yPos += 25;
+
+            var panel8 = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 50),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            rdoStatusActive = new RadioButton
+            {
+                Text = "Active",
+                Location = new Point(20, 15),
+                AutoSize = true,
+                Checked = true
+            };
+            panel8.Controls.Add(rdoStatusActive);
+
+            rdoStatusInactive = new RadioButton
+            {
+                Text = "Inactive",
+                Location = new Point(100, 15),
+                AutoSize = true
+            };
+            panel8.Controls.Add(rdoStatusInactive);
+
+            contentPanel.Controls.Add(panel8);
+            yPos += 60;
+
+            // ===== ACTION BUTTONS =====
+            var panelButtons = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(contentPanel.Width - 40, 60),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            btnSaveProduct = new Button
+            {
+                Text = "Save Product",
+                Location = new Point(20, 15),
+                Size = new Size(120, 35),
+                BackColor = Color.Green,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnSaveProduct.FlatAppearance.BorderSize = 0;
+            btnSaveProduct.Click += (s, e) => SaveProduct();
+            panelButtons.Controls.Add(btnSaveProduct);
+
+            btnClearForm = new Button
+            {
+                Text = "Clear Form",
+                Location = new Point(160, 15),
+                Size = new Size(120, 35),
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnClearForm.FlatAppearance.BorderColor = Color.Gray;
+            btnClearForm.FlatAppearance.BorderSize = 1;
+            btnClearForm.Click += (s, e) => ClearForm();
+            panelButtons.Controls.Add(btnClearForm);
+
+            contentPanel.Controls.Add(panelButtons);
+
+            // Update content panel height based on final yPos
+            contentPanel.Height = yPos + 80;
+
+            // Handle resize
+            this.Resize += (s, e) =>
+            {
+                // Update the width of all panels when the form resizes
+                int newWidth = Math.Max(820, mainPanel.Width - 40);
+                contentPanel.Width = newWidth;
+
+                // Update all panel widths
+                if (headerPanel != null) headerPanel.Width = newWidth - 20;
+                if (panel1 != null) panel1.Width = newWidth - 40;
+                if (panel2 != null) panel2.Width = newWidth - 40;
+                if (panel3 != null) panel3.Width = newWidth - 40;
+                if (panel4 != null) panel4.Width = newWidth - 40;
+                if (panel5 != null) panel5.Width = newWidth - 40;
+                if (panel6 != null) panel6.Width = newWidth - 40;
+                if (panel7 != null) panel7.Width = newWidth - 40;
+                if (panel8 != null) panel8.Width = newWidth - 40;
+                if (panelButtons != null) panelButtons.Width = newWidth - 40;
+
+                // Update the plus icon position
+                if (lblPlusIcon != null)
+                {
+                    lblPlusIcon.Left = (newWidth - 20) - 40; // headerPanel width minus 40
+                }
+            };
+
+            // Add content panel to main panel
+            mainPanel.Controls.Add(contentPanel);
+
+            // Add main panel to user control
+            this.Controls.Add(mainPanel);
+        }
+
+        private void SaveProduct()
+        {
+            // Add validation and save logic here
+            MessageBox.Show("Product saved successfully!", "Success",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ClearForm()
+        {
+            // Clear all form fields
+            txtLoanTypeName.Clear();
+            txtDescription.Clear();
+            rdoFixedInterest.Checked = true;
+            txtInterestRate.Clear();
+            cmbInterestPeriod.SelectedIndex = 0;
+            txtServiceFeePercentage.Clear();
+            txtServiceFeeFixed.Clear();
+            txtMinLoanAmount.Clear();
+            txtMaxLoanAmount.Clear();
+
+            foreach (var checkbox in termCheckboxes)
+            {
+                checkbox.Checked = false;
+            }
+
+            chkValidId.Checked = false;
+            chkProofOfIncome.Checked = false;
+            chkPayslip.Checked = false;
+            chkBankStatement.Checked = false;
+            chkComakerForm.Checked = false;
+            chkOthers.Checked = false;
+            txtOthersDescription.Clear();
+            txtOthersDescription.Enabled = false;
+
+            rdoCollateralNo.Checked = true;
+            txtGracePeriod.Clear();
+            txtLatePenalty.Clear();
+            cmbLatePenaltyPeriod.SelectedIndex = 0;
+            rdoStatusActive.Checked = true;
+        }
+    }
+}

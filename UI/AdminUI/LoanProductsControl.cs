@@ -10,6 +10,8 @@ namespace LendingApp.UI.AdminUI
         private TextBox txtSearch;
         private Button btnAddNew;
         private Button btnConfigureRules;
+        private Button btnLoanTypes;
+        private Button btnLoanProducts;
         private Button btnEditSelected;
         private Button btnViewSelected;
         private Button btnDeactivateSelected;
@@ -17,6 +19,15 @@ namespace LendingApp.UI.AdminUI
         // Track selected row ID and status
         private string selectedProductId = null;
         private bool isSelectedProductActive = false;
+
+        // Track current view
+        private enum ViewMode { LoanTypesList, AddNewProduct }
+        private ViewMode currentView = ViewMode.LoanTypesList;
+
+        // Panels for different views
+        private Panel mainPanel;
+        private Panel loanTypesListPanel;
+        private AddNewLoanProductControl addNewProductControl;
 
         public LoanProductsControl()
         {
@@ -31,10 +42,27 @@ namespace LendingApp.UI.AdminUI
             this.Font = new Font("Segoe UI", 9);
 
             // Main container
-            var mainPanel = new Panel
+            mainPanel = new Panel
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(20)
+            };
+
+            // Initialize all views
+            InitializeLoanTypesListView();
+            InitializeAddNewProductView();
+
+            // Show default view
+            ShowView(currentView);
+
+            this.Controls.Add(mainPanel);
+        }
+
+        private void InitializeLoanTypesListView()
+        {
+            loanTypesListPanel = new Panel
+            {
+                Dock = DockStyle.Fill
             };
 
             int yPos = 10;
@@ -48,29 +76,75 @@ namespace LendingApp.UI.AdminUI
                 AutoSize = true,
                 ForeColor = Color.FromArgb(0, 70, 120)
             };
-            mainPanel.Controls.Add(lblTitle);
+            loanTypesListPanel.Controls.Add(lblTitle);
 
             yPos += 40;
 
-            // ===== LOAN TYPES LIST HEADER =====
-            var lblSubtitle = new Label
+            // ===== SUB-NAVIGATION TABS =====
+            var subNavPanel = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(400, 40)
+            };
+
+            // Loan Products button (inactive/outline style)
+            btnLoanProducts = new Button
+            {
+                Text = "Loan Products",
+                Size = new Size(120, 35),
+                Location = new Point(0, 0),
+                Font = new Font("Segoe UI", 9),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(0, 120, 215)
+            };
+            btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
+            btnLoanProducts.FlatAppearance.BorderSize = 1;
+            btnLoanProducts.Click += (s, e) =>
+            {
+                MessageBox.Show("Showing Loan Products dashboard", "Loan Products",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
+            subNavPanel.Controls.Add(btnLoanProducts);
+
+            // Loan Types List button (active/filled style)
+            btnLoanTypes = new Button
             {
                 Text = "Loan Types List",
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                Location = new Point(10, yPos),
-                AutoSize = true
+                Size = new Size(120, 35),
+                Location = new Point(130, 0),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.FromArgb(0, 120, 215),
+                ForeColor = Color.White
             };
-            mainPanel.Controls.Add(lblSubtitle);
+            btnLoanTypes.FlatAppearance.BorderSize = 0;
+            btnLoanTypes.Click += (s, e) =>
+            {
+                ShowView(ViewMode.LoanTypesList);
+            };
+            subNavPanel.Controls.Add(btnLoanTypes);
 
-            yPos += 35;
+            loanTypesListPanel.Controls.Add(subNavPanel);
+            yPos += 50;
 
-            // ===== ACTION BUTTONS (Top Row) =====
+            // ===== ACTION BUTTONS (Top Right) =====
+            // Container for right-aligned buttons
+            var topActionPanel = new Panel
+            {
+                Location = new Point(loanTypesListPanel.Width - 330, yPos - 50), // Align with sub-nav
+                Size = new Size(320, 35)
+            };
+
+            // Add New Product button
             btnAddNew = new Button
             {
                 Text = "＋ Add New Product",
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Location = new Point(10, yPos),
                 Size = new Size(150, 35),
+                Location = new Point(0, 0),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 BackColor = Color.FromArgb(0, 120, 215),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -79,17 +153,17 @@ namespace LendingApp.UI.AdminUI
             btnAddNew.FlatAppearance.BorderSize = 0;
             btnAddNew.Click += (s, e) =>
             {
-                MessageBox.Show("Add New Product clicked", "New Product",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowView(ViewMode.AddNewProduct);
             };
-            mainPanel.Controls.Add(btnAddNew);
+            topActionPanel.Controls.Add(btnAddNew);
 
+            // Configure Rules button
             btnConfigureRules = new Button
             {
                 Text = "⚙ Configure Rules",
-                Font = new Font("Segoe UI", 9),
-                Location = new Point(170, yPos),
                 Size = new Size(150, 35),
+                Location = new Point(160, 0),
+                Font = new Font("Segoe UI", 9),
                 BackColor = Color.White,
                 ForeColor = Color.FromArgb(0, 120, 215),
                 FlatStyle = FlatStyle.Flat,
@@ -102,19 +176,19 @@ namespace LendingApp.UI.AdminUI
                 MessageBox.Show("Configure Rules clicked", "Rules Configuration",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
-            mainPanel.Controls.Add(btnConfigureRules);
+            topActionPanel.Controls.Add(btnConfigureRules);
 
-            yPos += 50;
+            loanTypesListPanel.Controls.Add(topActionPanel);
 
             // ===== SEPARATOR LINE =====
             var separator = new Panel
             {
                 Location = new Point(10, yPos),
-                Size = new Size(this.Width - 40, 1),
+                Size = new Size(loanTypesListPanel.Width - 40, 1),
                 BackColor = Color.LightGray,
                 Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top
             };
-            mainPanel.Controls.Add(separator);
+            loanTypesListPanel.Controls.Add(separator);
 
             yPos += 20;
 
@@ -126,7 +200,7 @@ namespace LendingApp.UI.AdminUI
                 Location = new Point(10, yPos),
                 AutoSize = true
             };
-            mainPanel.Controls.Add(lblListHeader);
+            loanTypesListPanel.Controls.Add(lblListHeader);
 
             yPos += 35;
 
@@ -219,7 +293,7 @@ namespace LendingApp.UI.AdminUI
             };
             actionButtonsPanel.Controls.Add(btnDeactivateSelected);
 
-            mainPanel.Controls.Add(actionButtonsPanel);
+            loanTypesListPanel.Controls.Add(actionButtonsPanel);
             yPos += 45;
 
             // ===== SEARCH BAR =====
@@ -273,7 +347,7 @@ namespace LendingApp.UI.AdminUI
                 }
             };
             searchPanel.Controls.Add(txtSearch);
-            mainPanel.Controls.Add(searchPanel);
+            loanTypesListPanel.Controls.Add(searchPanel);
 
             yPos += 50;
 
@@ -281,7 +355,7 @@ namespace LendingApp.UI.AdminUI
             dgvLoanProducts = new DataGridView
             {
                 Location = new Point(10, yPos),
-                Size = new Size(this.Width - 40, 300),
+                Size = new Size(loanTypesListPanel.Width - 40, 300),
                 BorderStyle = BorderStyle.FixedSingle,
                 BackgroundColor = Color.White,
                 GridColor = Color.LightGray,
@@ -394,17 +468,76 @@ namespace LendingApp.UI.AdminUI
                 }
             };
 
-            mainPanel.Controls.Add(dgvLoanProducts);
+            loanTypesListPanel.Controls.Add(dgvLoanProducts);
 
-            // Handle resize
-            this.Resize += (s, e) =>
+            // Handle resize to keep buttons aligned
+            loanTypesListPanel.Resize += (s, e) =>
             {
-                separator.Width = mainPanel.Width - 40;
-                dgvLoanProducts.Width = mainPanel.Width - 40;
-                dgvLoanProducts.Height = mainPanel.Height - yPos - 20;
+                separator.Width = loanTypesListPanel.Width - 40;
+                dgvLoanProducts.Width = loanTypesListPanel.Width - 40;
+                dgvLoanProducts.Height = loanTypesListPanel.Height - yPos - 20;
+
+                // Keep top action buttons aligned to the right
+                topActionPanel.Left = loanTypesListPanel.Width - topActionPanel.Width - 20;
             };
 
-            this.Controls.Add(mainPanel);
+            // Initial positioning of top action buttons
+            topActionPanel.Left = loanTypesListPanel.Width - topActionPanel.Width - 20;
+        }
+
+        private void InitializeAddNewProductView()
+        {
+            addNewProductControl = new AddNewLoanProductControl();
+            addNewProductControl.Dock = DockStyle.Fill;
+            addNewProductControl.Visible = false;
+        }
+
+        private void ShowView(ViewMode viewMode)
+        {
+            currentView = viewMode;
+
+            // Clear current view
+            mainPanel.Controls.Clear();
+
+            // Update tab buttons
+            UpdateTabButtons(viewMode);
+
+            // Show the selected view
+            if (viewMode == ViewMode.LoanTypesList)
+            {
+                mainPanel.Controls.Add(loanTypesListPanel);
+            }
+            else if (viewMode == ViewMode.AddNewProduct)
+            {
+                mainPanel.Controls.Add(addNewProductControl);
+                addNewProductControl.Visible = true;
+            }
+        }
+
+        private void UpdateTabButtons(ViewMode currentView)
+        {
+            if (currentView == ViewMode.LoanTypesList)
+            {
+                btnLoanTypes.BackColor = Color.FromArgb(0, 120, 215);
+                btnLoanTypes.ForeColor = Color.White;
+                btnLoanTypes.FlatAppearance.BorderSize = 0;
+                btnLoanTypes.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+
+                btnLoanProducts.BackColor = Color.White;
+                btnLoanProducts.ForeColor = Color.FromArgb(0, 120, 215);
+                btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
+                btnLoanProducts.FlatAppearance.BorderSize = 1;
+                btnLoanProducts.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+            }
+            else if (currentView == ViewMode.AddNewProduct)
+            {
+                // Note: We need to update this when we add more tabs
+                btnLoanProducts.BackColor = Color.White;
+                btnLoanProducts.ForeColor = Color.FromArgb(0, 120, 215);
+                btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
+                btnLoanProducts.FlatAppearance.BorderSize = 1;
+                btnLoanProducts.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+            }
         }
 
         private void AddSampleData()
