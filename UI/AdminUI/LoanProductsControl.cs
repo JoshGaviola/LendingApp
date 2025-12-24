@@ -21,13 +21,17 @@ namespace LendingApp.UI.AdminUI
         private bool isSelectedProductActive = false;
 
         // Track current view
-        private enum ViewMode { LoanTypesList, AddNewProduct }
+        private enum ViewMode { LoanTypesList, AddNewProduct, ConfigureRules }
         private ViewMode currentView = ViewMode.LoanTypesList;
 
         // Panels for different views
         private Panel mainPanel;
         private Panel loanTypesListPanel;
         private AddNewLoanProductControl addNewProductControl;
+        private ConfigureLoanRulesControl configureRulesControl;
+
+        // Track if tab buttons have been initialized
+        private bool tabButtonsInitialized = false;
 
         public LoanProductsControl()
         {
@@ -51,6 +55,7 @@ namespace LendingApp.UI.AdminUI
             // Initialize all views
             InitializeLoanTypesListView();
             InitializeAddNewProductView();
+            InitializeConfigureRulesView();
 
             // Show default view
             ShowView(currentView);
@@ -173,13 +178,16 @@ namespace LendingApp.UI.AdminUI
             btnConfigureRules.FlatAppearance.BorderSize = 1;
             btnConfigureRules.Click += (s, e) =>
             {
-                MessageBox.Show("Configure Rules clicked", "Rules Configuration",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowView(ViewMode.ConfigureRules);
             };
             topActionPanel.Controls.Add(btnConfigureRules);
 
             loanTypesListPanel.Controls.Add(topActionPanel);
 
+            // Mark tab buttons as initialized
+            tabButtonsInitialized = true;
+
+            // ... rest of the InitializeLoanTypesListView method remains the same ...
             // ===== SEPARATOR LINE =====
             var separator = new Panel
             {
@@ -492,6 +500,13 @@ namespace LendingApp.UI.AdminUI
             addNewProductControl.Visible = false;
         }
 
+        private void InitializeConfigureRulesView()
+        {
+            configureRulesControl = new ConfigureLoanRulesControl();
+            configureRulesControl.Dock = DockStyle.Fill;
+            configureRulesControl.Visible = false;
+        }
+
         private void ShowView(ViewMode viewMode)
         {
             currentView = viewMode;
@@ -499,45 +514,71 @@ namespace LendingApp.UI.AdminUI
             // Clear current view
             mainPanel.Controls.Clear();
 
-            // Update tab buttons
-            UpdateTabButtons(viewMode);
+            // Update tab buttons only if they've been initialized
+            if (tabButtonsInitialized)
+            {
+                UpdateTabButtons(viewMode);
+            }
 
             // Show the selected view
             if (viewMode == ViewMode.LoanTypesList)
             {
                 mainPanel.Controls.Add(loanTypesListPanel);
+                if (addNewProductControl != null)
+                    addNewProductControl.Visible = false;
+                if (configureRulesControl != null)
+                    configureRulesControl.Visible = false;
             }
             else if (viewMode == ViewMode.AddNewProduct)
             {
+                if (addNewProductControl == null)
+                    InitializeAddNewProductView();
+
                 mainPanel.Controls.Add(addNewProductControl);
                 addNewProductControl.Visible = true;
+                if (configureRulesControl != null)
+                    configureRulesControl.Visible = false;
+            }
+            else if (viewMode == ViewMode.ConfigureRules)
+            {
+                if (configureRulesControl == null)
+                    InitializeConfigureRulesView();
+
+                mainPanel.Controls.Add(configureRulesControl);
+                configureRulesControl.Visible = true;
+                if (addNewProductControl != null)
+                    addNewProductControl.Visible = false;
             }
         }
 
         private void UpdateTabButtons(ViewMode currentView)
         {
+            // Only update if buttons exist
+            if (btnLoanProducts == null || btnLoanTypes == null)
+                return;
+
+            // Reset all tab buttons to inactive style
+            btnLoanProducts.BackColor = Color.White;
+            btnLoanProducts.ForeColor = Color.FromArgb(0, 120, 215);
+            btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
+            btnLoanProducts.FlatAppearance.BorderSize = 1;
+            btnLoanProducts.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+
+            btnLoanTypes.BackColor = Color.White;
+            btnLoanTypes.ForeColor = Color.FromArgb(0, 120, 215);
+            btnLoanTypes.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
+            btnLoanTypes.FlatAppearance.BorderSize = 1;
+            btnLoanTypes.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+
+            // Set active style for current view tab
             if (currentView == ViewMode.LoanTypesList)
             {
                 btnLoanTypes.BackColor = Color.FromArgb(0, 120, 215);
                 btnLoanTypes.ForeColor = Color.White;
                 btnLoanTypes.FlatAppearance.BorderSize = 0;
                 btnLoanTypes.Font = new Font("Segoe UI", 9, FontStyle.Bold);
-
-                btnLoanProducts.BackColor = Color.White;
-                btnLoanProducts.ForeColor = Color.FromArgb(0, 120, 215);
-                btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
-                btnLoanProducts.FlatAppearance.BorderSize = 1;
-                btnLoanProducts.Font = new Font("Segoe UI", 9, FontStyle.Regular);
             }
-            else if (currentView == ViewMode.AddNewProduct)
-            {
-                // Note: We need to update this when we add more tabs
-                btnLoanProducts.BackColor = Color.White;
-                btnLoanProducts.ForeColor = Color.FromArgb(0, 120, 215);
-                btnLoanProducts.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
-                btnLoanProducts.FlatAppearance.BorderSize = 1;
-                btnLoanProducts.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-            }
+            // Note: AddNewProduct and ConfigureRules don't have tab buttons
         }
 
         private void AddSampleData()
