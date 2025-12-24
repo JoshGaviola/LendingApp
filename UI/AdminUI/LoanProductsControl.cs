@@ -10,6 +10,13 @@ namespace LendingApp.UI.AdminUI
         private TextBox txtSearch;
         private Button btnAddNew;
         private Button btnConfigureRules;
+        private Button btnEditSelected;
+        private Button btnViewSelected;
+        private Button btnDeactivateSelected;
+
+        // Track selected row ID and status
+        private string selectedProductId = null;
+        private bool isSelectedProductActive = false;
 
         public LoanProductsControl()
         {
@@ -57,7 +64,7 @@ namespace LendingApp.UI.AdminUI
 
             yPos += 35;
 
-            // ===== ACTION BUTTONS =====
+            // ===== ACTION BUTTONS (Top Row) =====
             btnAddNew = new Button
             {
                 Text = "＋ Add New Product",
@@ -122,6 +129,98 @@ namespace LendingApp.UI.AdminUI
             mainPanel.Controls.Add(lblListHeader);
 
             yPos += 35;
+
+            // ===== ROW ACTION BUTTONS (Edit, View, Deactivate) =====
+            var actionButtonsPanel = new Panel
+            {
+                Location = new Point(10, yPos),
+                Size = new Size(400, 35),
+                Visible = false // Initially hidden until a row is selected
+            };
+
+            btnEditSelected = new Button
+            {
+                Text = "✏ Edit Selected",
+                Size = new Size(100, 30),
+                Location = new Point(0, 0),
+                Font = new Font("Segoe UI", 9),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.White,
+                ForeColor = Color.Blue,
+                Enabled = false
+            };
+            btnEditSelected.FlatAppearance.BorderColor = Color.Blue;
+            btnEditSelected.FlatAppearance.BorderSize = 1;
+            btnEditSelected.Click += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(selectedProductId))
+                {
+                    MessageBox.Show($"Edit loan product ID: {selectedProductId}", "Edit Product",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            };
+            actionButtonsPanel.Controls.Add(btnEditSelected);
+
+            btnViewSelected = new Button
+            {
+                Text = "👁 View Selected",
+                Size = new Size(100, 30),
+                Location = new Point(110, 0),
+                Font = new Font("Segoe UI", 9),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.White,
+                ForeColor = Color.Green,
+                Enabled = false
+            };
+            btnViewSelected.FlatAppearance.BorderColor = Color.Green;
+            btnViewSelected.FlatAppearance.BorderSize = 1;
+            btnViewSelected.Click += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(selectedProductId))
+                {
+                    MessageBox.Show($"View loan product ID: {selectedProductId}", "View Product",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            };
+            actionButtonsPanel.Controls.Add(btnViewSelected);
+
+            btnDeactivateSelected = new Button
+            {
+                Text = "✗ Deactivate Selected",
+                Size = new Size(120, 30),
+                Location = new Point(220, 0),
+                Font = new Font("Segoe UI", 9),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                BackColor = Color.White,
+                ForeColor = Color.Red,
+                Enabled = false
+            };
+            btnDeactivateSelected.FlatAppearance.BorderColor = Color.Red;
+            btnDeactivateSelected.FlatAppearance.BorderSize = 1;
+            btnDeactivateSelected.Click += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(selectedProductId))
+                {
+                    string action = isSelectedProductActive ? "deactivate" : "activate";
+                    var result = MessageBox.Show($"Are you sure you want to {action} loan product ID: {selectedProductId}?",
+                        $"Confirm {action}", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        MessageBox.Show($"Loan product {selectedProductId} has been {action}d.", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        // Update the status in the grid
+                        UpdateProductStatus(selectedProductId, !isSelectedProductActive);
+                    }
+                }
+            };
+            actionButtonsPanel.Controls.Add(btnDeactivateSelected);
+
+            mainPanel.Controls.Add(actionButtonsPanel);
+            yPos += 45;
 
             // ===== SEARCH BAR =====
             var searchPanel = new Panel
@@ -204,21 +303,22 @@ namespace LendingApp.UI.AdminUI
             dgvLoanProducts.Columns.Add("Interest", "Interest");
             dgvLoanProducts.Columns.Add("MaxAmount", "Max Amount");
             dgvLoanProducts.Columns.Add("Status", "Status");
-            dgvLoanProducts.Columns.Add("Actions", "Actions");
 
             // Style columns
             dgvLoanProducts.Columns["ID"].Width = 50;
-            dgvLoanProducts.Columns["LoanTypeName"].Width = 150;
-            dgvLoanProducts.Columns["Interest"].Width = 80;
-            dgvLoanProducts.Columns["MaxAmount"].Width = 120;
-            dgvLoanProducts.Columns["Status"].Width = 100;
-            dgvLoanProducts.Columns["Actions"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            dgvLoanProducts.Columns["LoanTypeName"].Width = 200;
+            dgvLoanProducts.Columns["Interest"].Width = 100;
+            dgvLoanProducts.Columns["MaxAmount"].Width = 150;
+            dgvLoanProducts.Columns["Status"].Width = 120;
 
             // Center align some columns
             dgvLoanProducts.Columns["ID"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgvLoanProducts.Columns["Interest"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgvLoanProducts.Columns["MaxAmount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
             dgvLoanProducts.Columns["Status"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+            // Style Status column cells
+            dgvLoanProducts.Columns["Status"].DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
 
             // Add sample data
             AddSampleData();
@@ -230,6 +330,69 @@ namespace LendingApp.UI.AdminUI
             dgvLoanProducts.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgvLoanProducts.ColumnHeadersHeight = 40;
             dgvLoanProducts.RowTemplate.Height = 35;
+
+            // Handle row selection
+            dgvLoanProducts.SelectionChanged += (s, e) =>
+            {
+                if (dgvLoanProducts.SelectedRows.Count > 0)
+                {
+                    var selectedRow = dgvLoanProducts.SelectedRows[0];
+                    selectedProductId = selectedRow.Cells["ID"].Value?.ToString();
+
+                    // Get status from the selected row
+                    var statusValue = selectedRow.Cells["Status"].Value?.ToString();
+                    isSelectedProductActive = statusValue == "Active";
+
+                    // Update action buttons
+                    actionButtonsPanel.Visible = true;
+                    btnEditSelected.Enabled = true;
+                    btnViewSelected.Enabled = true;
+                    btnDeactivateSelected.Enabled = true;
+
+                    // Update deactivate button text based on status
+                    if (isSelectedProductActive)
+                    {
+                        btnDeactivateSelected.Text = "✗ Deactivate Selected";
+                        btnDeactivateSelected.ForeColor = Color.Red;
+                        btnDeactivateSelected.FlatAppearance.BorderColor = Color.Red;
+                    }
+                    else
+                    {
+                        btnDeactivateSelected.Text = "✓ Activate Selected";
+                        btnDeactivateSelected.ForeColor = Color.Green;
+                        btnDeactivateSelected.FlatAppearance.BorderColor = Color.Green;
+                    }
+                }
+                else
+                {
+                    // No row selected, hide and disable action buttons
+                    actionButtonsPanel.Visible = false;
+                    btnEditSelected.Enabled = false;
+                    btnViewSelected.Enabled = false;
+                    btnDeactivateSelected.Enabled = false;
+                    selectedProductId = null;
+                    isSelectedProductActive = false;
+                }
+            };
+
+            // Handle cell formatting for Status column
+            dgvLoanProducts.CellFormatting += (s, e) =>
+            {
+                if (e.ColumnIndex == dgvLoanProducts.Columns["Status"].Index && e.Value != null)
+                {
+                    var status = e.Value.ToString();
+                    if (status == "Active")
+                    {
+                        e.CellStyle.ForeColor = Color.Green;
+                        e.CellStyle.BackColor = Color.FromArgb(230, 255, 230);
+                    }
+                    else if (status == "Inactive")
+                    {
+                        e.CellStyle.ForeColor = Color.Red;
+                        e.CellStyle.BackColor = Color.FromArgb(255, 230, 230);
+                    }
+                }
+            };
 
             mainPanel.Controls.Add(dgvLoanProducts);
 
@@ -246,131 +409,44 @@ namespace LendingApp.UI.AdminUI
 
         private void AddSampleData()
         {
-            // Add sample rows
-            dgvLoanProducts.Rows.Add("1", "Personal Loan", "12%", "¥100,000",
-                CreateStatusLabel("Active"), CreateActionButtons("1", true));
-
-            dgvLoanProducts.Rows.Add("2", "Emergency Loan", "10%", "¥50,000",
-                CreateStatusLabel("Active"), CreateActionButtons("2", true));
-
-            dgvLoanProducts.Rows.Add("3", "Salary Loan", "8%", "¥200,000",
-                CreateStatusLabel("Active"), CreateActionButtons("3", true));
-
-            dgvLoanProducts.Rows.Add("4", "Business Loan", "15%", "¥500,000",
-                CreateStatusLabel("Active"), CreateActionButtons("4", true));
-
-            dgvLoanProducts.Rows.Add("5", "Educational Loan", "9%", "¥150,000",
-                CreateStatusLabel("Active"), CreateActionButtons("5", true));
-
-            dgvLoanProducts.Rows.Add("6", "Home Improvement", "11%", "¥300,000",
-                CreateStatusLabel("Inactive"), CreateActionButtons("6", false));
+            // Add sample rows with simple status text
+            dgvLoanProducts.Rows.Add("1", "Personal Loan", "12%", "¥100,000", "Active");
+            dgvLoanProducts.Rows.Add("2", "Emergency Loan", "10%", "¥50,000", "Active");
+            dgvLoanProducts.Rows.Add("3", "Salary Loan", "8%", "¥200,000", "Active");
+            dgvLoanProducts.Rows.Add("4", "Business Loan", "15%", "¥500,000", "Active");
+            dgvLoanProducts.Rows.Add("5", "Educational Loan", "9%", "¥150,000", "Active");
+            dgvLoanProducts.Rows.Add("6", "Home Improvement", "11%", "¥300,000", "Inactive");
         }
 
-        private Panel CreateStatusLabel(string status)
+        private void UpdateProductStatus(string productId, bool newActiveStatus)
         {
-            var panel = new Panel
+            foreach (DataGridViewRow row in dgvLoanProducts.Rows)
             {
-                Size = new Size(80, 25),
-                Margin = new Padding(10, 5, 10, 5)
-            };
-
-            var label = new Label
-            {
-                Text = status,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = status == "Active" ? Color.Green : Color.Red,
-                BackColor = status == "Active" ? Color.FromArgb(230, 255, 230) : Color.FromArgb(255, 230, 230),
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
-            panel.Controls.Add(label);
-            return panel;
-        }
-
-        private Panel CreateActionButtons(string id, bool isActive)
-        {
-            var panel = new Panel
-            {
-                Size = new Size(200, 35),
-                Margin = new Padding(5)
-            };
-
-            // Edit button
-            var btnEdit = new Button
-            {
-                Text = "✏ Edit",
-                Tag = id,
-                Size = new Size(60, 25),
-                Location = new Point(0, 5),
-                Font = new Font("Segoe UI", 8),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                BackColor = Color.White,
-                ForeColor = Color.Blue
-            };
-            btnEdit.FlatAppearance.BorderColor = Color.Blue;
-            btnEdit.FlatAppearance.BorderSize = 1;
-            btnEdit.Click += (s, e) =>
-            {
-                MessageBox.Show($"Edit loan product ID: {id}", "Edit Product",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            };
-            panel.Controls.Add(btnEdit);
-
-            // View button
-            var btnView = new Button
-            {
-                Text = "👁 View",
-                Tag = id,
-                Size = new Size(60, 25),
-                Location = new Point(70, 5),
-                Font = new Font("Segoe UI", 8),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                BackColor = Color.White,
-                ForeColor = Color.Green
-            };
-            btnView.FlatAppearance.BorderColor = Color.Green;
-            btnView.FlatAppearance.BorderSize = 1;
-            btnView.Click += (s, e) =>
-            {
-                MessageBox.Show($"View loan product ID: {id}", "View Product",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            };
-            panel.Controls.Add(btnView);
-
-            // Deactivate/Activate button
-            var btnStatus = new Button
-            {
-                Text = isActive ? "✗ Deactivate" : "✓ Activate",
-                Tag = id,
-                Size = new Size(80, 25),
-                Location = new Point(140, 5),
-                Font = new Font("Segoe UI", 8),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                BackColor = isActive ? Color.White : Color.FromArgb(230, 255, 230),
-                ForeColor = isActive ? Color.Red : Color.Green
-            };
-            btnStatus.FlatAppearance.BorderColor = isActive ? Color.Red : Color.Green;
-            btnStatus.FlatAppearance.BorderSize = 1;
-            btnStatus.Click += (s, e) =>
-            {
-                string action = isActive ? "deactivate" : "activate";
-                var result = MessageBox.Show($"Are you sure you want to {action} loan product ID: {id}?",
-                    "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-                if (result == DialogResult.Yes)
+                if (row.Cells["ID"].Value?.ToString() == productId)
                 {
-                    MessageBox.Show($"Loan product {id} has been {action}d.", "Success",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            };
-            panel.Controls.Add(btnStatus);
+                    string newStatus = newActiveStatus ? "Active" : "Inactive";
+                    row.Cells["Status"].Value = newStatus;
 
-            return panel;
+                    // If this is the currently selected row, update the button
+                    if (row.Selected)
+                    {
+                        isSelectedProductActive = newActiveStatus;
+                        if (newActiveStatus)
+                        {
+                            btnDeactivateSelected.Text = "✗ Deactivate Selected";
+                            btnDeactivateSelected.ForeColor = Color.Red;
+                            btnDeactivateSelected.FlatAppearance.BorderColor = Color.Red;
+                        }
+                        else
+                        {
+                            btnDeactivateSelected.Text = "✓ Activate Selected";
+                            btnDeactivateSelected.ForeColor = Color.Green;
+                            btnDeactivateSelected.FlatAppearance.BorderColor = Color.Green;
+                        }
+                    }
+                    break;
+                }
+            }
         }
 
         private void SearchLoanProducts(string searchTerm)
