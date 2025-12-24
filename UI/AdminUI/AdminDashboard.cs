@@ -1,4 +1,5 @@
 ﻿using LendingApp.UI.AdminUI.Views;
+using LendingSystem.Admin;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -271,11 +272,9 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "Override Actions")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Override Actions",
-                    message: "Review and manage administrative overrides",
-                    accentHex: "#374151",
-                    iconText: "🛡"));
+                var overrideActions = new OverrideActionsControl();
+                overrideActions.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(overrideActions);
             }
             else if (activeNav == "System Reports")
             {

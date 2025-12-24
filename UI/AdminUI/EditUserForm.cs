@@ -20,7 +20,7 @@ namespace LendingSystem.UI
         private RadioButton rbActive;
         private RadioButton rbInactive;
         private RadioButton rbLocked;
-        private CheckBox chkForcePasswordReset; 
+        private CheckBox chkForcePasswordReset;     
         private CheckBox chkUnlockAccount;
 
         private Label lblUserId;
