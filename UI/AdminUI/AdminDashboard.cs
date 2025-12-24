@@ -265,11 +265,9 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "Loan Products")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Loan Products",
-                    message: "Configure loan products and interest rates",
-                    accentHex: "#374151",
-                    iconText: "₱"));
+                var loanProductsControl = new LoanProductsControl();
+                loanProductsControl.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(loanProductsControl);
             }
             else if (activeNav == "Override Actions")
             {
