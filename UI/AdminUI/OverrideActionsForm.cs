@@ -594,18 +594,12 @@ namespace LendingSystem.Admin
         private void InitializeSystemOverridesTab(TabPage tab)
         {
             tab.BackColor = Color.White;
-            tab.Padding = new Padding(20);
+            tab.Padding = new Padding(10);
 
-            Label placeholder = new Label
-            {
-                Text = "System Overrides\n\nFeature coming soon...",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(156, 163, 175)
-            };
-
-            tab.Controls.Add(placeholder);
+            // Add the SystemOverridesControl
+            var systemOverridesControl = new SystemOverridesControl();
+            systemOverridesControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(systemOverridesControl);
         }
 
         private void InitializeAuditLogTab(TabPage tab)
