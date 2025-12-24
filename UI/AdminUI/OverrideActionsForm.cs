@@ -65,8 +65,9 @@ namespace LendingSystem.Admin
             TabPage systemOverridesTab = new TabPage("System Overrides");
             TabPage auditLogTab = new TabPage("Audit Log");
 
-            // Initialize other tabs with placeholder content
-            InitializeUserActionsTab(userActionsTab);
+            // Initialize tabs with actual controls (not placeholders)
+            InitializeLoanOverridesTab();
+            InitializeUserActionsTab(userActionsTab);  // This will now add UserActionsControl
             InitializeSystemOverridesTab(systemOverridesTab);
             InitializeAuditLogTab(auditLogTab);
 
@@ -78,9 +79,6 @@ namespace LendingSystem.Admin
             this.Controls.Add(tabControl);
 
             this.ResumeLayout(false);
-
-            // Initialize loan overrides tab after layout
-            InitializeLoanOverridesTab();
         }
 
         private void InitializeLoanOverridesTab()
@@ -585,18 +583,12 @@ namespace LendingSystem.Admin
         private void InitializeUserActionsTab(TabPage tab)
         {
             tab.BackColor = Color.White;
-            tab.Padding = new Padding(20);
+            tab.Padding = new Padding(10);
 
-            Label placeholder = new Label
-            {
-                Text = "User Actions Override\n\nFeature coming soon...",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(156, 163, 175)
-            };
-
-            tab.Controls.Add(placeholder);
+            // Create and add the UserActionsControl
+            var userActionsControl = new UserActionsControl();
+            userActionsControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(userActionsControl);
         }
 
         private void InitializeSystemOverridesTab(TabPage tab)
