@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using EditUserForm = LendingSystem.UI.EditUserForm;
 using EditFormUser = LendingSystem.UI.User;
+using ResetPasswordForm = LendingApp.UI.AdminUI.ResetPasswordForm;
 
 namespace LendingApp.UI.AdminUI.Views
 {
@@ -861,11 +862,7 @@ namespace LendingApp.UI.AdminUI.Views
             btnEdit.Click += (s, e) => CreateAndShowEditUserForm();
 
             var btnResetPassword = CreateOutlineButton("🔑 Reset Password");
-            btnResetPassword.Click += (s, e) =>
-            {
-                if (selectedUser != null)
-                    ShowMessage($"Password reset link sent to {selectedUser.Email}");
-            };
+            btnResetPassword.Click += (s, e) => ResetPassword();
 
             var btnDeactivate = CreateOutlineButton("👤 Deactivate");
             btnDeactivate.ForeColor = ColorTranslator.FromHtml("#EA580C");
@@ -1235,6 +1232,39 @@ namespace LendingApp.UI.AdminUI.Views
             AddDetailRow("Status:", selectedUser.Status, 8);
 
             pnlUserDetails.Controls.Add(detailsGrid);
+        }
+
+        private void ResetPassword()
+        {
+            if (selectedUser == null)
+            {
+                ShowMessage("Please select a user first.", true);
+                return;
+            }
+
+            try
+            {
+                using (var form = new ResetPasswordForm(
+                    selectedUser.Username,
+                    selectedUser.FullName,
+                    selectedUser.Role,
+                    selectedUser.Email))
+                {
+                    if (form.ShowDialog(FindForm()) == DialogResult.OK)
+                    {
+                        ShowMessage($"Password for {selectedUser.Username} has been reset successfully!");
+
+                        // Update the user's last login
+                        selectedUser.LastLogin = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        UpdateUserList();
+                        UpdateUserDetails();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Error opening reset password dialog: {ex.Message}", true);
+            }
         }
 
         private void CreateAndShowEditUserForm()
