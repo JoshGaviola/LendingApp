@@ -16,16 +16,18 @@ namespace LendingSystem.Admin
         private RadioButton freezeCollectionsRadio;
         private RadioButton overrideClosingRadio;
 
-        // Conditional controls - REMOVED Panel references since we're not using them
+        // Conditional controls
         private TextBox maintenanceFromTextBox;
         private TextBox maintenanceToTextBox;
         private TextBox maxLoanTextBox;
         private TextBox interestAdjustmentTextBox;
 
-        // Duration controls - REMOVED since not initialized
+        // Duration controls - REMOVED: private TextBox selectedDateDisplay;
         private RadioButton permanentRadio;
         private RadioButton temporaryRadio;
-        private DateTimePicker temporaryDatePicker;
+        private Button dateSelectButton;
+        private MonthCalendar monthCalendar;
+        private Label selectedDateLabel; // Added to show selected date
 
         // Reason and approval
         private TextBox reasonTextBox;
@@ -70,7 +72,7 @@ namespace LendingSystem.Admin
             {
                 Dock = DockStyle.Fill,
                 AutoScroll = true,
-                BackColor = Color.FromArgb(240, 253, 244), // Light green background
+                BackColor = Color.FromArgb(240, 253, 244),
                 BorderStyle = BorderStyle.FixedSingle
             };
 
@@ -89,12 +91,12 @@ namespace LendingSystem.Admin
             mainPanel.Controls.Add(headerLabel);
             yPos += 40;
 
-            // System Settings Group - FIXED VERSION
+            // System Settings Group
             systemGroup = new GroupBox
             {
                 Text = "SYSTEM SETTINGS OVERRIDE:",
                 Location = new Point(20, yPos),
-                Size = new Size(mainPanel.Width - 40, 250), // Increased height to fit everything
+                Size = new Size(mainPanel.Width - 40, 250),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 BackColor = Color.White
@@ -137,7 +139,7 @@ namespace LendingSystem.Admin
             systemGroup.Controls.Add(extendMaintenanceRadio);
             systemY += 30;
 
-            // Maintenance time controls - ALWAYS VISIBLE, ALIGNED PROPERLY
+            // Maintenance time controls
             fromLabel = new Label
             {
                 Text = "From:",
@@ -184,7 +186,7 @@ namespace LendingSystem.Admin
             systemGroup.Controls.Add(maintenanceToTextBox);
             systemY += 35;
 
-            // Enable/disable maintenance controls based on radio selection
+            // Enable/disable maintenance controls
             extendMaintenanceRadio.CheckedChanged += (s, e) =>
             {
                 bool enabled = extendMaintenanceRadio.Checked;
@@ -217,7 +219,7 @@ namespace LendingSystem.Admin
             systemGroup.Controls.Add(maxLoanAmountRadio);
             systemY += 30;
 
-            // Max loan controls - ALWAYS VISIBLE, ALIGNED PROPERLY
+            // Max loan controls
             newMaxLabel = new Label
             {
                 Text = "New Max: ₱",
@@ -242,7 +244,7 @@ namespace LendingSystem.Admin
             systemGroup.Controls.Add(maxLoanTextBox);
             systemY += 35;
 
-            // Enable/disable max loan controls based on radio selection
+            // Enable/disable max loan controls
             maxLoanAmountRadio.CheckedChanged += (s, e) =>
             {
                 bool enabled = maxLoanAmountRadio.Checked;
@@ -272,14 +274,14 @@ namespace LendingSystem.Admin
 
             mainPanel.Controls.Add(systemGroup);
             systemGroupY = yPos;
-            yPos += 260; // Increased from 190 to 260 for system group
+            yPos += 260;
 
-            // Financial Overrides Group - FIXED VERSION
+            // Financial Overrides Group
             financialGroup = new GroupBox
             {
                 Text = "FINANCIAL OVERRIDES:",
                 Location = new Point(20, yPos),
-                Size = new Size(mainPanel.Width - 40, 180), // Increased height
+                Size = new Size(mainPanel.Width - 40, 180),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 BackColor = Color.White
@@ -300,7 +302,7 @@ namespace LendingSystem.Admin
             financialGroup.Controls.Add(adjustInterestRadio);
             financialY += 30;
 
-            // Interest adjustment controls - ALWAYS VISIBLE
+            // Interest adjustment controls
             adjustmentLabel = new Label
             {
                 Text = "Adjustment:",
@@ -335,7 +337,7 @@ namespace LendingSystem.Admin
             financialGroup.Controls.Add(percentLabel);
             financialY += 35;
 
-            // Enable/disable interest controls based on radio selection
+            // Enable/disable interest controls
             adjustInterestRadio.CheckedChanged += (s, e) =>
             {
                 bool enabled = adjustInterestRadio.Checked;
@@ -377,14 +379,14 @@ namespace LendingSystem.Admin
 
             mainPanel.Controls.Add(financialGroup);
             financialGroupY = yPos;
-            yPos += 190; // Increased from 130 to 190 for financial group
+            yPos += 190;
 
-            // Duration Group (Initialize it here)
+            // Duration Group - FIXED: No textbox, just button and label
             durationGroup = new GroupBox
             {
                 Text = "DURATION:",
                 Location = new Point(20, yPos),
-                Size = new Size(mainPanel.Width - 40, 80),
+                Size = new Size(mainPanel.Width - 40, 120),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 BackColor = Color.White
@@ -401,32 +403,149 @@ namespace LendingSystem.Admin
 
             temporaryRadio = new RadioButton
             {
-                Text = "Temporary",
-                Location = new Point(100, 25),
-                Size = new Size(80, 20),
+                Text = "Temporary Until:",
+                Location = new Point(15, 50),
+                Size = new Size(120, 20),
                 Font = new Font("Segoe UI", 9)
             };
 
-            temporaryDatePicker = new DateTimePicker
+            // Date selection button
+            dateSelectButton = new Button
             {
-                Location = new Point(185, 23),
-                Size = new Size(120, 22),
+                Text = "Select Date",
+                Location = new Point(15, 75),
+                Size = new Size(100, 40),
                 Font = new Font("Segoe UI", 9),
-                Format = DateTimePickerFormat.Short,
-                Enabled = false
+                Enabled = false,
+                BackColor = Color.FromArgb(229, 231, 235),
+                ForeColor = Color.FromArgb(55, 65, 81),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            dateSelectButton.FlatAppearance.BorderSize = 0;
+
+            // Label to show selected date (replaces textbox)
+            selectedDateLabel = new Label
+            {
+                Location = new Point(120, 90),
+                Size = new Size(150, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(30, 30, 30),
+                Text = "No date selected",
+                TextAlign = ContentAlignment.MiddleLeft
             };
 
+            // Create calendar in MAIN PANEL (not in durationGroup) - FIXED POSITION
+            monthCalendar = new MonthCalendar
+            {
+                Location = new Point(200, 400), // Position far down to avoid clipping
+                Size = new Size(200, 160),
+                Visible = false,
+                MinDate = DateTime.Today.AddDays(1),
+                MaxSelectionCount = 1
+            };
+
+            // Add calendar to MAIN PANEL, not durationGroup
+            mainPanel.Controls.Add(monthCalendar);
+            monthCalendar.BringToFront();
+
+            // Enable/disable date controls when temporary radio is checked
             temporaryRadio.CheckedChanged += (s, e) =>
             {
-                temporaryDatePicker.Enabled = temporaryRadio.Checked;
-                temporaryDatePicker.BackColor = temporaryRadio.Checked ? Color.White : SystemColors.Control;
+                bool enabled = temporaryRadio.Checked;
+                dateSelectButton.Enabled = enabled;
+                selectedDateLabel.Enabled = enabled;
+
+                if (enabled)
+                {
+                    dateSelectButton.BackColor = Color.FromArgb(59, 130, 246); // Blue
+                    dateSelectButton.ForeColor = Color.White;
+                    selectedDateLabel.ForeColor = Color.FromArgb(30, 30, 30);
+                    dateSelectButton.Focus();
+                }
+                else
+                {
+                    dateSelectButton.BackColor = Color.FromArgb(229, 231, 235);
+                    dateSelectButton.ForeColor = Color.FromArgb(55, 65, 81);
+                    selectedDateLabel.Text = "No date selected";
+                    selectedDateLabel.ForeColor = Color.Gray;
+                    monthCalendar.Visible = false;
+                }
             };
+
+            permanentRadio.CheckedChanged += (s, e) =>
+            {
+                if (permanentRadio.Checked)
+                {
+                    dateSelectButton.Enabled = false;
+                    selectedDateLabel.Enabled = false;
+                    dateSelectButton.BackColor = Color.FromArgb(229, 231, 235);
+                    dateSelectButton.ForeColor = Color.FromArgb(55, 65, 81);
+                    selectedDateLabel.Text = "No date selected";
+                    selectedDateLabel.ForeColor = Color.Gray;
+                    monthCalendar.Visible = false;
+                }
+            };
+
+            // Show/hide calendar when button is clicked
+            dateSelectButton.Click += (s, e) =>
+            {
+                if (monthCalendar.Visible)
+                {
+                    monthCalendar.Visible = false;
+                }
+                else
+                {
+                    // Position calendar near the button but in main panel
+                    Point buttonScreenPos = dateSelectButton.PointToScreen(Point.Empty);
+                    Point panelPos = mainPanel.PointToClient(buttonScreenPos);
+
+                    // Position below the button with some offset
+                    monthCalendar.Location = new Point(
+                        panelPos.X,
+                        panelPos.Y + dateSelectButton.Height + 5
+                    );
+                    monthCalendar.Visible = true;
+                    monthCalendar.BringToFront();
+                }
+            };
+
+            // Handle date selection
+            monthCalendar.DateSelected += (s, e) =>
+            {
+                selectedDateLabel.Text = monthCalendar.SelectionStart.ToString("MMM dd, yyyy");
+                monthCalendar.Visible = false;
+            };
+
+            // Hide calendar when clicking outside (FIXED)
+            MouseEventHandler hideCalendar = null;
+            hideCalendar = (s, e) =>
+            {
+                if (monthCalendar.Visible && s is Control clickedControl)
+                {
+                    Point mousePos = Control.MousePosition;
+                    Rectangle calendarBounds = monthCalendar.RectangleToScreen(
+                        new Rectangle(0, 0, monthCalendar.Width, monthCalendar.Height));
+                    Rectangle buttonBounds = dateSelectButton.RectangleToScreen(
+                        new Rectangle(0, 0, dateSelectButton.Width, dateSelectButton.Height));
+
+                    if (!calendarBounds.Contains(mousePos) && !buttonBounds.Contains(mousePos))
+                    {
+                        monthCalendar.Visible = false;
+                    }
+                }
+            };
+
+            // Add mouse click event to hide calendar
+            mainPanel.MouseClick += hideCalendar;
+            durationGroup.MouseClick += hideCalendar;
 
             durationGroup.Controls.Add(permanentRadio);
             durationGroup.Controls.Add(temporaryRadio);
-            durationGroup.Controls.Add(temporaryDatePicker);
+            durationGroup.Controls.Add(dateSelectButton);
+            durationGroup.Controls.Add(selectedDateLabel);
             mainPanel.Controls.Add(durationGroup);
-            yPos += 90;
+            yPos += 130;
 
             // Reason & Approval Group
             reasonGroup = new GroupBox
@@ -507,7 +626,7 @@ namespace LendingSystem.Admin
                 Text = "Apply Override",
                 Location = new Point(20, yPos),
                 Size = new Size(120, 35),
-                BackColor = Color.FromArgb(34, 197, 94), // Green color
+                BackColor = Color.FromArgb(34, 197, 94),
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 FlatStyle = FlatStyle.Flat
@@ -544,10 +663,6 @@ namespace LendingSystem.Admin
             mainPanel.Controls.Add(applyButton);
             mainPanel.Controls.Add(scheduleButton);
             mainPanel.Controls.Add(cancelButton);
-
-            // REMOVED: Wire up radio button events for conditional panels
-            // We're not using UpdateConditionalPanels or UpdateGroupLayouts anymore
-            // because they reference null panels
 
             mainPanel.Resize += (s, e) =>
             {
@@ -622,6 +737,19 @@ namespace LendingSystem.Admin
 
         private void ApplyButton_Click(object sender, EventArgs e)
         {
+            // Validate date if temporary is selected
+            if (temporaryRadio.Checked)
+            {
+                if (selectedDateLabel.Text == "No date selected")
+                {
+                    MessageBox.Show("Please select an end date for the temporary override",
+                                  "Date Required",
+                                  MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    dateSelectButton.Focus();
+                    return;
+                }
+            }
+
             MessageBox.Show("Apply override functionality", "Info",
                           MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -636,7 +764,7 @@ namespace LendingSystem.Admin
         {
             // Reset form
             bypassCreditRadio.Checked = true;
-            
+
             // Reset maintenance fields
             extendMaintenanceRadio.Checked = false;
             maintenanceFromTextBox.Text = "00:00";
@@ -645,27 +773,31 @@ namespace LendingSystem.Admin
             maintenanceToTextBox.BackColor = SystemColors.Control;
             fromLabel.Enabled = false;
             toLabel.Enabled = false;
-            
+
             // Reset max loan fields
             maxLoanAmountRadio.Checked = false;
             maxLoanTextBox.Text = "Enter new maximum";
             maxLoanTextBox.ForeColor = Color.Gray;
             maxLoanTextBox.BackColor = SystemColors.Control;
             newMaxLabel.Enabled = false;
-            
-            // Reset interest fields (but keep checked since it's the default in financial group)
+
+            // Reset interest fields
             adjustInterestRadio.Checked = true;
             interestAdjustmentTextBox.Text = "+/- 0.00";
             interestAdjustmentTextBox.ForeColor = Color.Gray;
-            interestAdjustmentTextBox.BackColor = Color.White; // It's enabled because radio is checked
+            interestAdjustmentTextBox.BackColor = Color.White;
             adjustmentLabel.Enabled = true;
             percentLabel.Enabled = true;
-            
+
             // Reset duration
             permanentRadio.Checked = true;
-            temporaryDatePicker.Enabled = false;
-            temporaryDatePicker.BackColor = SystemColors.Control;
-            
+            dateSelectButton.Enabled = false;
+            dateSelectButton.BackColor = Color.FromArgb(229, 231, 235);
+            dateSelectButton.ForeColor = Color.FromArgb(55, 65, 81);
+            selectedDateLabel.Text = "No date selected";
+            selectedDateLabel.ForeColor = Color.Gray;
+            monthCalendar.Visible = false;
+
             // Reset reason and password
             reasonTextBox.Text = "Enter detailed reason for system override...";
             reasonTextBox.ForeColor = Color.Gray;
