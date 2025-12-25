@@ -16,7 +16,6 @@ namespace LendingSystem.Reports
         private void InitializeComponent()
         {
             this.SuspendLayout();
-
             // Main container
             this.BackColor = Color.White;
             this.Dock = DockStyle.Fill;
@@ -304,25 +303,12 @@ namespace LendingSystem.Reports
         private void InitializePaymentReportsTab(TabPage tab)
         {
             tab.BackColor = Color.White;
-            tab.Padding = new Padding(20);
+            tab.Padding = new Padding(10);
 
-            Panel mainPanel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.White
-            };
-
-            Label placeholder = new Label
-            {
-                Text = "PAYMENT REPORTS\n\nFeature coming soon...",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(156, 163, 175)
-            };
-
-            mainPanel.Controls.Add(placeholder);
-            tab.Controls.Add(mainPanel);
+            // Add the PaymentReportsControl instead of placeholder
+            var paymentReportsControl = new PaymentReportsControl();
+            paymentReportsControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(paymentReportsControl);
         }
 
         private void InitializeFinancialReportsTab(TabPage tab)
