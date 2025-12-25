@@ -64,10 +64,10 @@
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="LogicClass\Loan Product\LoanProduct.cs" />
     <Compile Include="LogicClass\User\User.cs" />
-    <Compile Include="UI\AdminUI\AddNewLoanProductControl.cs">
+    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\AddNewLoanProductControl.Designer.cs">
+    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.Designer.cs">
       <DependentUpon>AddNewLoanProductControl.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\AdminUI\AddUserDialog.cs">
@@ -79,40 +79,40 @@
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\AdminUI\AdminOverviewControl.cs">
+    <Compile Include="UI\AdminUI\Controls\AdminOverviewControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\AdminOverviewControl.Designer.cs">
+    <Compile Include="UI\AdminUI\Controls\AdminOverviewControl.Designer.cs">
       <DependentUpon>AdminOverviewControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\AdminUI\AdminUserManagementControl.cs">
+    <Compile Include="UI\AdminUI\Controls\AdminUserManagementControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\AuditLogControl.cs">
+    <Compile Include="UI\AdminUI\Controls\AuditLogControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\ConfigureGlobalRulesControl.cs">
+    <Compile Include="UI\AdminUI\Controls\ConfigureGlobalRulesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\CustomerReportsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\CustomerReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\EditUserForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\FinancialReportsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\FinancialReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\LoanProductsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\LoanProductsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\OverrideActionsForm.cs">
+    <Compile Include="UI\AdminUI\Controls\OverrideActionsForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\PaymentReportsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\PaymentReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\SystemReportsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\SystemReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\ResetPasswordForm.cs">
@@ -121,10 +121,10 @@
     <Compile Include="UI\AdminUI\ResetPasswordForm.Designer.cs">
       <DependentUpon>ResetPasswordForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\AdminUI\SystemOverridesControl.cs">
+    <Compile Include="UI\AdminUI\Controls\SystemOverridesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\UserActionsControl.cs">
+    <Compile Include="UI\AdminUI\Controls\UserActionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
