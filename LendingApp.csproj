@@ -79,6 +79,9 @@
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\AdminUI\Controls\AdminAuditLogControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\Controls\AdminOverviewControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

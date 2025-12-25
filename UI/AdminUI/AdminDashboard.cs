@@ -291,11 +291,9 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "Audit Log")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Audit Log",
-                    message: "View system audit trail",
-                    accentHex: "#374151",
-                    iconText: "📄"));
+                var auditLog = new AuditLogControl();
+                auditLog.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(auditLog);
             }
             else
             {
