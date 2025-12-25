@@ -103,6 +103,9 @@
     <Compile Include="UI\AdminUI\OverrideActionsForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\AdminUI\SystemReportsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\ResetPasswordForm.cs">
       <SubType>Form</SubType>
     </Compile>

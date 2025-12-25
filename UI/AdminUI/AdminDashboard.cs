@@ -1,5 +1,6 @@
 ﻿using LendingApp.UI.AdminUI.Views;
 using LendingSystem.Admin;
+using LendingSystem.Reports;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -278,11 +279,9 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "System Reports")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "System Reports",
-                    message: "Generate comprehensive system reports",
-                    accentHex: "#374151",
-                    iconText: "📊"));
+                var systemReports = new SystemReportsControl();
+                systemReports.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(systemReports);
             }
             else if (activeNav == "System Config")
             {
