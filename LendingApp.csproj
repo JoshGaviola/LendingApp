@@ -97,6 +97,9 @@
     <Compile Include="UI\AdminUI\EditUserForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UI\AdminUI\FinancialReportsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\LoanProductsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

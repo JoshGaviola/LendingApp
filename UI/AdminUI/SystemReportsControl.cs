@@ -314,25 +314,12 @@ namespace LendingSystem.Reports
         private void InitializeFinancialReportsTab(TabPage tab)
         {
             tab.BackColor = Color.White;
-            tab.Padding = new Padding(20);
+            tab.Padding = new Padding(10);
 
-            Panel mainPanel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.White
-            };
-
-            Label placeholder = new Label
-            {
-                Text = "FINANCIAL REPORTS\n\nFeature coming soon...",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(156, 163, 175)
-            };
-
-            mainPanel.Controls.Add(placeholder);
-            tab.Controls.Add(mainPanel);
+            // Add the FinancialReportsControl instead of placeholder
+            var financialReportsControl = new FinancialReportsControl();
+            financialReportsControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(financialReportsControl);
         }
 
         private void InitializeCustomerReportsTab(TabPage tab)
