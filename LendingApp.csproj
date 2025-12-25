@@ -94,6 +94,9 @@
     <Compile Include="UI\AdminUI\ConfigureGlobalRulesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\AdminUI\CustomerReportsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\EditUserForm.cs">
       <SubType>Form</SubType>
     </Compile>
