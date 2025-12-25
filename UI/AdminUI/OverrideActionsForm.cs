@@ -605,18 +605,12 @@ namespace LendingSystem.Admin
         private void InitializeAuditLogTab(TabPage tab)
         {
             tab.BackColor = Color.White;
-            tab.Padding = new Padding(20);
+            tab.Padding = new Padding(10);
 
-            Label placeholder = new Label
-            {
-                Text = "Audit Log\n\nFeature coming soon...",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(156, 163, 175)
-            };
-
-            tab.Controls.Add(placeholder);
+            // Add the AuditLogControl (replacing the placeholder)
+            var auditLogControl = new AuditLogControl();
+            auditLogControl.Dock = DockStyle.Fill;
+            tab.Controls.Add(auditLogControl);
         }
 
         private void AddSampleLoanData()
