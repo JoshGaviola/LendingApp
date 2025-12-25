@@ -97,6 +97,9 @@
     <Compile Include="UI\AdminUI\Controls\CustomerReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\AdminUI\Controls\SystemConfigControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\AdminUI\EditUserForm.cs">
       <SubType>Form</SubType>
     </Compile>

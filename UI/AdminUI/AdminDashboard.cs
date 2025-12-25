@@ -285,11 +285,9 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "System Config")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "System Configuration",
-                    message: "Configure system settings",
-                    accentHex: "#374151",
-                    iconText: "🔧"));
+                var systemConfig = new SystemConfigControl();
+                systemConfig.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(systemConfig);
             }
             else if (activeNav == "Audit Log")
             {
