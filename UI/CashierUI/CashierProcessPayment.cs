@@ -4,6 +4,9 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.LogicClass.Cashier;
+using LendingApp.Models.CashierModels;
+
 
 namespace LendingApp.UI.CashierUI
 {
@@ -28,14 +31,7 @@ namespace LendingApp.UI.CashierUI
             public decimal NewBalance { get; set; }
         }
 
-        private sealed class TransactionRow
-        {
-            public string Time { get; set; }
-            public string Customer { get; set; }
-            public string Amount { get; set; }
-            public string ReceiptNo { get; set; }
-            public string LoanRef { get; set; }
-        }
+     
 
         private readonly Dictionary<string, LoanInfo> _mockLoans = new Dictionary<string, LoanInfo>(StringComparer.OrdinalIgnoreCase)
         {
@@ -122,12 +118,14 @@ namespace LendingApp.UI.CashierUI
 
         // Transactions
         private DataGridView gridTransactions;
-        private readonly List<TransactionRow> _transactions = new List<TransactionRow>();
 
         // Toast
         private Panel _toastPanel;
         private Label _toastLabel;
         private Timer _toastTimer;
+        private List<TransactionModels> _transactions;
+        // Action<TransactionModels> OnTransactionProcessed { get; set; }
+      // private CashierDashboard _cashierDashboard;
 
         public CashierProcessPayment()
         {
@@ -135,12 +133,15 @@ namespace LendingApp.UI.CashierUI
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
-            TopLevel = false;
+            //TopLevel = false;
+            _transactions = new List<TransactionModels>();
 
             BuildUI();
             SeedTransactions();
+            //_cashierDashboard = new CashierDashboard(_transactions);
             BindTransactions();
             RefreshState();
+
         }
 
         private void BuildUI()
@@ -621,13 +622,16 @@ namespace LendingApp.UI.CashierUI
             grid.Controls.Add(valueLabel, 1, row);
         }
 
+
+
         private void SeedTransactions()
         {
             _transactions.Clear();
-            _transactions.Add(new TransactionRow { Time = "9:30 AM", Customer = "Maria Santos", Amount = "₱2,150", ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
-            _transactions.Add(new TransactionRow { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = "₱4,442", ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
-            _transactions.Add(new TransactionRow { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = "₱1,500", ReceiptNo = "OR-003", LoanRef = "LN-2024-003" });
-        }
+            _transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            _transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
+            _transactions.Add(new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1.500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" });
+        } 
+
 
         private void BindTransactions()
         {
@@ -652,7 +656,7 @@ namespace LendingApp.UI.CashierUI
             // NEW: only handle clicks on the Actions button column
             if (gridTransactions.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
             {
-                var tx = gridTransactions.Rows[e.RowIndex].Tag as TransactionRow;
+                var tx = gridTransactions.Rows[e.RowIndex].Tag as TransactionModels;
                 if (tx == null) return;
 
                 ShowToast("Receipt " + tx.ReceiptNo + " sent to printer");
@@ -736,11 +740,11 @@ namespace LendingApp.UI.CashierUI
             string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
             string time = DateTime.Now.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US"));
 
-            var tx = new TransactionRow
+            var tx = new TransactionModels
             {
                 Time = time,
                 Customer = _loanDetails.Customer,
-                Amount = "₱" + amount.ToString("N0", CultureInfo.InvariantCulture),
+               // Amount = "₱ amount.ToString("N0", CultureInfo.InvariantCulture),
                 ReceiptNo = receiptNo,
                 LoanRef = (txtLoanNumber.Text ?? "").Trim()
             };

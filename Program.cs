@@ -1,4 +1,7 @@
-﻿using System;
+﻿using LendingApp.Models.CashierModels;
+using LendingApp.UI.CashierUI;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -17,12 +20,16 @@ namespace LendingApp
             if (!createdNew)
             {
                 MessageBox.Show("LendingApp is already running.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
+                return; 
             }
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+
+            List<TransactionModels> transactions = new List<TransactionModels>();
+
+            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(transactions));
+          // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
         }
     }
 }

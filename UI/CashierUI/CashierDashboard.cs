@@ -1,4 +1,6 @@
-﻿using System;
+﻿using LendingApp.LogicClass.Cashier;
+using LendingApp.Models.CashierModels;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
@@ -17,7 +19,6 @@ namespace LendingApp.UI.CashierUI
         };
 
         // Daily summary stats (sample values like the React version)
-        private string paymentsCollected = "₱45,230";
         private int paymentsCount = 12;
         private string loansReleased = "₱150,000";
         private int loansCount = 3;
@@ -54,13 +55,28 @@ namespace LendingApp.UI.CashierUI
         private CashierReport _cashierReportForm;
         private CashierSettings _settingsForm;
 
-        public CashierDashboard()
+        private List<TransactionModels> _transactions;
+        private CashierDashboardLogic _dashboardLogic;
+
+
+        public CashierDashboard(List<TransactionModels> transaction)
         {
             InitializeComponent();
+
+            //_transactions = transaction;
+            _transactions = new List<TransactionModels>
+            {
+                new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" },
+                new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" },
+                new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" }
+            };
+
+            //_transactions = transaction ?? new List<TransactionModels>();
+            _dashboardLogic = new CashierDashboardLogic(_transactions);
+
             BuildUI();
             PopulateData();
-        }
-
+        }   
         public void SetUsername(string username)
         {
             _username = string.IsNullOrWhiteSpace(username) ? "Cashier" : username;
@@ -172,7 +188,7 @@ namespace LendingApp.UI.CashierUI
                 titleHex: "#15803D",
                 valueHex: "#052E16",
                 title: "Payments Today",
-                value: paymentsCollected,
+                value: _dashboardLogic.CalculateTotal().ToString("N1"),
                 sub: paymentsCount + " transactions"
             );
 
