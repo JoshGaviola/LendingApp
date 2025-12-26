@@ -223,6 +223,9 @@
     <Compile Include="UI\CustomerUI\CustomerRegistration.Designer.cs">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Control\OfficerApplicationReviewControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
       <SubType>Form</SubType>
     </Compile>

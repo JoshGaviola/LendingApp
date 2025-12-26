@@ -28,8 +28,7 @@ namespace LendingApp
 
             List<TransactionModels> transactions = new List<TransactionModels>();
 
-            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(transactions));
-          // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
         }
     }
 }

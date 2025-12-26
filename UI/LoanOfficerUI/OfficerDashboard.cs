@@ -1,4 +1,5 @@
 ﻿using LendingApp.Models.LoanOfficer;
+using LendingSystem;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,11 +9,8 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerDashboard : Form
     {
-
         OfficerDashboardLogic dashboard = new OfficerDashboardLogic();
         OfficerApplicationLogic officerApp = new OfficerApplicationLogic();
-
-
 
         private string _username = "Officer";
         private Action _onLogout;
@@ -31,6 +29,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
+        private OfficerApplicationReviewControl _reviewControl;
 
         private class ActivityItem
         {
@@ -205,7 +204,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void LayoutSummary()
         {
-
             int cardWidth = 220;
             int gap = 10;
             int startX = 10;
@@ -355,7 +353,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 _collectionsForm.Hide();
                 contentPanel.Controls.Remove(_collectionsForm);
             }
-            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            if (_customersForm != null && !_customersForm.IsDisposed)
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
@@ -388,7 +386,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 _applicationsForm.Hide();
                 contentPanel.Controls.Remove(_applicationsForm);
             }
-            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            if (_customersForm != null && !_customersForm.IsDisposed)
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
@@ -544,12 +542,12 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed) // ensure calendar removed
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
             {
                 _calendarForm.Hide();
                 contentPanel.Controls.Remove(_calendarForm);
             }
-            if (_settingsForm != null && !_settingsForm.IsDisposed) // ensure settings removed
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
                 _settingsForm.Hide();
                 contentPanel.Controls.Remove(_settingsForm);
@@ -598,21 +596,88 @@ namespace LendingApp.UI.LoanOfficerUI
                 UseColumnTextForButtonValue = true
             };
             grid.Columns.Add(actionsCol);
+
+            // MODIFIED: Wire the Review button click
             grid.CellContentClick += (s, e) =>
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    MessageBox.Show("Open review dialog...", "Review");
+                    // Get the application data
+                    var row = grid.Rows[e.RowIndex];
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Juan Dela Cruz";
+                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Personal Loan";
+                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱50,000";
+
+                    // Show the application review
+                    ShowApplicationReview(customer, loanType, amount);
                 }
             };
 
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            foreach (var app in officerApp.Allapplications)
+            // Add sample data
+            grid.Rows.Add("Juan Dela Cruz", "Personal Loan", "₱50,000", "2 days", "High", "Review");
+            grid.Rows.Add("Maria Santos", "Business Loan", "₱200,000", "1 day", "High", "Review");
+            grid.Rows.Add("Pedro Reyes", "Emergency Loan", "₱25,000", "3 days", "Medium", "Review");
+        }
+
+        private void ShowApplicationReview(string customer, string loanType, string amount)
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
-                grid.Rows.Add(app.Customer, app.LoanType, app.Amount, app.Priority);
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
             }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
+            {
+                _settingsForm.Hide();
+                contentPanel.Controls.Remove(_settingsForm);
+            }
+
+            // Create or reuse review control
+            if (_reviewControl == null || _reviewControl.IsDisposed)
+            {
+                _reviewControl = new OfficerApplicationReviewControl
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+            }
+
+            contentPanel.Controls.Add(_reviewControl);
+
+            // Wire the back button to go back to applications view
+            WireReviewBackButton();
+
+            contentPanel.ResumeLayout();
+        }
+
+        // Handle back button from review
+        private void ReviewBackButton_Click(object sender, EventArgs e)
+        {
+            ShowApplicationsView();
         }
 
         private void BuildOverdueLoansSection()
@@ -744,6 +809,16 @@ namespace LendingApp.UI.LoanOfficerUI
         private void PopulateData()
         {
             SetUsername(_username);
+        }
+
+        private void WireReviewBackButton()
+        {
+            // Wire the back button from the review control
+            if (_reviewControl.BackButton != null)
+            {
+                _reviewControl.BackButton.Click -= ReviewBackButton_Click; // Remove previous handler
+                _reviewControl.BackButton.Click += ReviewBackButton_Click; // Add new handler
+            }
         }
     }
 }
