@@ -30,6 +30,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private bool _homeResizeHooked;
 
         private OfficerApplicationReviewControl _reviewControl;
+        private OfficerCollectionFollowUpControl _collectionFollowUpControl;
 
         private class ActivityItem
         {
@@ -374,6 +375,79 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
+        private void ShowCollectionFollowUp(LendingSystem.OverdueLoanData loanData)
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
+            {
+                _settingsForm.Hide();
+                contentPanel.Controls.Remove(_settingsForm);
+            }
+            if (_reviewControl != null && !_reviewControl.IsDisposed)
+            {
+                _reviewControl.Hide();
+                contentPanel.Controls.Remove(_reviewControl);
+            }
+
+            // Create or reuse the follow-up control
+            if (_collectionFollowUpControl == null || _collectionFollowUpControl.IsDisposed)
+            {
+                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+
+                // Wire the back button to return to dashboard
+                _collectionFollowUpControl.OnBack += () =>
+                {
+                    ShowDashboardHome();
+                };
+            }
+            else
+            {
+                // Update with new loan data
+                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+
+                _collectionFollowUpControl.OnBack += () =>
+                {
+                    ShowDashboardHome();
+                };
+            }
+
+            contentPanel.Controls.Add(_collectionFollowUpControl);
+            contentPanel.ResumeLayout();
+        }
+
         private void ShowCollectionsView()
         {
             summaryPanel.Visible = false;
@@ -526,7 +600,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowDashboardHome()
         {
-            // Hide/remove embedded views
+            // Hide/remove all embedded views
             if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
                 _applicationsForm.Hide();
@@ -551,6 +625,17 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _settingsForm.Hide();
                 contentPanel.Controls.Remove(_settingsForm);
+            }
+            if (_reviewControl != null && !_reviewControl.IsDisposed)
+            {
+                _reviewControl.Hide();
+                contentPanel.Controls.Remove(_reviewControl);
+            }
+            // ADD THIS LINE:
+            if (_collectionFollowUpControl != null && !_collectionFollowUpControl.IsDisposed)
+            {
+                _collectionFollowUpControl.Hide();
+                contentPanel.Controls.Remove(_collectionFollowUpControl);
             }
 
             // Rebuild home sections
@@ -719,7 +804,32 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    MessageBox.Show("Trigger follow-up workflow...", "Follow Up");
+                    // Get the loan data from the clicked row
+                    var row = grid.Rows[e.RowIndex];
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Pedro Reyes";
+                    string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "₱3,850.00";
+                    string daysOverdue = row.Cells["DaysOverdue"].Value?.ToString() ?? "5";
+
+                    // Create loan data for the follow-up control
+                    var overdueLoanData = new LendingSystem.OverdueLoanData
+                    {
+                        Id = "LN-2024-0456",
+                        Customer = customer,
+                        CustomerId = "CUST-045",
+                        LoanType = "Personal Loan",
+                        OriginalAmount = "₱50,000",
+                        Term = "12 months",
+                        DueDate = "December 10, 2024",
+                        DaysOverdue = int.TryParse(daysOverdue.Replace(" days", ""), out int days) ? days : 5,
+                        AmountDue = amountDue,
+                        Penalty = "₱12.70",
+                        TotalDue = "₱3,862.70",
+                        OutstandingBalance = "₱23,100.00",
+                        Contact = "+639456789012"
+                    };
+
+                    // Show the collection follow-up control
+                    ShowCollectionFollowUp(overdueLoanData);
                 }
             };
 

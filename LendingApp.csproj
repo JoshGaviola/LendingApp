@@ -226,6 +226,9 @@
     <Compile Include="UI\LoanOfficerUI\Control\OfficerApplicationReviewControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Control\OfficerCollectionFollowUpControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
       <SubType>Form</SubType>
     </Compile>
