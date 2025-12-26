@@ -1,5 +1,6 @@
 ﻿using LendingApp.UI.AdminUI.Views;
 using LendingSystem.Admin;
+using LendingSystem.Reports;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -278,27 +279,21 @@ namespace LendingApp.UI.AdminUI
             }
             else if (activeNav == "System Reports")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "System Reports",
-                    message: "Generate comprehensive system reports",
-                    accentHex: "#374151",
-                    iconText: "📊"));
+                var systemReports = new SystemReportsControl();
+                systemReports.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(systemReports);
             }
             else if (activeNav == "System Config")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "System Configuration",
-                    message: "Configure system settings",
-                    accentHex: "#374151",
-                    iconText: "🔧"));
+                var systemConfig = new SystemConfigControl();
+                systemConfig.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(systemConfig);
             }
             else if (activeNav == "Audit Log")
             {
-                contentPanel.Controls.Add(MakeCard(
-                    title: "Audit Log",
-                    message: "View system audit trail",
-                    accentHex: "#374151",
-                    iconText: "📄"));
+                var auditLog = new AuditLogControl();
+                auditLog.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(auditLog);
             }
             else
             {
