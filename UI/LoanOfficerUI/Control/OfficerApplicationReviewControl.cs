@@ -9,6 +9,7 @@ namespace LendingSystem
         private Panel mainContainer;
         private Panel mainCard;
         public Button BackButton { get; private set; }
+        private int totalContentHeight = 0;
 
         public OfficerApplicationReviewControl()
         {
@@ -46,11 +47,14 @@ namespace LendingSystem
             mainContainer.Controls.Add(BackButton);
             yPos += 42;
 
-            // Main card container
+            // Calculate initial content height
+            totalContentHeight = CalculateTotalContentHeight(mainContainer.Width - 30);
+
+            // Main card container - dynamic height
             mainCard = new Panel
             {
                 Location = new Point(0, yPos),
-                Size = new Size(mainContainer.Width, 800),
+                Size = new Size(mainContainer.Width, totalContentHeight + 100), // Header + padding
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -80,92 +84,170 @@ namespace LendingSystem
             Panel content = new Panel
             {
                 Location = new Point(15, 60),
-                Size = new Size(mainCard.Width - 30, 740),
+                Size = new Size(mainCard.Width - 30, totalContentHeight),
                 BackColor = Color.White
             };
 
-            int contentY = 0;
-
-            // Application Summary
-            contentY = AddSection(content, "APPLICATION SUMMARY:", contentY);
-            contentY = AddSummaryDetails(content, contentY);
-
-            // Credit Assessment
-            contentY = AddSection(content, "CREDIT ASSESSMENT:", contentY);
-            contentY = AddCreditDetails(content, contentY);
-
-            // Loan Computation
-            contentY = AddSection(content, "LOAN COMPUTATION:", contentY);
-            contentY = AddComputationDetails(content, contentY);
-
-            // Supporting Documents
-            contentY = AddSection(content, "SUPPORTING DOCUMENTS:", contentY);
-            contentY = AddDocumentDetails(content, contentY);
-
-            // Action Buttons
-            contentY = AddActionButtons(content, contentY);
-
-            // Approval Limit
-            AddApprovalLimitNotice(content, contentY + 20);
+            BuildContent(content);
 
             mainCard.Controls.Add(content);
             mainContainer.Controls.Add(mainCard);
 
-            // Handle resize
-            mainContainer.Resize += (s, e) =>
-            {
-                mainCard.Width = mainContainer.Width;
-
-                // Update header width
-                if (mainCard.Controls.Count > 0 && mainCard.Controls[0] is Panel headerPanel)
-                {
-                    headerPanel.Width = mainCard.Width;
-                    if (headerPanel.Controls.Count > 0 && headerPanel.Controls[0] is Label headerLabel)
-                    {
-                        headerLabel.Width = mainCard.Width - 30;
-                    }
-                }
-
-                // Update content width
-                if (mainCard.Controls.Count > 1 && mainCard.Controls[1] is Panel contentPanel)
-                {
-                    contentPanel.Width = mainCard.Width - 30;
-                    UpdateContentLayout(contentPanel);
-                }
-            };
+            // Handle resize - FIXED: Use proper event handler
+            this.SizeChanged += OfficerApplicationReviewControl_SizeChanged;
+            mainContainer.Resize += MainContainer_Resize;
 
             this.Controls.Add(mainContainer);
             this.ResumeLayout(false);
         }
 
-        private void UpdateContentLayout(Panel contentPanel)
+        private void MainContainer_Resize(object sender, EventArgs e)
         {
-            int currentY = 0;
+            UpdateLayout();
+        }
 
-            // Clear and rebuild content with new widths
-            contentPanel.Controls.Clear();
+        private void OfficerApplicationReviewControl_SizeChanged(object sender, EventArgs e)
+        {
+            UpdateLayout();
+        }
+
+        private void UpdateLayout()
+        {
+            if (mainContainer == null || mainCard == null) return;
+
+            // Update main card width
+            mainCard.Width = mainContainer.Width;
+
+            // Update header width
+            if (mainCard.Controls.Count > 0 && mainCard.Controls[0] is Panel headerPanel)
+            {
+                headerPanel.Width = mainCard.Width;
+                if (headerPanel.Controls.Count > 0 && headerPanel.Controls[0] is Label headerLabel)
+                {
+                    headerLabel.Width = mainCard.Width - 30;
+                }
+            }
+
+            // Update content width and rebuild if needed
+            if (mainCard.Controls.Count > 1 && mainCard.Controls[1] is Panel contentPanel)
+            {
+                int newContentWidth = mainCard.Width - 30;
+                if (contentPanel.Width != newContentWidth)
+                {
+                    contentPanel.Width = newContentWidth;
+
+                    // Recalculate total height with new width
+                    totalContentHeight = CalculateTotalContentHeight(newContentWidth);
+
+                    // Update main card height
+                    mainCard.Height = totalContentHeight + 100;
+                    contentPanel.Height = totalContentHeight;
+
+                    // Rebuild content
+                    BuildContent(contentPanel);
+                }
+            }
+        }
+
+        private int CalculateTotalContentHeight(int contentWidth)
+        {
+            // Simulate the layout to calculate total height
+            int height = 0;
 
             // Application Summary
-            currentY = AddSection(contentPanel, "APPLICATION SUMMARY:", currentY);
-            currentY = AddSummaryDetails(contentPanel, currentY);
+            height += 30; // Section title
+            height += 100; // Summary details
 
             // Credit Assessment
-            currentY = AddSection(contentPanel, "CREDIT ASSESSMENT:", currentY);
-            currentY = AddCreditDetails(contentPanel, currentY);
+            height += 30;
+            height += 140;
 
             // Loan Computation
-            currentY = AddSection(contentPanel, "LOAN COMPUTATION:", currentY);
-            currentY = AddComputationDetails(contentPanel, currentY);
+            height += 30;
+            height += 130;
 
             // Supporting Documents
-            currentY = AddSection(contentPanel, "SUPPORTING DOCUMENTS:", currentY);
-            currentY = AddDocumentDetails(contentPanel, currentY);
+            height += 30;
+            height += 110;
 
-            // Action Buttons
-            currentY = AddActionButtons(contentPanel, currentY);
+            // Action Buttons (calculate based on width)
+            int actionButtonsHeight = CalculateActionButtonsHeight(contentWidth);
+            height += actionButtonsHeight;
 
             // Approval Limit
-            AddApprovalLimitNotice(contentPanel, currentY + 20);
+            height += 20; // Spacing
+            height += 60; // Notice
+
+            return height;
+        }
+
+        private int CalculateActionButtonsHeight(int panelWidth)
+        {
+            // Simulate button layout to calculate height
+            int buttonY = 0;
+            int currentX = 0;
+            int buttonHeight = 32;
+            int buttonSpacing = 5;
+            int rowHeight = buttonHeight + 5;
+            int totalHeight = 50; // Base height
+
+            string[] buttons = {
+                "APPROVE LOAN",
+                "APPROVE WITH CONDITIONS",
+                "REJECT",
+                "REQUEST MORE INFO",
+                "SAVE AS DRAFT",
+                "CANCEL"
+            };
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                int buttonWidth = 140;
+                if (i == 1 || i == 2) buttonWidth = 180;
+
+                if (currentX + buttonWidth > panelWidth && i > 0)
+                {
+                    buttonY += rowHeight;
+                    currentX = 0;
+                    totalHeight += rowHeight;
+                }
+
+                currentX += buttonWidth + buttonSpacing;
+            }
+
+            return totalHeight + 10; // Add extra padding
+        }
+
+        private void BuildContent(Panel contentPanel)
+        {
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            int contentY = 0;
+
+            // Application Summary
+            contentY = AddSection(contentPanel, "APPLICATION SUMMARY:", contentY);
+            contentY = AddSummaryDetails(contentPanel, contentY);
+
+            // Credit Assessment
+            contentY = AddSection(contentPanel, "CREDIT ASSESSMENT:", contentY);
+            contentY = AddCreditDetails(contentPanel, contentY);
+
+            // Loan Computation
+            contentY = AddSection(contentPanel, "LOAN COMPUTATION:", contentY);
+            contentY = AddComputationDetails(contentPanel, contentY);
+
+            // Supporting Documents
+            contentY = AddSection(contentPanel, "SUPPORTING DOCUMENTS:", contentY);
+            contentY = AddDocumentDetails(contentPanel, contentY);
+
+            // Action Buttons
+            contentY = AddActionButtons(contentPanel, contentY);
+
+            // Approval Limit
+            AddApprovalLimitNotice(contentPanel, contentY + 20);
+
+            contentPanel.ResumeLayout();
         }
 
         private int AddSection(Panel parent, string title, int y)

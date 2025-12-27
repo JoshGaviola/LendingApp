@@ -414,35 +414,28 @@ namespace LendingApp.UI.LoanOfficerUI
                 contentPanel.Controls.Remove(_reviewControl);
             }
 
-            // Create or reuse the follow-up control
-            if (_collectionFollowUpControl == null || _collectionFollowUpControl.IsDisposed)
+            // Create NEW follow-up control every time (don't reuse)
+            _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
             {
-                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.White
-                };
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
 
-                // Wire the back button to return to dashboard
-                _collectionFollowUpControl.OnBack += () =>
-                {
-                    ShowDashboardHome();
-                };
-            }
-            else
+            // Wire the back button
+            _collectionFollowUpControl.OnBack += () =>
             {
-                // Update with new loan data
-                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
+                // First remove the control
+                if (_collectionFollowUpControl != null && !_collectionFollowUpControl.IsDisposed)
                 {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.White
-                };
+                    _collectionFollowUpControl.Hide();
+                    contentPanel.Controls.Remove(_collectionFollowUpControl);
+                    _collectionFollowUpControl.Dispose();
+                    _collectionFollowUpControl = null;
+                }
 
-                _collectionFollowUpControl.OnBack += () =>
-                {
-                    ShowDashboardHome();
-                };
-            }
+                // Then show dashboard
+                ShowDashboardHome();
+            };
 
             contentPanel.Controls.Add(_collectionFollowUpControl);
             contentPanel.ResumeLayout();
@@ -626,17 +619,27 @@ namespace LendingApp.UI.LoanOfficerUI
                 _settingsForm.Hide();
                 contentPanel.Controls.Remove(_settingsForm);
             }
+
+            // Properly clean up review control
             if (_reviewControl != null && !_reviewControl.IsDisposed)
             {
                 _reviewControl.Hide();
                 contentPanel.Controls.Remove(_reviewControl);
+                _reviewControl.Dispose();
+                _reviewControl = null;
             }
-            // ADD THIS LINE:
+
+            // Properly clean up follow-up control
             if (_collectionFollowUpControl != null && !_collectionFollowUpControl.IsDisposed)
             {
                 _collectionFollowUpControl.Hide();
                 contentPanel.Controls.Remove(_collectionFollowUpControl);
+                _collectionFollowUpControl.Dispose();
+                _collectionFollowUpControl = null;
             }
+
+            // Clear the content panel
+            contentPanel.Controls.Clear();
 
             // Rebuild home sections
             BuildPendingApplicationsSection();
@@ -741,19 +744,16 @@ namespace LendingApp.UI.LoanOfficerUI
                 contentPanel.Controls.Remove(_settingsForm);
             }
 
-            // Create or reuse review control
-            if (_reviewControl == null || _reviewControl.IsDisposed)
+            // Create NEW review control every time
+            _reviewControl = new OfficerApplicationReviewControl
             {
-                _reviewControl = new OfficerApplicationReviewControl
-                {
-                    Dock = DockStyle.Fill,
-                    BackColor = Color.White
-                };
-            }
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
 
             contentPanel.Controls.Add(_reviewControl);
 
-            // Wire the back button to go back to applications view
+            // Wire the back button immediately after creating the control
             WireReviewBackButton();
 
             contentPanel.ResumeLayout();
@@ -762,6 +762,16 @@ namespace LendingApp.UI.LoanOfficerUI
         // Handle back button from review
         private void ReviewBackButton_Click(object sender, EventArgs e)
         {
+            // First remove the control from content panel
+            if (_reviewControl != null && !_reviewControl.IsDisposed)
+            {
+                _reviewControl.Hide();
+                contentPanel.Controls.Remove(_reviewControl);
+                _reviewControl.Dispose();
+                _reviewControl = null;
+            }
+
+            // Then show applications view
             ShowApplicationsView();
         }
 
@@ -923,11 +933,32 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void WireReviewBackButton()
         {
-            // Wire the back button from the review control
-            if (_reviewControl.BackButton != null)
+            if (_reviewControl != null)
             {
-                _reviewControl.BackButton.Click -= ReviewBackButton_Click; // Remove previous handler
-                _reviewControl.BackButton.Click += ReviewBackButton_Click; // Add new handler
+                // Remove any existing handlers
+                if (_reviewControl.BackButton != null)
+                {
+                    _reviewControl.BackButton.Click -= ReviewBackButton_Click;
+                    _reviewControl.BackButton.Click += ReviewBackButton_Click;
+                }
+                else
+                {
+                    // If BackButton is null, wait for it to be initialized
+                    // We'll check again after a short delay
+                    var timer = new Timer { Interval = 100 };
+                    timer.Tick += (s, e) =>
+                    {
+                        timer.Stop();
+                        timer.Dispose();
+
+                        if (_reviewControl.BackButton != null)
+                        {
+                            _reviewControl.BackButton.Click -= ReviewBackButton_Click;
+                            _reviewControl.BackButton.Click += ReviewBackButton_Click;
+                        }
+                    };
+                    timer.Start();
+                }
             }
         }
     }
