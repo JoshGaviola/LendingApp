@@ -1,4 +1,5 @@
 ﻿using LendingApp.Models.LoanOfficer;
+using LendingSystem;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,11 +9,8 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerDashboard : Form
     {
-
         OfficerDashboardLogic dashboard = new OfficerDashboardLogic();
         OfficerApplicationLogic officerApp = new OfficerApplicationLogic();
-
-
 
         private string _username = "Officer";
         private Action _onLogout;
@@ -31,6 +29,8 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
+        private OfficerApplicationReviewControl _reviewControl;
+        private OfficerCollectionFollowUpControl _collectionFollowUpControl;
 
         private class ActivityItem
         {
@@ -205,7 +205,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void LayoutSummary()
         {
-
             int cardWidth = 220;
             int gap = 10;
             int startX = 10;
@@ -355,7 +354,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 _collectionsForm.Hide();
                 contentPanel.Controls.Remove(_collectionsForm);
             }
-            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            if (_customersForm != null && !_customersForm.IsDisposed)
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
@@ -376,6 +375,79 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
+        private void ShowCollectionFollowUp(LendingSystem.OverdueLoanData loanData)
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
+            {
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
+            }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
+            {
+                _settingsForm.Hide();
+                contentPanel.Controls.Remove(_settingsForm);
+            }
+            if (_reviewControl != null && !_reviewControl.IsDisposed)
+            {
+                _reviewControl.Hide();
+                contentPanel.Controls.Remove(_reviewControl);
+            }
+
+            // Create or reuse the follow-up control
+            if (_collectionFollowUpControl == null || _collectionFollowUpControl.IsDisposed)
+            {
+                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+
+                // Wire the back button to return to dashboard
+                _collectionFollowUpControl.OnBack += () =>
+                {
+                    ShowDashboardHome();
+                };
+            }
+            else
+            {
+                // Update with new loan data
+                _collectionFollowUpControl = new OfficerCollectionFollowUpControl(loanData)
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+
+                _collectionFollowUpControl.OnBack += () =>
+                {
+                    ShowDashboardHome();
+                };
+            }
+
+            contentPanel.Controls.Add(_collectionFollowUpControl);
+            contentPanel.ResumeLayout();
+        }
+
         private void ShowCollectionsView()
         {
             summaryPanel.Visible = false;
@@ -388,7 +460,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 _applicationsForm.Hide();
                 contentPanel.Controls.Remove(_applicationsForm);
             }
-            if (_customersForm != null && !_customersForm.IsDisposed)   // <— add this
+            if (_customersForm != null && !_customersForm.IsDisposed)
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
@@ -528,7 +600,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void ShowDashboardHome()
         {
-            // Hide/remove embedded views
+            // Hide/remove all embedded views
             if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
                 _applicationsForm.Hide();
@@ -544,15 +616,26 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed) // ensure calendar removed
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
             {
                 _calendarForm.Hide();
                 contentPanel.Controls.Remove(_calendarForm);
             }
-            if (_settingsForm != null && !_settingsForm.IsDisposed) // ensure settings removed
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
                 _settingsForm.Hide();
                 contentPanel.Controls.Remove(_settingsForm);
+            }
+            if (_reviewControl != null && !_reviewControl.IsDisposed)
+            {
+                _reviewControl.Hide();
+                contentPanel.Controls.Remove(_reviewControl);
+            }
+            // ADD THIS LINE:
+            if (_collectionFollowUpControl != null && !_collectionFollowUpControl.IsDisposed)
+            {
+                _collectionFollowUpControl.Hide();
+                contentPanel.Controls.Remove(_collectionFollowUpControl);
             }
 
             // Rebuild home sections
@@ -598,21 +681,88 @@ namespace LendingApp.UI.LoanOfficerUI
                 UseColumnTextForButtonValue = true
             };
             grid.Columns.Add(actionsCol);
+
+            // MODIFIED: Wire the Review button click
             grid.CellContentClick += (s, e) =>
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    MessageBox.Show("Open review dialog...", "Review");
+                    // Get the application data
+                    var row = grid.Rows[e.RowIndex];
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Juan Dela Cruz";
+                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Personal Loan";
+                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱50,000";
+
+                    // Show the application review
+                    ShowApplicationReview(customer, loanType, amount);
                 }
             };
 
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            foreach (var app in officerApp.Allapplications)
+            // Add sample data
+            grid.Rows.Add("Juan Dela Cruz", "Personal Loan", "₱50,000", "2 days", "High", "Review");
+            grid.Rows.Add("Maria Santos", "Business Loan", "₱200,000", "1 day", "High", "Review");
+            grid.Rows.Add("Pedro Reyes", "Emergency Loan", "₱25,000", "3 days", "Medium", "Review");
+        }
+
+        private void ShowApplicationReview(string customer, string loanType, string amount)
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Hide/remove other embedded views
+            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
             {
-                grid.Rows.Add(app.Customer, app.LoanType, app.Amount, app.Priority);
+                _applicationsForm.Hide();
+                contentPanel.Controls.Remove(_applicationsForm);
             }
+            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
+            {
+                _collectionsForm.Hide();
+                contentPanel.Controls.Remove(_collectionsForm);
+            }
+            if (_customersForm != null && !_customersForm.IsDisposed)
+            {
+                _customersForm.Hide();
+                contentPanel.Controls.Remove(_customersForm);
+            }
+            if (_calendarForm != null && !_calendarForm.IsDisposed)
+            {
+                _calendarForm.Hide();
+                contentPanel.Controls.Remove(_calendarForm);
+            }
+            if (_settingsForm != null && !_settingsForm.IsDisposed)
+            {
+                _settingsForm.Hide();
+                contentPanel.Controls.Remove(_settingsForm);
+            }
+
+            // Create or reuse review control
+            if (_reviewControl == null || _reviewControl.IsDisposed)
+            {
+                _reviewControl = new OfficerApplicationReviewControl
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+            }
+
+            contentPanel.Controls.Add(_reviewControl);
+
+            // Wire the back button to go back to applications view
+            WireReviewBackButton();
+
+            contentPanel.ResumeLayout();
+        }
+
+        // Handle back button from review
+        private void ReviewBackButton_Click(object sender, EventArgs e)
+        {
+            ShowApplicationsView();
         }
 
         private void BuildOverdueLoansSection()
@@ -654,7 +804,32 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    MessageBox.Show("Trigger follow-up workflow...", "Follow Up");
+                    // Get the loan data from the clicked row
+                    var row = grid.Rows[e.RowIndex];
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Pedro Reyes";
+                    string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "₱3,850.00";
+                    string daysOverdue = row.Cells["DaysOverdue"].Value?.ToString() ?? "5";
+
+                    // Create loan data for the follow-up control
+                    var overdueLoanData = new LendingSystem.OverdueLoanData
+                    {
+                        Id = "LN-2024-0456",
+                        Customer = customer,
+                        CustomerId = "CUST-045",
+                        LoanType = "Personal Loan",
+                        OriginalAmount = "₱50,000",
+                        Term = "12 months",
+                        DueDate = "December 10, 2024",
+                        DaysOverdue = int.TryParse(daysOverdue.Replace(" days", ""), out int days) ? days : 5,
+                        AmountDue = amountDue,
+                        Penalty = "₱12.70",
+                        TotalDue = "₱3,862.70",
+                        OutstandingBalance = "₱23,100.00",
+                        Contact = "+639456789012"
+                    };
+
+                    // Show the collection follow-up control
+                    ShowCollectionFollowUp(overdueLoanData);
                 }
             };
 
@@ -744,6 +919,16 @@ namespace LendingApp.UI.LoanOfficerUI
         private void PopulateData()
         {
             SetUsername(_username);
+        }
+
+        private void WireReviewBackButton()
+        {
+            // Wire the back button from the review control
+            if (_reviewControl.BackButton != null)
+            {
+                _reviewControl.BackButton.Click -= ReviewBackButton_Click; // Remove previous handler
+                _reviewControl.BackButton.Click += ReviewBackButton_Click; // Add new handler
+            }
         }
     }
 }
