@@ -21,5 +21,8 @@ namespace LendingApp.LogicClass.Cashier
         {
             return _transaction.Sum(t => t.Amount);
         }
+
+        public int TotalTransaction => _transaction.Count;
+
     }
 }

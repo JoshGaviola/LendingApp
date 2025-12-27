@@ -188,8 +188,8 @@ namespace LendingApp.UI.CashierUI
                 titleHex: "#15803D",
                 valueHex: "#052E16",
                 title: "Payments Today",
-                value: _dashboardLogic.CalculateTotal().ToString("N1"),
-                sub: paymentsCount + " transactions"
+                value: _dashboardLogic.CalculateTotal().ToString("N2"),
+                sub: _dashboardLogic.TotalTransaction.ToString() + " transactions"
             );
 
             cardLoans = MakeSummaryCard(
