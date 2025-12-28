@@ -1,10 +1,11 @@
 ﻿using LendingApp.Models.LoanOfficer;
+using LendingApp.Models.LoanOfiicerModels;
+using LendingApp.UI.CustomerUI;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using LendingApp.Models.LoanOfiicerModels;
 namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerCustomers : Form
@@ -13,7 +14,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private string searchQuery = "";
 
         private OfficerCustomersLogic CustomerLogic;
-
+        private CustomerRegistration _openRegistrationForm;
 
         public OfficerCustomers()
         {
@@ -42,7 +43,6 @@ namespace LendingApp.UI.LoanOfficerUI
             btnRegisterCustomer.BackColor = ColorTranslator.FromHtml("#3498DB");
             btnRegisterCustomer.ForeColor = Color.White;
             btnRegisterCustomer.FlatStyle = FlatStyle.Flat;
-            btnRegisterCustomer.Click += (s, e) => MessageBox.Show("Register Customer clicked");
 
             // Filters
             cmbCustomerType.Items.AddRange(new object[] { "All Customers", "New", "Regular", "VIP", "Delinquent" });
@@ -221,6 +221,20 @@ namespace LendingApp.UI.LoanOfficerUI
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnRegisterCustomer_Click(object sender, EventArgs e)
+        {
+            if (_openRegistrationForm == null || _openRegistrationForm.IsDisposed)
+            {
+                _openRegistrationForm = new CustomerRegistration();
+                _openRegistrationForm.FormClosed += (s, args) => _openRegistrationForm = null;
+                _openRegistrationForm.Show(this);
+            }
+            else
+            {
+                _openRegistrationForm.Focus();
+            }
         }
     }
 }
