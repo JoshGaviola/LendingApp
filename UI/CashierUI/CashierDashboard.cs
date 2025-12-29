@@ -2,6 +2,7 @@
 using LendingApp.Models.CashierModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -19,8 +20,6 @@ namespace LendingApp.UI.CashierUI
         };
 
         // Daily summary stats (sample values like the React version)
-        private int paymentsCount = 12;
-        private string loansReleased = "₱150,000";
         private int loansCount = 3;
         private string cashOnHand = "₱195,230";
         private string sessionStart = "8:30 AM";
@@ -48,35 +47,41 @@ namespace LendingApp.UI.CashierUI
         private bool _contentResizeHooked;
 
         // Embedded views
-        private CashierProcessPayment _processPaymentForm;
         private CashierLoanRelease _loanReleaseForm;
         private CashierDailyReport _dailyReportForm;
         private CashierReciept _receiptsForm;
         private CashierReport _cashierReportForm;
         private CashierSettings _settingsForm;
 
-        private List<TransactionModels> _transactions;
+        private BindingList<TransactionModels> _transactions;
         private CashierDashboardLogic _dashboardLogic;
+        private CashierProcessPayment _cashierProcessPayment;
 
-
-        public CashierDashboard(List<TransactionModels> transaction)
+        public CashierDashboard(BindingList<TransactionModels> transactions)
         {
             InitializeComponent();
-
-            //_transactions = transaction;
-            _transactions = new List<TransactionModels>
-            {
-                new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" },
-                new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" },
-                new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" }
-            };
-
-            //_transactions = transaction ?? new List<TransactionModels>();
+            _transactions = transactions;
             _dashboardLogic = new CashierDashboardLogic(_transactions);
 
             BuildUI();
             PopulateData();
-        }   
+        }
+
+        private void ShowProcessPaymentView()
+        {
+            if (_cashierProcessPayment == null || _cashierProcessPayment.IsDisposed)
+            {
+                _cashierProcessPayment = new CashierProcessPayment(_transactions)
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill,
+                };
+            }
+            contentPanel.Controls.Add(_cashierProcessPayment);
+            _cashierProcessPayment.Show();
+        }
+
         public void SetUsername(string username)
         {
             _username = string.IsNullOrWhiteSpace(username) ? "Cashier" : username;
@@ -175,49 +180,48 @@ namespace LendingApp.UI.CashierUI
 
             // Summary bar (daily cards)
             summaryPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 110,
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
-                Padding = new Padding(10)
-            };
+                {
+                    Dock = DockStyle.Top,
+                    Height = 110,
+                    BackColor = Color.White,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Padding = new Padding(10)
+                };
+                cardLoans = MakeSummaryCard(
+                    backHex: "#FEF3C7",
+                    titleHex: "#B45309",
+                    valueHex: "#78350F",
+                    title: "Loans Issued",
+                    value: _dashboardLogic.TotalTransaction.ToString(),
+                    sub: _dashboardLogic?.TotalTransaction.ToString() + " Issued today"
+                 );
 
-            cardPayments = MakeSummaryCard(
-                backHex: "#ECFDF5",
-                titleHex: "#15803D",
-                valueHex: "#052E16",
-                title: "Payments Today",
-                value: _dashboardLogic.CalculateTotal().ToString("N2"),
-                sub: _dashboardLogic.TotalTransaction.ToString() + " transactions"
-            );
+                cardPayments = MakeSummaryCard(
+                    backHex: "#ECFDF5",
+                    titleHex: "#15803D",
+                    valueHex: "#052E16",
+                    title: "Payments Today",
+                    value: _dashboardLogic?.CalculateTotal().ToString("N2"),
+                    sub: _dashboardLogic?.TotalTransaction.ToString() + " transactions"
+                );
+           
+                cardCash = MakeSummaryCard(
+                    backHex: "#EDE9FE",
+                    titleHex: "#6D28D9",
+                    valueHex: "#3B0764",
+                    title: "Cash on Hand",
+                    value: cashOnHand,
+                    sub: "Current balance"
+                );
 
-            cardLoans = MakeSummaryCard(
-                backHex: "#DBEAFE",
-                titleHex: "#1D4ED8",
-                valueHex: "#1E3A8A",
-                title: "Loans Released",
-                value: loansReleased,
-                sub: loansCount + " disbursements"
-            );
-
-            cardCash = MakeSummaryCard(
-                backHex: "#EDE9FE",
-                titleHex: "#6D28D9",
-                valueHex: "#3B0764",
-                title: "Cash on Hand",
-                value: cashOnHand,
-                sub: "Current balance"
-            );
-
-            cardSession = MakeSummaryCard(
-                backHex: "#FFEDD5",
-                titleHex: "#C2410C",
-                valueHex: "#7C2D12",
-                title: "Session",
-                value: sessionStart,
-                sub: "Started"
-            );
+                cardSession = MakeSummaryCard(
+                    backHex: "#FFEDD5",
+                    titleHex: "#C2410C",
+                    valueHex: "#7C2D12",
+                    title: "Session",
+                    value: sessionStart,
+                    sub: "Started"
+                );
 
             summaryPanel.Controls.Add(cardPayments);
             summaryPanel.Controls.Add(cardLoans);
@@ -358,23 +362,6 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.ResumeLayout();
         }
-
-        private void ShowProcessPaymentView()
-        {
-            if (_processPaymentForm == null || _processPaymentForm.IsDisposed)
-            {
-                _processPaymentForm = new CashierProcessPayment
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-            }
-
-            contentPanel.Controls.Add(_processPaymentForm);
-            _processPaymentForm.Show();
-        }
-
         private void ShowLoanReleaseView()
         {
             if (_loanReleaseForm == null || _loanReleaseForm.IsDisposed)
@@ -535,7 +522,6 @@ namespace LendingApp.UI.CashierUI
 
             int cardW = (available - (gap * 3)) / 4;
             cardW = Math.Max(180, cardW);
-
             cardPayments.SetBounds(padX, y, cardW, 84);
             cardLoans.SetBounds(cardPayments.Right + gap, y, cardW, 84);
             cardCash.SetBounds(cardLoans.Right + gap, y, cardW, 84);

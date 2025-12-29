@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -30,8 +31,6 @@ namespace LendingApp.UI.CashierUI
             public decimal Penalty { get; set; }
             public decimal NewBalance { get; set; }
         }
-
-     
 
         private readonly Dictionary<string, LoanInfo> _mockLoans = new Dictionary<string, LoanInfo>(StringComparer.OrdinalIgnoreCase)
         {
@@ -123,22 +122,16 @@ namespace LendingApp.UI.CashierUI
         private Panel _toastPanel;
         private Label _toastLabel;
         private Timer _toastTimer;
-        private List<TransactionModels> _transactions;
-        // Action<TransactionModels> OnTransactionProcessed { get; set; }
-      // private CashierDashboard _cashierDashboard;
-
-        public CashierProcessPayment()
+        private BindingList<TransactionModels> _transactions;
+        public CashierProcessPayment(BindingList<TransactionModels> transactions)
         {
             InitializeComponent();
+            _transactions = transactions;
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
             //TopLevel = false;
-            _transactions = new List<TransactionModels>();
-
             BuildUI();
-            SeedTransactions();
-            //_cashierDashboard = new CashierDashboard(_transactions);
             BindTransactions();
             RefreshState();
 
@@ -622,19 +615,8 @@ namespace LendingApp.UI.CashierUI
             grid.Controls.Add(valueLabel, 1, row);
         }
 
-
-
-        private void SeedTransactions()
-        {
-            _transactions.Clear();
-            _transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
-            _transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
-            _transactions.Add(new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1.500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" });
-        } 
-
-
         private void BindTransactions()
-        {
+        {   
             if (gridTransactions == null) return;
 
             gridTransactions.Rows.Clear();
@@ -730,12 +712,7 @@ namespace LendingApp.UI.CashierUI
                 return;
             }
 
-            decimal amount;
-            if (!TryParseAmount(txtPaymentAmount.Text, out amount) || amount <= 0)
-            {
-                ShowToast("Enter a valid payment amount", isError: true);
-                return;
-            }
+            
 
             string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
             string time = DateTime.Now.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US"));
@@ -744,7 +721,7 @@ namespace LendingApp.UI.CashierUI
             {
                 Time = time,
                 Customer = _loanDetails.Customer,
-               // Amount = "₱ amount.ToString("N0", CultureInfo.InvariantCulture),
+                Amount = 2.222,
                 ReceiptNo = receiptNo,
                 LoanRef = (txtLoanNumber.Text ?? "").Trim()
             };

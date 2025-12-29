@@ -13,6 +13,8 @@ namespace LendingApp.UI.CashierUI
 {
     public partial class CashierLogin : Form
     {
+        private CashierDashboard cashierDashboard;
+        private BindingList<Models.CashierModels.TransactionModels> transactions;
         public CashierLogin()
         {
             InitializeComponent();
@@ -30,5 +32,14 @@ namespace LendingApp.UI.CashierUI
                 e.Graphics.FillRectangle(brush, rect);
             }
         }
+    
+
+        /*
+        private void SignInBtn_Click(object sender, EventArgs e)
+        {
+            cashierDashboard = new CashierDashboard();
+            cashierDashboard.Show();
+        
+        */
     }
 }

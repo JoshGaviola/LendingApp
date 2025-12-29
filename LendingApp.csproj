@@ -44,6 +44,7 @@
     <Compile Include="Interface\IStatusProvider.cs" />
     <Compile Include="Interface\ITotalCalc.cs" />
     <Compile Include="LogicClass\Cashier\CashierDashboardLogic.cs" />
+    <Compile Include="LogicClass\Cashier\DataSample.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />

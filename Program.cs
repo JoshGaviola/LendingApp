@@ -1,7 +1,9 @@
-﻿using LendingApp.Models.CashierModels;
+﻿using LendingApp.LogicClass.Cashier;
+using LendingApp.Models.CashierModels;
 using LendingApp.UI.CashierUI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -26,9 +28,13 @@ namespace LendingApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            List<TransactionModels> transactions = new List<TransactionModels>();
+            BindingList<TransactionModels> transactions = new BindingList<TransactionModels>();
 
-            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+            DataSample.SeedInitialTransactions(transactions);
+            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(transactions));
+           // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+
+
         }
     }
 }

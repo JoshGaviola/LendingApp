@@ -1,0 +1,27 @@
+﻿using LendingApp.Models.CashierModels;
+using System.ComponentModel;
+
+namespace LendingApp.LogicClass.Cashier
+{
+    public static class DataSample
+    {
+        public static void SeedInitialTransactions(BindingList<TransactionModels> transactions)
+        {
+            if (transactions.Count != 0) return;
+
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
+            transactions.Add(new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1.500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" });
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
+            transactions.Add(new TransactionModels { Time = "11:00 AM", Customer = "Pedro Reyes", Amount = 1.500, ReceiptNo = "OR-003", LoanRef = "LN-2024-003" });
+            transactions.Add(new TransactionModels { Time = "9:30 AM", Customer = "Maria Santos", Amount = 2.150, ReceiptNo = "OR-001", LoanRef = "LN-2024-001" });
+            transactions.Add(new TransactionModels { Time = "10:15 AM", Customer = "Juan Dela Cruz", Amount = 4.442, ReceiptNo = "OR-002", LoanRef = "LN-2024-002" });
+        }
+
+    }
+}
