@@ -721,7 +721,7 @@ namespace LendingApp.UI.CashierUI
             {
                 Time = time,
                 Customer = _loanDetails.Customer,
-                Amount = 2.222,
+                Amount = 2222m,
                 ReceiptNo = receiptNo,
                 LoanRef = (txtLoanNumber.Text ?? "").Trim()
             };

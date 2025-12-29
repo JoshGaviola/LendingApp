@@ -18,7 +18,7 @@ namespace LendingApp.LogicClass.Cashier
             _transaction = transaction;
         }
 
-        public double CalculateTotal()
+        public decimal CalculateTotal()
         {
             return _transaction.Sum(t => t.Amount);
 

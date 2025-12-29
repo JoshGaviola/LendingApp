@@ -8,6 +8,6 @@ namespace LendingApp.Interface
 {
     public interface ITotalCalc
     {
-         double CalculateTotal();
+         decimal CalculateTotal();
     }
 }
