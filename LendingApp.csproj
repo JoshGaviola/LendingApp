@@ -218,10 +218,10 @@
     <Compile Include="UI\CustomerUI\CustomerManagement.Designer.cs">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\CustomerUI\CustomerRegistration.cs">
+    <Compile Include="UI\LoanOfficerUI\CustomerRegistration.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\CustomerUI\CustomerRegistration.Designer.cs">
+    <Compile Include="UI\LoanOfficerUI\CustomerRegistration.Designer.cs">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Control\OfficerApplicationReviewControl.cs">
@@ -293,7 +293,7 @@
     <EmbeddedResource Include="UI\CustomerUI\CustomerManagement.resx">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\CustomerUI\CustomerRegistration.resx">
+    <EmbeddedResource Include="UI\LoanOfficerUI\CustomerRegistration.resx">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerApplications.resx">

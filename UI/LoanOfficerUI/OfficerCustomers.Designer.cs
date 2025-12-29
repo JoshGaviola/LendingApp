@@ -131,6 +131,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.btnRegisterCustomer.Size = new System.Drawing.Size(160, 35);
             this.btnRegisterCustomer.TabIndex = 2;
             this.btnRegisterCustomer.Text = "Register Customer";
+            this.btnRegisterCustomer.Click += new System.EventHandler(this.btnRegisterCustomer_Click);
             // 
             // statsPanel
             // 
