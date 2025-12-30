@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LendingApp.Interface;
 
 namespace LendingApp.Models.CashierModels
 {
-    public class TransactionModels
+    public class TransactionModels : IHasAmount
     {
         public string Time { get; set; }
         public string Customer { get; set; }

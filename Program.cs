@@ -28,11 +28,12 @@ namespace LendingApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            BindingList<TransactionModels> transactions = new BindingList<TransactionModels>();
+            var data = new DataSample();
+            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
 
-            DataSample.SeedInitialTransactions(transactions);
-            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(transactions));
-           // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+            //Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+           // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+
 
 
         }

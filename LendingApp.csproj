@@ -41,14 +41,16 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interface\IHasAmount.cs" />
     <Compile Include="Interface\IStatusProvider.cs" />
     <Compile Include="Interface\ITotalCalc.cs" />
     <Compile Include="LogicClass\Cashier\CashierDashboardLogic.cs" />
-    <Compile Include="LogicClass\Cashier\DataSample.cs" />
+    <Compile Include="Data\DataSample.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
+    <Compile Include="Models\CashierModels\LoanReleaseModels.cs" />
     <Compile Include="Models\CashierModels\TransactionModels.cs" />
     <Compile Include="Models\LoanOfiicerModels\ActivityItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\ApplicationItem.cs" />
@@ -62,7 +64,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LogicClass\Admin\Admin.cs" />
-    <Compile Include="LogicClass\Borrower\Borrower.cs" />
+    <Compile Include="LogicClass\Admin\Borrower\Borrower.cs" />
     <Compile Include="LogicClass\Cashier\Cashier.cs" />
     <Compile Include="LogicClass\Loans\LoanApplication.cs" />
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />

@@ -52,16 +52,19 @@ namespace LendingApp.UI.CashierUI
         private CashierReciept _receiptsForm;
         private CashierReport _cashierReportForm;
         private CashierSettings _settingsForm;
-
-        private BindingList<TransactionModels> _transactions;
         private CashierDashboardLogic _dashboardLogic;
         private CashierProcessPayment _cashierProcessPayment;
 
-        public CashierDashboard(BindingList<TransactionModels> transactions)
+        private BindingList<TransactionModels> _transactions;
+        private BindingList<LoanReleaseModels> _pendingLoans;
+       
+        public CashierDashboard(DataSample data)
         {
             InitializeComponent();
-            _transactions = transactions;
-            _dashboardLogic = new CashierDashboardLogic(_transactions);
+            _transactions = data.Transactions;
+            _pendingLoans = data.PendingLoans;
+
+            _dashboardLogic = new CashierDashboardLogic(data);
 
             BuildUI();
             PopulateData();
@@ -80,6 +83,22 @@ namespace LendingApp.UI.CashierUI
             }
             contentPanel.Controls.Add(_cashierProcessPayment);
             _cashierProcessPayment.Show();
+        }
+
+        private void ShowLoanReleaseView()
+        {
+            if (_loanReleaseForm == null || _loanReleaseForm.IsDisposed)
+            {
+                _loanReleaseForm = new CashierLoanRelease(_pendingLoans)
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+            }
+
+            contentPanel.Controls.Add(_loanReleaseForm);
+            _loanReleaseForm.Show();
         }
 
         public void SetUsername(string username)
@@ -192,8 +211,8 @@ namespace LendingApp.UI.CashierUI
                     titleHex: "#B45309",
                     valueHex: "#78350F",
                     title: "Loans Issued",
-                    value: _dashboardLogic.TotalTransaction.ToString(),
-                    sub: _dashboardLogic?.TotalTransaction.ToString() + " Issued today"
+                    value: "₱" + _dashboardLogic?.CalculateTotal(_pendingLoans).ToString("N2"),
+                    sub: _dashboardLogic?.TotalLoanRelease.ToString() + " Issued today"
                  );
 
                 cardPayments = MakeSummaryCard(
@@ -201,7 +220,7 @@ namespace LendingApp.UI.CashierUI
                     titleHex: "#15803D",
                     valueHex: "#052E16",
                     title: "Payments Today",
-                    value: "₱" + _dashboardLogic?.CalculateTotal().ToString("N2"),
+                    value: "₱" + _dashboardLogic?.CalculateTotal(_transactions).ToString("N2"),
                     sub: _dashboardLogic?.TotalTransaction.ToString() + " transactions"
                 );
            
@@ -362,22 +381,6 @@ namespace LendingApp.UI.CashierUI
 
             contentPanel.ResumeLayout();
         }
-        private void ShowLoanReleaseView()
-        {
-            if (_loanReleaseForm == null || _loanReleaseForm.IsDisposed)
-            {
-                _loanReleaseForm = new CashierLoanRelease
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-            }
-
-            contentPanel.Controls.Add(_loanReleaseForm);
-            _loanReleaseForm.Show();
-        }
-
         private void ShowDailyReportView()
         {
             if (_dailyReportForm == null || _dailyReportForm.IsDisposed)

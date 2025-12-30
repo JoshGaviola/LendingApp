@@ -789,15 +789,15 @@ namespace LendingApp.UI.CashierUI
         }
 
         private static bool TryParseAmount(string text, out decimal amount)
-        {
-            var cleaned = (text ?? "").Trim().Replace("₱", "").Replace(",", "");
-            return decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out amount);
-        }
+            {
+                var cleaned = (text ?? "").Trim().Replace("₱", "").Replace(",", "");
+                return decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out amount);
+            }
 
         private static decimal RoundMoney(decimal v)
-        {
-            return Math.Round(v, 2, MidpointRounding.AwayFromZero);
-        }
+            {
+                return Math.Round(v, 2, MidpointRounding.AwayFromZero);
+            }
 
         private void BuildToast()
         {

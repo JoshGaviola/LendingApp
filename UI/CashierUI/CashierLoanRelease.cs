@@ -1,5 +1,7 @@
-﻿using System;
+﻿using LendingApp.Models.CashierModels;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -9,27 +11,8 @@ namespace LendingApp.UI.CashierUI
 {
     public partial class CashierLoanRelease : Form
     {
-        private sealed class PendingRelease
-        {
-            public string LoanNumber { get; set; }
-            public string Borrower { get; set; }
-            public string LoanType { get; set; }
-            public decimal Amount { get; set; }
-            public DateTime ApprovedDate { get; set; }
-            public int TermMonths { get; set; }
-            public decimal InterestRate { get; set; } // annual percent
-            public decimal ProcessingFee { get; set; }
-            public string Status { get; set; } // Ready | Pending | Docs Needed
-        }
 
-        private readonly List<PendingRelease> _pending = new List<PendingRelease>
-        {
-            new PendingRelease { LoanNumber="LN-APP-2024-014", Borrower="Juan Dela Cruz", LoanType="Personal Loan", Amount=30000m, ApprovedDate=new DateTime(2024,5,28), TermMonths=6, InterestRate=10m, ProcessingFee=900m, Status="Ready"},
-            new PendingRelease { LoanNumber="LN-APP-2024-015", Borrower="Maria Santos",  LoanType="Personal Loan", Amount=50000m, ApprovedDate=new DateTime(2024,6,1),  TermMonths=12,InterestRate=12m, ProcessingFee=1500m,Status="Pending"},
-            new PendingRelease { LoanNumber="LN-APP-2024-016", Borrower="Pedro Reyes",   LoanType="Emergency Loan",Amount=20000m, ApprovedDate=new DateTime(2024,6,2),  TermMonths=6, InterestRate=15m, ProcessingFee=600m, Status="Docs Needed"},
-        };
-
-        private PendingRelease _selected;
+        private LoanReleaseModels _selected;
 
         // layout
         private Panel root;
@@ -68,9 +51,12 @@ namespace LendingApp.UI.CashierUI
         private Label _toastLabel;
         private Timer _toastTimer;
 
-        public CashierLoanRelease()
+        private BindingList<LoanReleaseModels> _pendingLoans;
+
+        public CashierLoanRelease(BindingList<LoanReleaseModels> pending)
         {
             InitializeComponent();
+            _pendingLoans = pending;
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
@@ -300,7 +286,7 @@ namespace LendingApp.UI.CashierUI
                 return;
             }
 
-            var found = _pending.FirstOrDefault(x => x.LoanNumber.Equals(key, StringComparison.OrdinalIgnoreCase));
+            var found = _pendingLoans.FirstOrDefault(x => x.LoanNumber.Equals(key, StringComparison.OrdinalIgnoreCase));
             if (found == null)
             {
                 _selected = null;
@@ -335,7 +321,7 @@ namespace LendingApp.UI.CashierUI
             Toast("Loan " + _selected.LoanNumber + " released to " + _selected.Borrower + "!");
 
             // keep logic simple: mark Ready like React example
-            var item = _pending.FirstOrDefault(x => x.LoanNumber == _selected.LoanNumber);
+            var item = _pendingLoans.FirstOrDefault(x => x.LoanNumber == _selected.LoanNumber);
             if (item != null) item.Status = "Ready";
             BindToday();
 
@@ -360,7 +346,7 @@ namespace LendingApp.UI.CashierUI
         private void BindToday()
         {
             gridToday.Rows.Clear();
-            foreach (var loan in _pending)
+            foreach (var loan in _pendingLoans)
             {
                 int idx = gridToday.Rows.Add(
                     loan.LoanNumber,
@@ -377,7 +363,7 @@ namespace LendingApp.UI.CashierUI
             if (e.RowIndex < 0) return;
             if (!(gridToday.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
 
-            var loan = gridToday.Rows[e.RowIndex].Tag as PendingRelease;
+            var loan = gridToday.Rows[e.RowIndex].Tag as LoanReleaseModels;
             if (loan == null) return;
 
             txtLoanNumber.Text = loan.LoanNumber;

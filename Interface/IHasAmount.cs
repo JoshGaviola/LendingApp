@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace LendingApp.Interface
 {
-    public interface ITotalCalc
+    public interface IHasAmount
     {
-        decimal CalculateTotal<T>(BindingList<T> list) where T : IHasAmount;
+        decimal Amount { get; }
     }
 }

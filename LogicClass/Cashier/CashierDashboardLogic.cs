@@ -12,19 +12,23 @@ namespace LendingApp.LogicClass.Cashier
    public class CashierDashboardLogic : ITotalCalc
     {
         private BindingList<TransactionModels> _transaction;
+        private BindingList<LoanReleaseModels> _pendingLoan;
 
-        public CashierDashboardLogic(BindingList<TransactionModels> transaction)
+        public CashierDashboardLogic(DataSample data)
         {
-            _transaction = transaction;
+            _transaction = data.Transactions;
+            _pendingLoan = data.PendingLoans;
         }
 
-        public decimal CalculateTotal()
+        public decimal CalculateTotal<T>(BindingList<T> list) where T : IHasAmount
         {
-            return _transaction.Sum(t => t.Amount);
+            return list.Sum(t => t.Amount);
 
         }
 
         public int TotalTransaction => _transaction.Count;
+        public int TotalLoanRelease => _pendingLoan.Count;
+
 
     }
 }
