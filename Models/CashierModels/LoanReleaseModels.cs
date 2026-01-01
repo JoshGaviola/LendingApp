@@ -19,4 +19,5 @@ namespace LendingApp.Models.CashierModels
         public decimal ProcessingFee { get; set; }
         public string Status { get; set; } // Ready | Pending | Docs Needed
     }
+
 }

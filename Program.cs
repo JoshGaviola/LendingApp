@@ -29,10 +29,10 @@ namespace LendingApp
             Application.SetCompatibleTextRenderingDefault(false);
 
             var data = new DataSample();
-            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
+           Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
 
             //Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-           // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+           //Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
 
 
 

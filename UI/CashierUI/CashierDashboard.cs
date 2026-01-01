@@ -1,4 +1,5 @@
-﻿using LendingApp.LogicClass.Cashier;
+﻿using LendingApp.Data;
+using LendingApp.LogicClass.Cashier;
 using LendingApp.Models.CashierModels;
 using System;
 using System.Collections.Generic;
@@ -61,8 +62,8 @@ namespace LendingApp.UI.CashierUI
         public CashierDashboard(DataSample data)
         {
             InitializeComponent();
-            _transactions = data.Transactions;
-            _pendingLoans = data.PendingLoans;
+            _transactions = data.recentTransactions;
+            _pendingLoans = data.releaseLoan;
 
             _dashboardLogic = new CashierDashboardLogic(data);
 
@@ -211,8 +212,8 @@ namespace LendingApp.UI.CashierUI
                     titleHex: "#B45309",
                     valueHex: "#78350F",
                     title: "Loans Issued",
-                    value: "₱" + _dashboardLogic?.CalculateTotal(_pendingLoans).ToString("N2"),
-                    sub: _dashboardLogic?.TotalLoanRelease.ToString() + " Issued today"
+                    value: "₱" + _dashboardLogic?.CalculateTotalLoansPending().ToString("N2"),
+                    sub: _dashboardLogic?.TotalLoansPending.ToString() + " Issued today"
                  );
 
                 cardPayments = MakeSummaryCard(
@@ -220,7 +221,7 @@ namespace LendingApp.UI.CashierUI
                     titleHex: "#15803D",
                     valueHex: "#052E16",
                     title: "Payments Today",
-                    value: "₱" + _dashboardLogic?.CalculateTotal(_transactions).ToString("N2"),
+                    value: "₱" + _dashboardLogic?.CalculateTotalRecentTransaction().ToString("N2"),
                     sub: _dashboardLogic?.TotalTransaction.ToString() + " transactions"
                 );
            

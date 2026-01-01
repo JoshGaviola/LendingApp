@@ -41,11 +41,12 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\LoanModel.cs" />
     <Compile Include="Interface\IHasAmount.cs" />
     <Compile Include="Interface\IStatusProvider.cs" />
-    <Compile Include="Interface\ITotalCalc.cs" />
     <Compile Include="LogicClass\Cashier\CashierDashboardLogic.cs" />
     <Compile Include="Data\DataSample.cs" />
+    <Compile Include="LogicClass\Cashier\CashierProcessLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
     <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
@@ -56,15 +57,17 @@
     <Compile Include="Models\LoanOfiicerModels\ApplicationItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\CollectionItem.cs" />
     <Compile Include="Models\LoanOfiicerModels\CustomerItem.cs" />
+    <Compile Include="Models\LoanOfiicerModels\CustomerRegistrationData.cs" />
     <Compile Include="Models\LoanOfiicerModels\OverdueLoan.cs" />
     <Compile Include="Models\LoanOfiicerModels\PendingApplication.cs" />
+    <Compile Include="Models\LoanOfiicerModels\Section.cs" />
     <Compile Include="Models\LoanOfiicerModels\StatusSummary.cs" />
     <Compile Include="Models\LoanOfiicerModels\TaskItem.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LogicClass\Admin\Admin.cs" />
-    <Compile Include="LogicClass\Admin\Borrower\Borrower.cs" />
+    <Compile Include="LogicClass\Borrower\Borrower.cs" />
     <Compile Include="LogicClass\Cashier\Cashier.cs" />
     <Compile Include="LogicClass\Loans\LoanApplication.cs" />
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />

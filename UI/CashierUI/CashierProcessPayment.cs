@@ -5,8 +5,10 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Data;
 using LendingApp.LogicClass.Cashier;
 using LendingApp.Models.CashierModels;
+using LendingApp.Data;
 
 
 namespace LendingApp.UI.CashierUI
@@ -123,10 +125,12 @@ namespace LendingApp.UI.CashierUI
         private Label _toastLabel;
         private Timer _toastTimer;
         private BindingList<TransactionModels> _transactions;
+        private CashierProcessLogic cashierProcessLogic;
         public CashierProcessPayment(BindingList<TransactionModels> transactions)
         {
             InitializeComponent();
             _transactions = transactions;
+            cashierProcessLogic = new CashierProcessLogic();
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
@@ -464,8 +468,8 @@ namespace LendingApp.UI.CashierUI
 
             gridTransactions.Columns.Clear();
             gridTransactions.Columns.Add("Time", "Time");
-            gridTransactions.Columns.Add("Customer", "Customer");
-            gridTransactions.Columns.Add("Amount", "Amount");
+            gridTransactions.Columns.Add("Borrower", "Borrower");
+            gridTransactions.Columns.Add("PaidAmount", "PaidAmount");
             gridTransactions.Columns.Add("Receipt", "Receipt #");
 
             var reprintCol = new DataGridViewButtonColumn
@@ -622,11 +626,11 @@ namespace LendingApp.UI.CashierUI
             gridTransactions.Rows.Clear();
             foreach (var t in _transactions)
             {
-                int idx = gridTransactions.Rows.Add(t.Time, t.Customer, t.Amount, t.ReceiptNo, "Reprint");
+                int idx = gridTransactions.Rows.Add(t.Time, t.Borrower, t.PaidAmount, t.ReceiptNo, "Reprint");
                 var row = gridTransactions.Rows[idx];
                 row.Tag = t;
 
-                var amtCell = row.Cells["Amount"] as DataGridViewTextBoxCell;
+                var amtCell = row.Cells["PaidAmount"] as DataGridViewTextBoxCell;
                 if (amtCell != null) amtCell.Style.ForeColor = ColorTranslator.FromHtml("#16A34A");
             }
         }
@@ -715,13 +719,13 @@ namespace LendingApp.UI.CashierUI
             
 
             string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
-            string time = DateTime.Now.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US"));
+            string timeNow = cashierProcessLogic.GetTimeNow();
 
             var tx = new TransactionModels
             {
-                Time = time,
-                Customer = _loanDetails.Customer,
-                Amount = 2222m,
+                Time = timeNow,
+                Borrower = _loanDetails.Customer,
+                PaidAmount = 2222m,
                 ReceiptNo = receiptNo,
                 LoanRef = (txtLoanNumber.Text ?? "").Trim()
             };

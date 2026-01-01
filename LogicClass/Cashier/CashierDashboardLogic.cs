@@ -1,4 +1,5 @@
-﻿using LendingApp.Interface;
+﻿using LendingApp.Data;
+using LendingApp.Interface;
 using LendingApp.Models.CashierModels;
 using System;
 using System.Collections.Generic;
@@ -9,25 +10,27 @@ using System.Threading.Tasks;
 
 namespace LendingApp.LogicClass.Cashier
 {
-   public class CashierDashboardLogic : ITotalCalc
+   public class CashierDashboardLogic
     {
-        private BindingList<TransactionModels> _transaction;
-        private BindingList<LoanReleaseModels> _pendingLoan;
-
+        private BindingList<TransactionModels> transaction;
+        private BindingList<LoanReleaseModels> releaseLoan;
         public CashierDashboardLogic(DataSample data)
         {
-            _transaction = data.Transactions;
-            _pendingLoan = data.PendingLoans;
+            transaction = data.recentTransactions;
+            releaseLoan = data.releaseLoan;
         }
-
-        public decimal CalculateTotal<T>(BindingList<T> list) where T : IHasAmount
+        public decimal CalculateTotalRecentTransaction()
         {
-            return list.Sum(t => t.Amount);
+            return transaction.Sum(t => t.PaidAmount);
 
         }
+        public decimal CalculateTotalLoansPending()
+        {
+            return releaseLoan.Sum(l => l.Amount);
+        }
 
-        public int TotalTransaction => _transaction.Count;
-        public int TotalLoanRelease => _pendingLoan.Count;
+        public int TotalTransaction => transaction.Count;
+        public int TotalLoansPending => releaseLoan.Count;
 
 
     }

@@ -1,106 +1,134 @@
-﻿using LendingApp.Models.CashierModels;
+﻿using LendingApp.Data;
+using LendingApp.LogicClass.Cashier;
+using LendingApp.Models.CashierModels;
 using System;
 using System.ComponentModel;
-
-namespace LendingApp.LogicClass.Cashier
+using System.Linq;
+public class DataSample
 {
-    public class DataSample
+    public BindingList<LoanModel> AllLoans { get; set; }
+    public BindingList<LoanReleaseModels> releaseLoan { get; set; }
+    public BindingList<TransactionModels> recentTransactions { get; set; }
+    private CashierProcessLogic cashierProcessLogic;
+    private string timeNow;
+
+    public DataSample()
     {
-        public BindingList<TransactionModels> Transactions { get; set; }
-        public BindingList<LoanReleaseModels> PendingLoans { get; set; }
+        AllLoans = new BindingList<LoanModel>();
+        releaseLoan = new BindingList<LoanReleaseModels>();
+        recentTransactions = new BindingList<TransactionModels>();
+        cashierProcessLogic = new CashierProcessLogic();
 
-        public DataSample()
+        timeNow = cashierProcessLogic.GetTimeNow();
+        LoadSampleData();
+        LoadReleaseLoanData();
+        LoadRecentTransactions();
+    }
+
+    private void LoadReleaseLoanData()
+    {
+        releaseLoan = new BindingList<LoanReleaseModels>(
+         AllLoans
+             .Where(l => l.Status == "Released" && l.Amount > 0)
+             .Select(l => new LoanReleaseModels
+             {
+                 LoanNumber = l.LoanNumber,
+                 Borrower = l.Borrower,
+                 LoanType = l.LoanRef,
+                 Amount = l.Amount,
+                 ApprovedDate = l.ApprovedDate,
+                 TermMonths = l.TermMonths,
+                 InterestRate = l.InterestRate,
+                 ProcessingFee = l.ProcessingFee,
+                 Status = l.Status
+             }).ToList()
+     );
+    }
+
+    private void LoadRecentTransactions()
+    {
+       recentTransactions = new BindingList<TransactionModels>(
+         AllLoans
+             .Where(l => l.PaidAmount > 0)
+             .Select(l => new TransactionModels
+             {
+                 Time = l.Time,
+                 Borrower = l.Borrower,
+                 PaidAmount = l.PaidAmount,
+                 ReceiptNo = l.ReceiptNo
+               
+             }).ToList()
+     );
+    }
+
+    private void LoadSampleData()
+    {
+        // Pending Loan
+        AllLoans.Add(new LoanModel
         {
-            Transactions = new BindingList<TransactionModels>();
-            PendingLoans = new BindingList<LoanReleaseModels>();
+            LoanNumber = "LN-2001",
+            Borrower = "Pedro Reyes",
+            LoanRef = "Personal Loan",
+            Amount = 5000m,
+            ApprovedDate = DateTime.Today.AddDays(-2),
+            TermMonths = 12,
+            InterestRate = 12.5m,
+            ProcessingFee = 250m,
+            Status = "Pending"
+        });
 
-            LoadTransactions();
-            LoadPendingLoans();
-        }
-
-        private void LoadTransactions()
-        {   
-            Transactions.Add(new TransactionModels
-            {
-                Customer = "Juan Dela Cruz",
-                Amount = 2500m,
-                ReceiptNo = "OR-001",
-                LoanRef = "LN-1001",
-                Time = "9:30 AM"
-            });
-
-            Transactions.Add(new TransactionModels
-            {
-                Customer = "Maria Santos",
-                Amount = 1800m,
-                ReceiptNo = "OR-002",
-                LoanRef = "LN-1002",
-                Time = "10:15 AM"
-            });
-            Transactions.Add(new TransactionModels
-            {
-                Customer = "Juan Dela Cruz",
-                Amount = 2500m,
-                ReceiptNo = "OR-001",
-                LoanRef = "LN-1001",
-                Time = "9:30 AM"
-            });
-
-        }
-        private void LoadPendingLoans()
+        // Docs Needed
+        AllLoans.Add(new LoanModel
         {
-            PendingLoans.Add(new LoanReleaseModels
-            {
-                LoanNumber = "LN-2001",
-                Borrower = "Pedro Reyes",
-                LoanType = "Personal Loan",
-                Amount = 5000m,
-                ApprovedDate = DateTime.Today.AddDays(-2),
-                TermMonths = 12,
-                InterestRate = 12.5m,
-                ProcessingFee = 250m,
-                Status = "Pending"
-            });
+            LoanNumber = "LN-2002",
+            Borrower = "Ana Lopez",
+            LoanRef = "Salary Loan",
+            Amount = 3200m,
+            ApprovedDate = DateTime.Today.AddDays(-1),
+            TermMonths = 6,
+            InterestRate = 10m,
+            ProcessingFee = 150m,
+            Status = "Released"
+        });
 
-            PendingLoans.Add(new LoanReleaseModels
-            {
-                LoanNumber = "LN-2002",
-                Borrower = "Ana Lopez",
-                LoanType = "Salary Loan",
-                Amount = 3200m,
-                ApprovedDate = DateTime.Today.AddDays(-1),
-                TermMonths = 6,
-                InterestRate = 10m,
-                ProcessingFee = 150m,
-                Status = "Docs Needed"
-            });
-            PendingLoans.Add(new LoanReleaseModels
-            {
-                LoanNumber = "LN-2001",
-                Borrower = "Pedro Reyes",
-                LoanType = "Personal Loan",
-                Amount = 5000m,
-                ApprovedDate = DateTime.Today.AddDays(-2),
-                TermMonths = 12,
-                InterestRate = 12.5m,
-                ProcessingFee = 250m,
-                Status = "Pending"
-            });
+        // Released / Paid Transaction
+        AllLoans.Add(new LoanModel
+        {
+            LoanNumber = "LN-1001",
+            Borrower = "Juan Dela Cruz",
+            LoanRef = "Personal Loan",
+            Amount = 22500m,
+            Time = timeNow,
+            ReceiptNo = "OR-001",
+            PaymentTime = DateTime.Today,
+            Status = "Released"
+        });
 
-            PendingLoans.Add(new LoanReleaseModels
-            {
-                LoanNumber = "LN-2002",
-                Borrower = "Ana Lopez",
-                LoanType = "Salary Loan",
-                Amount = 3200m,
-                ApprovedDate = DateTime.Today.AddDays(-1),
-                TermMonths = 6,
-                InterestRate = 10m,
-                ProcessingFee = 150m,
-                Status = "Docs Needed"
-            });
-        }
+        AllLoans.Add(new LoanModel
+        {
+            LoanNumber = "LN-2002",
+            ReceiptNo = "NIGGA-101",
+            Borrower = "Manny Ga",
+            LoanRef = "Salary Loan",
+            PaidAmount = 3200m,
+            Time = timeNow,
+            TermMonths = 6,
+            InterestRate = 10m,
+            ProcessingFee = 150m,
+            Status = "Paid"
+        });
 
-
+        AllLoans.Add(new LoanModel
+        {
+            LoanNumber = "LN-2002",
+            Borrower = "Ana Lopez",
+            LoanRef = "Salary Loan",
+            Amount = 3200m,
+            Time = timeNow,
+            TermMonths = 6,
+            InterestRate = 10m,
+            ProcessingFee = 150m,
+            Status = "Released"
+        });
     }
 }
