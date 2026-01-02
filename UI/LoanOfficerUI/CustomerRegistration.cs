@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using LendingApp.Data;
 using LendingApp.Models.LoanOfiicerModels;
 using LendingApp.Services;
@@ -5,12 +6,23 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+=======
+﻿using LendingApp.Class.Interface;
+using LendingApp.Class.Repo;
+using LendingApp.Class.Service;
+using LendingApp.Models.LoanOfiicerModels;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+>>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
 using System.Windows.Forms;
 
 namespace LendingApp.UI.CustomerUI
 {
     public partial class CustomerRegistration : Form
     {
+        private readonly ICustomerRegistrationService _registrationService;
         private CustomerRegistrationData formData;
         private int activeSection;
         private DataSample dataSample;
@@ -31,14 +43,40 @@ namespace LendingApp.UI.CustomerUI
         private Font navFont = new Font("Segoe UI", 9f, FontStyle.Regular);
         private Font navFontActive = new Font("Segoe UI", 9.5f, FontStyle.Bold);
 
-        public CustomerRegistration()
+        // Constructor with dependency injection
+        public CustomerRegistration(ICustomerRegistrationService registrationService)
         {
+<<<<<<< HEAD
             InitializeComponent();
 
             InitializeData();
             BuildLayout();
             BuildAllSections();
             ShowSection(0);
+=======
+            _registrationService = registrationService ?? throw new ArgumentNullException(nameof(registrationService));
+
+            InitializeComponent();
+            InitializeFonts();
+            InitializeData();
+            BuildLayout();
+            BuildAllSections();
+            ShowSection(0);
+        }
+
+        // Parameterless constructor for designer + manual wiring
+        public CustomerRegistration()
+            : this(new CustomerRegistrationService(new CustomerRepository()))
+        {
+        }
+
+        private void InitializeFonts()
+        {
+            headerFont = new Font("Segoe UI", 14f, FontStyle.Bold);
+            labelFont = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+            navFont = new Font("Segoe UI", 9f, FontStyle.Regular);
+            navFontActive = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+>>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
         }
 
         private void InitializeData()
@@ -178,6 +216,60 @@ namespace LendingApp.UI.CustomerUI
             AddRow(tlp, lbl, cmb);
         }
 
+<<<<<<< HEAD
+=======
+        private void AddDateRow(TableLayoutPanel tlp, string caption, DateTime? value, Action<DateTime?> onChange)
+        {
+            var lbl = MakeLabel(caption);
+            var dtp = new DateTimePicker
+            {
+                Dock = DockStyle.Left,
+                Width = 220,
+                Value = value.HasValue ? value.Value : DateTime.Now.AddYears(-25)
+            };
+
+            dtp.ValueChanged += (s, e) => onChange(dtp.Value);
+            AddRow(tlp, lbl, dtp);
+        }
+
+        private void AddNumericRow(TableLayoutPanel tlp, string caption, decimal value, Action<decimal> onChange)
+        {
+            var lbl = MakeLabel(caption);
+            var num = new NumericUpDown { Dock = DockStyle.Left, Width = 160, Maximum = 100000000, DecimalPlaces = 2, Value = value < 0 ? 0 : value };
+            num.ValueChanged += (s, e) => onChange(num.Value);
+            AddRow(tlp, lbl, num);
+        }
+
+        private void AddFileRow(TableLayoutPanel tlp, string caption, string current, Action<string> onPick)
+        {
+            var lbl = MakeLabel(caption);
+            var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            var fileLabel = new Label { Text = string.IsNullOrEmpty(current) ? "No file selected" : Path.GetFileName(current), AutoSize = true, ForeColor = string.IsNullOrEmpty(current) ? Color.Gray : Color.Black, Margin = new Padding(0, 6, 10, 0) };
+            var btn = new Button { Text = "Browse...", AutoSize = true, FlatStyle = FlatStyle.Standard };
+            btn.Click += (s, e) =>
+            {
+                using (var ofd = new OpenFileDialog())
+                {
+                    ofd.Filter = "Supported Files|*.jpg;*.jpeg;*.png;*.pdf;*.bmp";
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        onPick(ofd.FileName);
+                        fileLabel.Text = Path.GetFileName(ofd.FileName);
+                        fileLabel.ForeColor = Color.Black;
+                    }
+                }
+            };
+            panel.Controls.Add(fileLabel);
+            panel.Controls.Add(btn);
+            AddRow(tlp, lbl, panel);
+        }
+
+        private Label MakeLabel(string text)
+        {
+            return new Label { Text = text, Font = labelFont, ForeColor = ColorTranslator.FromHtml("#2C3E50"), AutoSize = true, Margin = new Padding(0, 6, 0, 0) };
+        }
+
+>>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
         private void AddRow(TableLayoutPanel tlp, Control label, Control field)
         {
             tlp.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -201,6 +293,7 @@ namespace LendingApp.UI.CustomerUI
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
+<<<<<<< HEAD
             // Add to AllLoans for testing
             var loan = new LoanModel
             {
@@ -218,6 +311,36 @@ namespace LendingApp.UI.CustomerUI
 
             MessageBox.Show($"Loan added: {loan.Borrower}, Type: {loan.Type}");
             Close();
+=======
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                Enabled = false;
+
+                // Call the service (no EF code here!)
+                var result = _registrationService.Register(formData);
+
+                if (!result.Success)
+                {
+                    ShowSection(0);
+                    MessageBox.Show(result.ErrorMessage, "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                MessageBox.Show("Registration submitted and saved to database.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to submit registration.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Enabled = true;
+                Cursor = Cursors.Default;
+            }
+>>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
         }
     }
 }
