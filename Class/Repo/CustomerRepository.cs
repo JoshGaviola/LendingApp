@@ -1,5 +1,5 @@
 ﻿using LendingApp.Class.Interface;
-using LendingApp.Models.LoanOfiicerModels;
+using LendingApp.Class.Models.LoanOfiicerModels;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;

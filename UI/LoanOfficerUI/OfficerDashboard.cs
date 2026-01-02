@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using LendingApp.Services;
+using LendingApp.Class.Services;
 
 namespace LendingApp.UI.LoanOfficerUI
 {

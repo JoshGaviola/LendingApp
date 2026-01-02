@@ -14,7 +14,7 @@ namespace LendingApp.UI.CashierUI
     public partial class CashierLogin : Form
     {
         private CashierDashboard cashierDashboard;
-        private BindingList<Models.CashierModels.TransactionModels> transactions;
+        private BindingList<Class.Models.CashierModels.TransactionModels> transactions;
         public CashierLogin()
         {
             InitializeComponent();

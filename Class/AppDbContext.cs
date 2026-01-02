@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
-using Customer = LendingApp.Models.LoanOfiicerModels.CustomerRegistrationData;
+using Customer = LendingApp.Class.Models.LoanOfiicerModels.CustomerRegistrationData;
 
 namespace LendingApp.Class
 {

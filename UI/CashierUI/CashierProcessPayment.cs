@@ -5,10 +5,9 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
-using LendingApp.Data;
 using LendingApp.LogicClass.Cashier;
-using LendingApp.Models.CashierModels;
-using LendingApp.Data;
+using LendingApp.Class.Models.CashierModels;
+using LendingApp.Class.Service;
 
 
 namespace LendingApp.UI.CashierUI

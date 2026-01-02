@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-﻿using LendingApp.Data;
-using LendingApp.Models.LoanOfficer;
-=======
-﻿using LendingApp.Class;
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
-using LendingApp.Models.LoanOfiicerModels;
-using LendingApp.Services;
+using LendingApp.Class;
+using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.UI.CustomerUI;
 using System;
 using System.Collections.Generic;
@@ -27,25 +21,9 @@ namespace LendingApp.UI.LoanOfficerUI
         public OfficerCustomers()
         {
             InitializeComponent();
-<<<<<<< HEAD
-            CustomerLogic = new OfficerCustomersLogic(DataGetter.Data);
-
-            StatusUpdate();
-=======
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
-
-            DataGetter.Data.AllLoans.ListChanged += (s, e) =>
-            {
-
-                RefreshTable();
-                StatusUpdate();
-
-            };
 
             BuildUI();
             BindFilters();
-<<<<<<< HEAD
-=======
 
             ReloadCustomersFromDb();
             RefreshTable();
@@ -102,7 +80,6 @@ namespace LendingApp.UI.LoanOfficerUI
                     })
                     .ToList();
             }
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
         }
 
         private void BuildUI()
@@ -161,13 +138,13 @@ namespace LendingApp.UI.LoanOfficerUI
             gridCustomers.RowHeadersVisible = false;
             gridCustomers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             gridCustomers.Columns.Clear();
-            gridCustomers.Columns.Add("LoanNo", "LoanNo");
+            gridCustomers.Columns.Add("CustId", "Cust ID");
             gridCustomers.Columns.Add("Name", "Name");
             gridCustomers.Columns.Add("Contact", "Contact");
             gridCustomers.Columns.Add("Type", "Type");
+            gridCustomers.Columns.Add("Score", "Score");
             gridCustomers.Columns.Add("Loans", "Loans");
             gridCustomers.Columns.Add("Balance", "Balance");
-
             var actionCol = new DataGridViewButtonColumn
             {
                 HeaderText = "Action",
@@ -197,22 +174,16 @@ namespace LendingApp.UI.LoanOfficerUI
             lblDelinquent.Text = _dbCustomers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
         }
 
-        private IEnumerable<LoanModel> Filtered()
+        private IEnumerable<CustomerItem> Filtered()
         {
             return _dbCustomers.Where(c =>
             {
                 bool matchesType = customerFilter == "all" || (c.Type ?? "").Equals(customerFilter, StringComparison.OrdinalIgnoreCase);
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery)
-<<<<<<< HEAD
-                    || (c.Borrower?.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0
-                    || (c.LoanNumber?.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0
-                    || (c.Contact?.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
-=======
                     || ((c.Name ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
                     || ((c.Id ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0)
                     || ((c.Contact ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0);
 
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
                 return matchesType && matchesSearch;
             });
         }
@@ -225,15 +196,6 @@ namespace LendingApp.UI.LoanOfficerUI
             foreach (var c in filtered)
             {
                 int rowIndex = gridCustomers.Rows.Add(
-<<<<<<< HEAD
-                    c.LoanNumber,                   // Cust ID
-                    $"{c.Borrower} ({c.Email})",// Name with email
-                    c.Contact,              // Contact
-                    c.Type,                 // Type
-                    c.Amount,           // Loans
-                   c.Balance,              // Balance
-                    "View"                  // Action button
-=======
                     c.Id,                    // Cust ID
                     $"{c.Name} ({c.Email})", // Name with email
                     c.Contact,               // Contact
@@ -242,7 +204,6 @@ namespace LendingApp.UI.LoanOfficerUI
                     c.TotalLoans,            // Loans
                     c.Balance,               // Balance
                     "View"                   // Action button
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
                 );
 
                 var row = gridCustomers.Rows[rowIndex];
@@ -254,18 +215,12 @@ namespace LendingApp.UI.LoanOfficerUI
                     typeCell.Style.ForeColor = GetTypeForeColor(c.Type);
                 }
 
-<<<<<<< HEAD
-                // Style credit score color and arrow indicator text prefix (↑/↓)
-                /*
-=======
->>>>>>> 024ba6a64cd828dd254940d307284b2e15a30d32
                 var scoreCell = row.Cells["Score"] as DataGridViewTextBoxCell;
                 if (scoreCell != null)
                 {
                     scoreCell.Value = $"{(c.CreditScore >= 700 ? "↑" : "↓")} {c.CreditScore}";
                     scoreCell.Style.ForeColor = GetScoreForeColor(c.CreditScore);
                 }
-                */
             }
 
             lblResults.Text = $"Showing {filtered.Count} of {_dbCustomers.Count} customers";

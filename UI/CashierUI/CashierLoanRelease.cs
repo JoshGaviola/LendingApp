@@ -1,4 +1,4 @@
-﻿using LendingApp.Models.CashierModels;
+﻿using LendingApp.Class.Models.CashierModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

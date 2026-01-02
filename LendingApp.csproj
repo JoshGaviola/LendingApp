@@ -93,58 +93,70 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <!-- Class folder -->
     <Compile Include="Class\AppDbContext.cs" />
+    <Compile Include="Class\Data\DataSample.cs" />
+    <Compile Include="Class\Data\LoanModel.cs" />
+    <Compile Include="Class\Interface\ICustomerRegistrationService.cs" />
+    <Compile Include="Class\Interface\ICustomerRepository.cs" />
+    <Compile Include="Class\Interface\IHasAmount.cs" />
+    <Compile Include="Class\Interface\IStatusProvider.cs" />
+    <Compile Include="Class\LogicClass\Admin\Admin.cs" />
+    <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
+    <Compile Include="Class\LogicClass\Cashier\Cashier.cs" />
+    <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
+    <Compile Include="Class\LogicClass\Cashier\CashierProcessLogic.cs" />
+    <Compile Include="Class\LogicClass\Loan Product\LoanProduct.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
+    <Compile Include="Class\LogicClass\Loans\LoanApplication.cs" />
+    <Compile Include="Class\LogicClass\User\User.cs" />
+    <Compile Include="Class\Models\CashierModels\LoanReleaseModels.cs" />
+    <Compile Include="Class\Models\CashierModels\TransactionModels.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\ActivityItem.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\ApplicationItem.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\CollectionItem.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\CustomerItem.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\CustomerRegistrationData.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\OverdueLoan.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\PendingApplication.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\Section.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\StatusSummary.cs" />
+    <Compile Include="Class\Models\LoanOfiicerModels\TaskItem.cs" />
     <Compile Include="Class\Repo\CustomerRepository.cs" />
-    <Compile Include="Class\Service\CustomerRegistrationService.cs" />
-    <Compile Include="Data\LoanModel.cs" />
-    <Compile Include="Interface\ICustomerRegistrationService.cs" />
-    <Compile Include="Interface\ICustomerRepository.cs" />
-    <Compile Include="Interface\IHasAmount.cs" />
-    <Compile Include="Interface\IStatusProvider.cs" />
-    <Compile Include="LogicClass\Cashier\CashierDashboardLogic.cs" />
-    <Compile Include="Data\DataSample.cs" />
-    <Compile Include="LogicClass\Cashier\CashierProcessLogic.cs" />
-    <Compile Include="LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
-    <Compile Include="LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
-    <Compile Include="LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
-    <Compile Include="LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
-    <Compile Include="Models\CashierModels\LoanReleaseModels.cs" />
-    <Compile Include="Models\CashierModels\TransactionModels.cs" />
-    <Compile Include="Models\LoanOfiicerModels\ActivityItem.cs" />
-    <Compile Include="Models\LoanOfiicerModels\ApplicationItem.cs" />
-    <Compile Include="Models\LoanOfiicerModels\CollectionItem.cs" />
-    <Compile Include="Models\LoanOfiicerModels\CustomerItem.cs" />
-    <Compile Include="Models\LoanOfiicerModels\CustomerRegistrationData.cs" />
-    <Compile Include="Models\LoanOfiicerModels\OverdueLoan.cs" />
-    <Compile Include="Models\LoanOfiicerModels\PendingApplication.cs" />
-    <Compile Include="Models\LoanOfiicerModels\Section.cs" />
-    <Compile Include="Models\LoanOfiicerModels\StatusSummary.cs" />
-    <Compile Include="Models\LoanOfiicerModels\TaskItem.cs" />
+    <Compile Include="Class\Services\DataGetter.cs" />
+    <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
+    <!-- Root -->
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LogicClass\Admin\Admin.cs" />
-    <Compile Include="LogicClass\Borrower\Borrower.cs" />
-    <Compile Include="LogicClass\Cashier\Cashier.cs" />
-    <Compile Include="LogicClass\Loans\LoanApplication.cs" />
-    <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
-    <Compile Include="LogicClass\Loan Product\LoanProduct.cs" />
-    <Compile Include="LogicClass\User\User.cs" />
-    <Compile Include="Services\DataGetter.cs" />
-    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.Designer.cs">
-      <DependentUpon>AddNewLoanProductControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\AdminUI\AddUserDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <!-- UI\AdminUI -->
     <Compile Include="UI\AdminUI\AdminDashboard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdminUI\AddUserDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\EditUserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\ResetPasswordForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\ResetPasswordForm.Designer.cs">
+      <DependentUpon>ResetPasswordForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.Designer.cs">
+      <DependentUpon>AddNewLoanProductControl.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\AdminUI\Controls\AdminAuditLogControl.cs">
       <SubType>UserControl</SubType>
@@ -170,9 +182,6 @@
     <Compile Include="UI\AdminUI\Controls\SystemConfigControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\EditUserForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="UI\AdminUI\Controls\FinancialReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -188,18 +197,13 @@
     <Compile Include="UI\AdminUI\Controls\SystemReportsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\AdminUI\ResetPasswordForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\AdminUI\ResetPasswordForm.Designer.cs">
-      <DependentUpon>ResetPasswordForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="UI\AdminUI\Controls\SystemOverridesControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\AdminUI\Controls\UserActionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <!-- UI\CashierUI -->
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -257,6 +261,7 @@
     <Compile Include="UI\CashierUI\Controls\ReportSelectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <!-- UI\CustomerUI -->
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -281,6 +286,7 @@
     <Compile Include="UI\CustomerUI\CustomerManagement.Designer.cs">
       <DependentUpon>CustomerManagement.cs</DependentUpon>
     </Compile>
+    <!-- UI\LoanOfficerUI -->
     <Compile Include="UI\LoanOfficerUI\CustomerRegistration.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -337,6 +343,19 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="obj\Debug\LendingApp.Properties.Resources.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.AdminUI.AdminDashboard.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CashierUI.CashierDashboard.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CashierUI.CashierLogin.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerApplyLoans.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerDashBoard2.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerManagement.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerRegistration.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerApplications.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerCustomers.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerDashboard.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerLogin.resources" />
+    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerSettings.resources" />
     <EmbeddedResource Include="Properties\Resources.resx" />
     <EmbeddedResource Include="UI\AdminUI\AdminDashboard.resx">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
@@ -376,8 +395,13 @@
     </EmbeddedResource>
     <None Include="App.config" />
     <None Include="Lending Program ERD.drawio" />
+    <None Include="obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
     <None Include="obj\Debug\LendingApp.csproj.AssemblyReference.cache" />
+    <None Include="obj\Debug\LendingApp.csproj.CoreCompileInputs.cache" />
+    <None Include="obj\Debug\LendingApp.csproj.GenerateResource.cache" />
+    <None Include="obj\Debug\LendingApp.csproj.SuggestedBindingRedirects.cache" />
+    <None Include="obj\Debug\LendingApp.exe.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -386,10 +410,12 @@
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
     <Content Include="LendingAppDatabase.sql" />
+    <Content Include="obj\Debug\LendingApp.csproj.FileListAbsolute.txt" />
+    <Content Include="obj\Debug\TempPE\UI.LoanOfficerUI.OfficerCustomers1.Designer.cs.dll" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\" />
-    <Folder Include="obj\Debug\TempPE\" />
+    <Folder Include="bin\Release\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

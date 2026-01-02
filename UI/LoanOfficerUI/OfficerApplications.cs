@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using LendingApp.Models.LoanOfficer;
-using LendingApp.Services;
+using LendingApp.Class.Services;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
