@@ -1,9 +1,11 @@
-﻿using System;
+﻿using LendingApp.Class;
+using LendingApp.Models.LoanOfiicerModels;
+using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using LendingApp.Models.LoanOfiicerModels;
 
 namespace LendingApp.UI.CustomerUI
 {
@@ -305,10 +307,16 @@ namespace LendingApp.UI.CustomerUI
             AddRow(tlp, lbl, cmb);
         }
 
-        private void AddDateRow(TableLayoutPanel tlp, string caption, DateTime value, Action<DateTime> onChange)
+        private void AddDateRow(TableLayoutPanel tlp, string caption, DateTime? value, Action<DateTime?> onChange)
         {
             var lbl = MakeLabel(caption);
-            var dtp = new DateTimePicker { Dock = DockStyle.Left, Width = 220, Value = value == DateTime.MinValue ? DateTime.Now.AddYears(-25) : value };
+            var dtp = new DateTimePicker
+            {
+                Dock = DockStyle.Left,
+                Width = 220,
+                Value = value.HasValue ? value.Value : DateTime.Now.AddYears(-25)
+            };
+
             dtp.ValueChanged += (s, e) => onChange(dtp.Value);
             AddRow(tlp, lbl, dtp);
         }
@@ -401,10 +409,36 @@ namespace LendingApp.UI.CustomerUI
                 return;
             }
 
-            formData.LastModifiedDate = DateTime.Now;
-            MessageBox.Show("Registration submitted.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            DialogResult = DialogResult.OK;
-            Close();
+            try
+            {
+                Cursor = Cursors.WaitCursor;
+                Enabled = false;
+
+                formData.LastModifiedDate = DateTime.Now;
+
+                using (var db = new AppDbContext())
+                {
+                    db.Customers.Add(formData);
+                    db.SaveChanges();
+                }
+
+                MessageBox.Show("Registration submitted and saved to database.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            catch (DbUpdateException ex)
+            {
+                MessageBox.Show("Database update failed.\n\n" + ex, "DB Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to submit registration.\n\n" + ex, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                Enabled = true;
+                Cursor = Cursors.Default;
+            }
         }
 
         private void EnableDoubleBuffer(Control c)
