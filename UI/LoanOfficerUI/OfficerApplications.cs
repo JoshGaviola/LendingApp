@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using LendingApp.Models.LoanOfficer;
+using LendingApp.Services;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -12,7 +13,8 @@ namespace LendingApp.UI.LoanOfficerUI
         public OfficerApplications()
         {
             InitializeComponent();
-            logic = new OfficerApplicationLogic();
+            logic = new OfficerApplicationLogic(DataGetter.Data);
+
             updateStatusSummary();
             BuildUI();
             BindFilters();
@@ -22,10 +24,10 @@ namespace LendingApp.UI.LoanOfficerUI
         private void updateStatusSummary()
         {
             lblTotal.Text = logic.TotalApplications.ToString();
-            lblPending.Text = logic.GetStatusSummary().Find(s => s.Status == "Pending")?.Count.ToString() ?? "0";
-            lblReview.Text = logic.GetStatusSummary().Find(s => s.Status == "Review")?.Count.ToString() ?? "0";
-            lblApproved.Text = logic.GetStatusSummary().Find(s => s.Status == "Approved")?.Count.ToString() ?? "0";
-            lblDisbursed.Text = logic.GetStatusSummary().Find(s => s.Status == "Disbursed")?.Count.ToString() ?? "0";
+            lblPending.Text = logic.GetStatusSummary().Find(s => s.Applied == "Pending")?.Count.ToString() ?? "0";
+            lblReview.Text = logic.GetStatusSummary().Find(s => s.Applied == "Review")?.Count.ToString() ?? "0";
+            lblApproved.Text = logic.GetStatusSummary().Find(s => s.Applied == "Approved")?.Count.ToString() ?? "0";
+            lblDisbursed.Text = logic.GetStatusSummary().Find(s => s.Applied == "Disbursed")?.Count.ToString() ?? "0";
         }
 
         private void BuildUI()
@@ -56,7 +58,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 "All Status",
                 "Pending",
                 "Review",
-                "Approved",
+                "Released",
                 "Rejected",
                 "Disbursed"
             });
@@ -102,10 +104,9 @@ namespace LendingApp.UI.LoanOfficerUI
             gridApplications.Columns.Clear();
             gridApplications.Columns.Add("AppId", "App ID");
             gridApplications.Columns.Add("Customer", "Customer");
-            gridApplications.Columns.Add("LoanType", "Loan Type");
+            gridApplications.Columns.Add("Type", "Type");
             gridApplications.Columns.Add("Amount", "Amount");
             gridApplications.Columns.Add("Applied", "Applied");
-            gridApplications.Columns.Add("Status", "Status");
 
             var actionCol = new DataGridViewButtonColumn
             {
@@ -147,22 +148,24 @@ namespace LendingApp.UI.LoanOfficerUI
 
             foreach (var app in data)
             {
+
+                if (app.Applied == "Paid") continue;
+
                 int rowIndex = gridApplications.Rows.Add(
-                    app.Id,
-                    app.Customer,
-                    app.LoanType,
+                    app.LoanNumber,
+                    app.Borrower,
+                    app.Type,
                     app.Amount,
-                    app.AppliedDate,
-                    app.Status
+                    app.Applied
                 );
 
                 var btnCell =
-                    (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[6];
-                btnCell.Value = GetActionText(app.Status);
+                    (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[5];
+                btnCell.Value = GetActionText(app.Applied);
 
                 var statusCell = gridApplications.Rows[rowIndex].Cells[5];
-                statusCell.Style.BackColor = GetStatusBackColor(app.Status);
-                statusCell.Style.ForeColor = GetStatusForeColor(app.Status);
+                statusCell.Style.BackColor = GetStatusBackColor(app.Applied);
+                statusCell.Style.ForeColor = GetStatusForeColor(app.Applied);
             }
 
             lblResults.Text = $"{data.Count} of {logic.TotalApplications} applications";

@@ -8,8 +8,7 @@ namespace LendingApp.Models.LoanOfiicerModels
 {
     public class StatusSummary
     {
-        public string Status { get; set; }
-
+        public string Applied { get; set; }
         public string Type { get; set; }
         public int Count { get; set; }
     }

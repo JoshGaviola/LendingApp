@@ -267,7 +267,7 @@ namespace LendingApp.UI.CashierUI
             gridToday.Columns.Add("Loan", "Loan #");
             gridToday.Columns.Add("Customer", "Customer");
             gridToday.Columns.Add("Amount", "Amount");
-            gridToday.Columns.Add("Status", "Status");
+            gridToday.Columns.Add("Applied", "Applied");
             gridToday.Columns.Add(new DataGridViewButtonColumn { HeaderText = "Actions", Text = "Process", UseColumnTextForButtonValue = true });
             gridToday.CellContentClick += GridToday_CellContentClick;
 

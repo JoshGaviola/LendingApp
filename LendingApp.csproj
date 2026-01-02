@@ -73,6 +73,7 @@
     <Compile Include="LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="LogicClass\Loan Product\LoanProduct.cs" />
     <Compile Include="LogicClass\User\User.cs" />
+    <Compile Include="Services\DataGetter.cs" />
     <Compile Include="UI\AdminUI\Controls\AddNewLoanProductControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

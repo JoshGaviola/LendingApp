@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using LendingApp.Services;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class OfficerDashboard : Form
     {
         OfficerDashboardLogic dashboard = new OfficerDashboardLogic();
-        OfficerApplicationLogic officerApp = new OfficerApplicationLogic();
+        OfficerApplicationLogic officerAppLogic;
 
         private string _username = "Officer";
         private Action _onLogout;
@@ -31,6 +32,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private OfficerApplicationReviewControl _reviewControl;
         private OfficerCollectionFollowUpControl _collectionFollowUpControl;
+        private OfficerApplicationLogic applicationLogic;
 
         private class ActivityItem
         {
@@ -44,6 +46,8 @@ namespace LendingApp.UI.LoanOfficerUI
         public OfficerDashboard()
         {
             InitializeComponent();
+            applicationLogic = new OfficerApplicationLogic(DataGetter.Data);
+
             BuildUI();
             PopulateData();
         }
@@ -218,7 +222,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblPendingTitle.Text = "Pending";
             lblPendingTitle.ForeColor = ColorTranslator.FromHtml("#1D4ED8");
             lblPendingTitle.Location = new Point(10, 8);
-            lblPendingCount.Text = $"[{officerApp.TotalApplications}]";
+            lblPendingCount.Text = $"[{applicationLogic.TotalApplications}]";
             lblPendingCount.ForeColor = ColorTranslator.FromHtml("#1E3A8A");
             lblPendingCount.Location = new Point(10, 28);
             lblPendingSub.Text = "Applications";

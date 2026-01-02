@@ -22,13 +22,12 @@ namespace LendingApp.LogicClass.Cashier
         public decimal CalculateTotalRecentTransaction()
         {
             return transaction.Sum(t => t.PaidAmount);
-
         }
+
         public decimal CalculateTotalLoansPending()
         {
             return releaseLoan.Sum(l => l.Amount);
         }
-
         public int TotalTransaction => transaction.Count;
         public int TotalLoansPending => releaseLoan.Count;
 

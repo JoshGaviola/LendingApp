@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
+﻿using LendingApp.Data;
 using LendingApp.Models.LoanOfiicerModels;
+using LendingApp.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace LendingApp.UI.CustomerUI
 {
@@ -11,44 +13,32 @@ namespace LendingApp.UI.CustomerUI
     {
         private CustomerRegistrationData formData;
         private int activeSection;
+        private DataSample dataSample;
 
-        private readonly List<Section> sections = new List<Section>
-        {
-            new Section { Id = 0, Name = "Personal Information", Icon = "👤" },
-            new Section { Id = 1, Name = "Contact Information", Icon = "📞" },
-            new Section { Id = 2, Name = "Government IDs", Icon = "🛡️" },
-            new Section { Id = 3, Name = "Employment & Income", Icon = "🏢" },
-            new Section { Id = 4, Name = "Financial Information", Icon = "💰" },
-            new Section { Id = 5, Name = "Emergency Contact", Icon = "📞" },
-            new Section { Id = 6, Name = "System & Classification", Icon = "📊" },
-            new Section { Id = 7, Name = "Document Attachments", Icon = "📎" }
-        };
-
-        private Label progressLabel;
+        private readonly Label progressLabel = new Label();
         private readonly List<Button> sectionButtons = new List<Button>();
         private readonly Dictionary<int, Panel> sectionPanels = new Dictionary<int, Panel>();
 
-        private Font headerFont;
-        private Font labelFont;
-        private Font navFont;
-        private Font navFontActive;
+        private readonly List<Section> sections = new List<Section>
+        {
+         new Section { Id = 0, Name = "Personal Information", Icon = "👤" },
+         new Section { Id = 1, Name = "System & Classification", Icon = "📊" }
+        };
+
+
+        private Font headerFont = new Font("Segoe UI", 14f, FontStyle.Bold);
+        private Font labelFont = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+        private Font navFont = new Font("Segoe UI", 9f, FontStyle.Regular);
+        private Font navFontActive = new Font("Segoe UI", 9.5f, FontStyle.Bold);
 
         public CustomerRegistration()
         {
-            InitializeComponent(); // Designer creates the core panels
-            InitializeFonts();
-            InitializeData();
-            BuildLayout();         // Style & populate existing panels
-            BuildAllSections();    // Create section panels inside contentHost
-            ShowSection(0);
-        }
+            InitializeComponent();
 
-        private void InitializeFonts()
-        {
-            headerFont = new Font("Segoe UI", 14f, FontStyle.Bold);
-            labelFont = new Font("Segoe UI", 9.5f, FontStyle.Regular);
-            navFont = new Font("Segoe UI", 9f, FontStyle.Regular);
-            navFontActive = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            InitializeData();
+            BuildLayout();
+            BuildAllSections();
+            ShowSection(0);
         }
 
         private void InitializeData()
@@ -62,7 +52,7 @@ namespace LendingApp.UI.CustomerUI
 
         private void BuildLayout()
         {
-            // Header contents
+            // Simple header
             var title = new Label
             {
                 Text = "Customer Registration",
@@ -79,76 +69,26 @@ namespace LendingApp.UI.CustomerUI
                 AutoSize = true,
                 Location = new Point(22, 45)
             };
-            progressLabel = new Label
-            {
-                Text = "",
-                ForeColor = Color.WhiteSmoke,
-                Font = new Font("Segoe UI", 10f, FontStyle.Regular),
-                AutoSize = true,
-                Anchor = AnchorStyles.Top | AnchorStyles.Right
-            };
             headerPanel.Controls.Add(title);
             headerPanel.Controls.Add(customerIdLbl);
             headerPanel.Controls.Add(progressLabel);
-            headerPanel.Resize += (s, e) =>
-            {
-                progressLabel.Left = headerPanel.Width - progressLabel.Width - 20;
-                progressLabel.Top = 25;
-            };
-
-            // Navigation buttons (inside a scroll host for design-time visibility)
-            var navScroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
-            navigationPanel.Controls.Clear();
-            navigationPanel.Controls.Add(navScroll);
-            for (int i = 0; i < sections.Count; i++)
-            {
-                var section = sections[i];
-                var btn = new Button
-                {
-                    Text = "   " + section.Icon + "  " + section.Name,
-                    Tag = section.Id,
-                    Width = navigationPanel.Width - 20,
-                    Height = 46,
-                    Location = new Point(10, 10 + (i * 50)),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = Color.White,
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    Font = navFont
-                };
-                btn.FlatAppearance.BorderSize = 0;
-                btn.Click += SectionButton_Click;
-                sectionButtons.Add(btn);
-                navScroll.Controls.Add(btn);
-            }
 
             // Footer buttons
-            footerPanel.Controls.Clear();
             var btnPrevious = CreateFooterButton("← Previous", new Point(20, 17));
-            btnPrevious.Name = "btnPrevious";
             btnPrevious.Enabled = false;
             btnPrevious.Click += (s, e) => ShowSection(activeSection - 1);
 
             var btnNext = CreateFooterButton("Next →", new Point(140, 17));
-            btnNext.Name = "btnNext";
             btnNext.Click += (s, e) => ShowSection(activeSection + 1);
 
             var btnSave = CreateFooterButton("💾 Submit", new Point(footerPanel.Width - 160, 17));
-            btnSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSave.BackColor = ColorTranslator.FromHtml("#2E6DA4");
             btnSave.ForeColor = Color.White;
             btnSave.Click += BtnSave_Click;
-            footerPanel.Resize += (s, e) =>
-            {
-                btnSave.Left = footerPanel.Width - btnSave.Width - 20;
-            };
 
             footerPanel.Controls.Add(btnPrevious);
             footerPanel.Controls.Add(btnNext);
             footerPanel.Controls.Add(btnSave);
-
-            // Content host enhancements
-            contentHost.Padding = new Padding(10);
-            EnableDoubleBuffer(contentHost);
         }
 
         private Button CreateFooterButton(string text, Point location)
@@ -160,10 +100,10 @@ namespace LendingApp.UI.CustomerUI
                 Size = new Size(110, 30),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.White,
-                ForeColor = ColorTranslator.FromHtml("#2C3E50")
+                ForeColor = Color.Black
             };
-            btn.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#D0D7DE");
-            btn.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#E8F4FF");
+            btn.FlatAppearance.BorderColor = Color.Gray;
+            btn.FlatAppearance.MouseOverBackColor = Color.LightBlue;
             return btn;
         }
 
@@ -181,13 +121,7 @@ namespace LendingApp.UI.CustomerUI
 
         private Panel BuildSectionPanel(int sectionIndex)
         {
-            var panel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                BackColor = Color.White
-            };
-            EnableDoubleBuffer(panel);
+            var panel = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Color.White };
 
             var outer = new TableLayoutPanel
             {
@@ -203,75 +137,22 @@ namespace LendingApp.UI.CustomerUI
             {
                 Text = sections[sectionIndex].Name,
                 Font = headerFont,
-                ForeColor = ColorTranslator.FromHtml("#34495E"),
+                ForeColor = Color.Black,
                 AutoSize = true,
                 Margin = new Padding(20, 15, 0, 20)
             };
             panel.Controls.Add(header);
-
             outer.Location = new Point(0, header.Bottom + 5);
 
             switch (sectionIndex)
             {
                 case 0:
-                    AddTextRow(outer, "First Name *", formData.FirstName, v => formData.FirstName = v);
-                    AddTextRow(outer, "Last Name *", formData.LastName, v => formData.LastName = v);
-                    AddTextRow(outer, "Middle Name", formData.MiddleName, v => formData.MiddleName = v);
-                    AddDateRow(outer, "Date of Birth *", formData.DateOfBirth, v => formData.DateOfBirth = v);
-                    AddComboRow(outer, "Gender *", new[] { "Male", "Female", "Other" }, formData.Gender, v => formData.Gender = v);
-                    AddComboRow(outer, "Civil Status *", new[] { "Single", "Married", "Separated", "Widowed" }, formData.CivilStatus, v => formData.CivilStatus = v);
-                    AddTextRow(outer, "Nationality", formData.Nationality, v => formData.Nationality = v);
+                    AddTextRow(outer, "First Name", formData.FirstName, v => formData.FirstName = v);
+                    AddTextRow(outer, "Last Name", formData.LastName, v => formData.LastName = v);
                     break;
+
                 case 1:
-                    AddTextRow(outer, "Email Address", formData.EmailAddress, v => formData.EmailAddress = v);
-                    AddTextRow(outer, "Mobile Number", formData.MobileNumber, v => formData.MobileNumber = v);
-                    AddTextRow(outer, "Telephone Number", formData.TelephoneNumber, v => formData.TelephoneNumber = v);
-                    AddMultilineRow(outer, "Present Address", formData.PresentAddress, v => formData.PresentAddress = v);
-                    AddMultilineRow(outer, "Permanent Address", formData.PermanentAddress, v => formData.PermanentAddress = v);
-                    AddTextRow(outer, "City", formData.City, v => formData.City = v);
-                    AddTextRow(outer, "Province", formData.Province, v => formData.Province = v);
-                    AddTextRow(outer, "Zip Code", formData.ZipCode, v => formData.ZipCode = v);
-                    break;
-                case 2:
-                    AddTextRow(outer, "SSS Number", formData.SSSNumber, v => formData.SSSNumber = v);
-                    AddTextRow(outer, "TIN Number", formData.TINNumber, v => formData.TINNumber = v);
-                    AddTextRow(outer, "Passport Number", formData.PassportNumber, v => formData.PassportNumber = v);
-                    AddTextRow(outer, "Driver's License No.", formData.DriversLicenseNumber, v => formData.DriversLicenseNumber = v);
-                    AddTextRow(outer, "UMID Number", formData.UMIDNumber, v => formData.UMIDNumber = v);
-                    AddTextRow(outer, "PhilHealth Number", formData.PhilhealthNumber, v => formData.PhilhealthNumber = v);
-                    AddTextRow(outer, "Pag-IBIG Number", formData.PagibigNumber, v => formData.PagibigNumber = v);
-                    break;
-                case 3:
-                    AddComboRow(outer, "Employment Status", new[] { "Employed", "Self-Employed", "Unemployed", "Retired" }, formData.EmploymentStatus, v => formData.EmploymentStatus = v);
-                    AddTextRow(outer, "Company Name", formData.CompanyName, v => formData.CompanyName = v);
-                    AddTextRow(outer, "Position", formData.Position, v => formData.Position = v);
-                    AddTextRow(outer, "Department", formData.Department, v => formData.Department = v);
-                    AddMultilineRow(outer, "Company Address", formData.CompanyAddress, v => formData.CompanyAddress = v);
-                    AddTextRow(outer, "Company Phone", formData.CompanyPhone, v => formData.CompanyPhone = v);
-                    break;
-                case 4:
-                    AddTextRow(outer, "Bank Name", formData.BankName, v => formData.BankName = v);
-                    AddTextRow(outer, "Bank Account Number", formData.BankAccountNumber, v => formData.BankAccountNumber = v);
-                    AddNumericRow(outer, "Credit Limit", formData.CreditLimit, v => formData.CreditLimit = v);
-                    AddNumericRow(outer, "Initial Credit Score", formData.InitialCreditScore, v => formData.InitialCreditScore = (int)v);
-                    break;
-                case 5:
-                    AddTextRow(outer, "Name", formData.EmergencyContactName, v => formData.EmergencyContactName = v);
-                    AddTextRow(outer, "Relationship", formData.EmergencyContactRelationship, v => formData.EmergencyContactRelationship = v);
-                    AddTextRow(outer, "Contact Number", formData.EmergencyContactNumber, v => formData.EmergencyContactNumber = v);
-                    AddMultilineRow(outer, "Address", formData.EmergencyContactAddress, v => formData.EmergencyContactAddress = v);
-                    break;
-                case 6:
                     AddComboRow(outer, "Customer Type", new[] { "New", "Returning", "VIP" }, formData.CustomerType, v => formData.CustomerType = v);
-                    AddComboRow(outer, "Status", new[] { "Active", "Inactive", "Suspended" }, formData.Status, v => formData.Status = v);
-                    AddMultilineRow(outer, "Remarks", formData.Remarks, v => formData.Remarks = v);
-                    break;
-                case 7:
-                    AddFileRow(outer, "Valid ID 1", formData.ValidId1Path, v => formData.ValidId1Path = v);
-                    AddFileRow(outer, "Valid ID 2", formData.ValidId2Path, v => formData.ValidId2Path = v);
-                    AddFileRow(outer, "Proof of Income", formData.ProofOfIncomePath, v => formData.ProofOfIncomePath = v);
-                    AddFileRow(outer, "Proof of Address", formData.ProofOfAddressPath, v => formData.ProofOfAddressPath = v);
-                    AddFileRow(outer, "Signature Image", formData.SignatureImagePath, v => formData.SignatureImagePath = v);
                     break;
             }
 
@@ -281,73 +162,20 @@ namespace LendingApp.UI.CustomerUI
 
         private void AddTextRow(TableLayoutPanel tlp, string caption, string value, Action<string> onChange)
         {
-            var lbl = MakeLabel(caption);
+            var lbl = new Label { Text = caption, Font = labelFont, AutoSize = true };
             var txt = new TextBox { Text = value ?? "", Dock = DockStyle.Fill };
-            txt.TextChanged += (s, e) => onChange(txt.Text);    
-            AddRow(tlp, lbl, txt);
-        }
-
-        private void AddMultilineRow(TableLayoutPanel tlp, string caption, string value, Action<string> onChange)
-        {
-            var lbl = MakeLabel(caption);
-            var txt = new TextBox { Text = value ?? "", Dock = DockStyle.Fill, Multiline = true, Height = 60, ScrollBars = ScrollBars.Vertical };
             txt.TextChanged += (s, e) => onChange(txt.Text);
             AddRow(tlp, lbl, txt);
         }
 
         private void AddComboRow(TableLayoutPanel tlp, string caption, string[] items, string selected, Action<string> onChange)
         {
-            var lbl = MakeLabel(caption);
+            var lbl = new Label { Text = caption, Font = labelFont, AutoSize = true };
             var cmb = new ComboBox { Dock = DockStyle.Left, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
             cmb.Items.AddRange(items);
-            if (!string.IsNullOrEmpty(selected) && Array.IndexOf(items, selected) >= 0) cmb.SelectedItem = selected;
-            cmb.SelectedIndexChanged += (s, e) => onChange(cmb.SelectedItem == null ? null : cmb.SelectedItem.ToString());
+            if (!string.IsNullOrEmpty(selected)) cmb.SelectedItem = selected;
+            cmb.SelectedIndexChanged += (s, e) => onChange(cmb.SelectedItem?.ToString());
             AddRow(tlp, lbl, cmb);
-        }
-
-        private void AddDateRow(TableLayoutPanel tlp, string caption, DateTime value, Action<DateTime> onChange)
-        {
-            var lbl = MakeLabel(caption);
-            var dtp = new DateTimePicker { Dock = DockStyle.Left, Width = 220, Value = value == DateTime.MinValue ? DateTime.Now.AddYears(-25) : value };
-            dtp.ValueChanged += (s, e) => onChange(dtp.Value);
-            AddRow(tlp, lbl, dtp);
-        }
-
-        private void AddNumericRow(TableLayoutPanel tlp, string caption, decimal value, Action<decimal> onChange)
-        {
-            var lbl = MakeLabel(caption);
-            var num = new NumericUpDown { Dock = DockStyle.Left, Width = 160, Maximum = 100000000, DecimalPlaces = 2, Value = value < 0 ? 0 : value };
-            num.ValueChanged += (s, e) => onChange(num.Value);
-            AddRow(tlp, lbl, num);
-        }
-
-        private void AddFileRow(TableLayoutPanel tlp, string caption, string current, Action<string> onPick)
-        {
-            var lbl = MakeLabel(caption);
-            var panel = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
-            var fileLabel = new Label { Text = string.IsNullOrEmpty(current) ? "No file selected" : Path.GetFileName(current), AutoSize = true, ForeColor = string.IsNullOrEmpty(current) ? Color.Gray : Color.Black, Margin = new Padding(0, 6, 10, 0) };
-            var btn = new Button { Text = "Browse...", AutoSize = true, FlatStyle = FlatStyle.Standard };
-            btn.Click += (s, e) =>
-            {
-                using (var ofd = new OpenFileDialog())
-                {
-                    ofd.Filter = "Supported Files|*.jpg;*.jpeg;*.png;*.pdf;*.bmp";
-                    if (ofd.ShowDialog() == DialogResult.OK)
-                    {
-                        onPick(ofd.FileName);
-                        fileLabel.Text = Path.GetFileName(ofd.FileName);
-                        fileLabel.ForeColor = Color.Black;
-                    }
-                }
-            };
-            panel.Controls.Add(fileLabel);
-            panel.Controls.Add(btn);
-            AddRow(tlp, lbl, panel);
-        }
-
-        private Label MakeLabel(string text)
-        {
-            return new Label { Text = text, Font = labelFont, ForeColor = ColorTranslator.FromHtml("#2C3E50"), AutoSize = true, Margin = new Padding(0, 6, 0, 0) };
         }
 
         private void AddRow(TableLayoutPanel tlp, Control label, Control field)
@@ -360,8 +188,7 @@ namespace LendingApp.UI.CustomerUI
 
         private void SectionButton_Click(object sender, EventArgs e)
         {
-            var btn = sender as Button;
-            if (btn?.Tag is int idx) ShowSection(idx);
+            if (sender is Button btn && btn.Tag is int idx) ShowSection(idx);
         }
 
         private void ShowSection(int sectionIndex)
@@ -370,48 +197,27 @@ namespace LendingApp.UI.CustomerUI
             foreach (var kvp in sectionPanels) kvp.Value.Visible = false;
             sectionPanels[sectionIndex].Visible = true;
             activeSection = sectionIndex;
-            UpdateNavigationState();
-        }
-
-        private void UpdateNavigationState()
-        {
-            var btnPrevious = footerPanel.Controls["btnPrevious"] as Button;
-            var btnNext = footerPanel.Controls["btnNext"] as Button;
-            if (btnPrevious != null) btnPrevious.Enabled = activeSection > 0;
-            if (btnNext != null) btnNext.Enabled = activeSection < sections.Count - 1;
-
-            for (int i = 0; i < sectionButtons.Count; i++)
-            {
-                var b = sectionButtons[i];
-                bool active = i == activeSection;
-                b.BackColor = active ? ColorTranslator.FromHtml("#E8F4FF") : Color.White;
-                b.Font = active ? navFontActive : navFont;
-            }
-
-            progressLabel.Text = $"Section {activeSection + 1} of {sections.Count}";
-            progressLabel.Left = headerPanel.Width - progressLabel.Width - 20;
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(formData.FirstName) || string.IsNullOrWhiteSpace(formData.LastName))
+            // Add to AllLoans for testing
+            var loan = new LoanModel
             {
-                ShowSection(0);
-                MessageBox.Show("Please complete required fields: First Name / Last Name.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                LoanNumber = "LN-" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+                Borrower = $"{formData.FirstName} {formData.LastName}",
+                Contact = "", // Add from formData if needed
+                Type = formData.CustomerType ?? "New",
+                Applied = "Pending",
+                Amount = 1,
+                Balance = 1,
+                ApprovedDate = DateTime.Today
+            };
 
-            formData.LastModifiedDate = DateTime.Now;
-            MessageBox.Show("Registration submitted.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            DialogResult = DialogResult.OK;
+            DataGetter.Data.AllLoans.Add(loan); 
+
+            MessageBox.Show($"Loan added: {loan.Borrower}, Type: {loan.Type}");
             Close();
         }
-
-        private void EnableDoubleBuffer(Control c)
-        {
-            typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(c, true, null);
-        }
     }
-
-    }
+}
