@@ -94,7 +94,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class\AppDbContext.cs" />
+    <Compile Include="Class\Repo\CustomerRepository.cs" />
+    <Compile Include="Class\Service\CustomerRegistrationService.cs" />
     <Compile Include="Data\LoanModel.cs" />
+    <Compile Include="Interface\ICustomerRegistrationService.cs" />
+    <Compile Include="Interface\ICustomerRepository.cs" />
     <Compile Include="Interface\IHasAmount.cs" />
     <Compile Include="Interface\IStatusProvider.cs" />
     <Compile Include="LogicClass\Cashier\CashierDashboardLogic.cs" />

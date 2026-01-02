@@ -1,8 +1,9 @@
-﻿using LendingApp.Class;
+﻿using LendingApp.Class.Interface;
+using LendingApp.Class.Repo;
+using LendingApp.Class.Service;
 using LendingApp.Models.LoanOfiicerModels;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -11,6 +12,7 @@ namespace LendingApp.UI.CustomerUI
 {
     public partial class CustomerRegistration : Form
     {
+        private readonly ICustomerRegistrationService _registrationService;
         private CustomerRegistrationData formData;
         private int activeSection;
 
@@ -35,14 +37,23 @@ namespace LendingApp.UI.CustomerUI
         private Font navFont;
         private Font navFontActive;
 
-        public CustomerRegistration()
+        // Constructor with dependency injection
+        public CustomerRegistration(ICustomerRegistrationService registrationService)
         {
-            InitializeComponent(); // Designer creates the core panels
+            _registrationService = registrationService ?? throw new ArgumentNullException(nameof(registrationService));
+
+            InitializeComponent();
             InitializeFonts();
             InitializeData();
-            BuildLayout();         // Style & populate existing panels
-            BuildAllSections();    // Create section panels inside contentHost
+            BuildLayout();
+            BuildAllSections();
             ShowSection(0);
+        }
+
+        // Parameterless constructor for designer + manual wiring
+        public CustomerRegistration()
+            : this(new CustomerRegistrationService(new CustomerRepository()))
+        {
         }
 
         private void InitializeFonts()
@@ -402,37 +413,28 @@ namespace LendingApp.UI.CustomerUI
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(formData.FirstName) || string.IsNullOrWhiteSpace(formData.LastName))
-            {
-                ShowSection(0);
-                MessageBox.Show("Please complete required fields: First Name / Last Name.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
             try
             {
                 Cursor = Cursors.WaitCursor;
                 Enabled = false;
 
-                formData.LastModifiedDate = DateTime.Now;
+                // Call the service (no EF code here!)
+                var result = _registrationService.Register(formData);
 
-                using (var db = new AppDbContext())
+                if (!result.Success)
                 {
-                    db.Customers.Add(formData);
-                    db.SaveChanges();
+                    ShowSection(0);
+                    MessageBox.Show(result.ErrorMessage, "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
 
                 MessageBox.Show("Registration submitted and saved to database.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
                 Close();
             }
-            catch (DbUpdateException ex)
-            {
-                MessageBox.Show("Database update failed.\n\n" + ex, "DB Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
             catch (Exception ex)
             {
-                MessageBox.Show("Failed to submit registration.\n\n" + ex, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to submit registration.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
