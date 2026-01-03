@@ -32,6 +32,7 @@ namespace LendingApp.UI.LoanOfficerUI
         {
             this.tabControl = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.customerGrid = new System.Windows.Forms.DataGridView();
             this.searchBtn = new System.Windows.Forms.Button();
             this.searchBox = new System.Windows.Forms.TextBox();
             this.searchLabel = new System.Windows.Forms.Label();
@@ -70,12 +71,11 @@ namespace LendingApp.UI.LoanOfficerUI
             this.btnSubmit = new System.Windows.Forms.Button();
             this.stepLabel = new System.Windows.Forms.Label();
             this.titleLabel = new System.Windows.Forms.Label();
-            this.customerGrid = new System.Windows.Forms.DataGridView();
             this.tabControl.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.customerGrid)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.customerGrid)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl
@@ -105,6 +105,19 @@ namespace LendingApp.UI.LoanOfficerUI
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Customer Selection";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // customerGrid
+            // 
+            this.customerGrid.AllowUserToAddRows = false;
+            this.customerGrid.AllowUserToDeleteRows = false;
+            this.customerGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.customerGrid.Location = new System.Drawing.Point(13, 36);
+            this.customerGrid.Name = "customerGrid";
+            this.customerGrid.ReadOnly = true;
+            this.customerGrid.RowHeadersVisible = false;
+            this.customerGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.customerGrid.Size = new System.Drawing.Size(389, 200);
+            this.customerGrid.TabIndex = 3;
             // 
             // searchBtn
             // 
@@ -452,6 +465,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.btnCancel.TabIndex = 2;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnNext
             // 
@@ -499,19 +513,6 @@ namespace LendingApp.UI.LoanOfficerUI
             this.titleLabel.TabIndex = 6;
             this.titleLabel.Text = "NEW LOAN APPLICATION WIZARD";
             // 
-            // customerGrid
-            // 
-            this.customerGrid.AllowUserToAddRows = false;
-            this.customerGrid.AllowUserToDeleteRows = false;
-            this.customerGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.customerGrid.Location = new System.Drawing.Point(13, 36);
-            this.customerGrid.Name = "customerGrid";
-            this.customerGrid.ReadOnly = true;
-            this.customerGrid.RowHeadersVisible = false;
-            this.customerGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.customerGrid.Size = new System.Drawing.Size(389, 200);
-            this.customerGrid.TabIndex = 3;
-            // 
             // NewLoanApplicationDialog
             // 
             this.BackColor = System.Drawing.Color.White;
@@ -532,11 +533,11 @@ namespace LendingApp.UI.LoanOfficerUI
             this.tabControl.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.customerGrid)).EndInit();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.customerGrid)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

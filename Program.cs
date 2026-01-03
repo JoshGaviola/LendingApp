@@ -31,7 +31,7 @@ namespace LendingApp
             Application.SetCompatibleTextRenderingDefault(false);
 
             var data = new DataSample();
-           Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
+           Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
 
 
         }

@@ -48,8 +48,6 @@ namespace LendingApp.UI.LoanOfficerUI
             btnNewApplication.BackColor = ColorTranslator.FromHtml("#3498DB");
             btnNewApplication.ForeColor = Color.White;
             btnNewApplication.FlatStyle = FlatStyle.Flat;
-            btnNewApplication.Click += (s, e) =>
-                MessageBox.Show("New Application clicked");
 
             // Filters
             cmbStatus.Items.Clear();
@@ -242,8 +240,15 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void btnNewApplication_Click(object sender, EventArgs e)
         {
-            var dialog = new NewLoanApplicationDialog();
-            dialog.ShowDialog();
+            using (var dialog = new NewLoanApplicationDialog())
+            {
+                if (dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    // Refresh the grid from DB after successful submission
+                    updateStatusSummary();
+                    LoadApplications();
+                }
+            }
         }
     }
 }

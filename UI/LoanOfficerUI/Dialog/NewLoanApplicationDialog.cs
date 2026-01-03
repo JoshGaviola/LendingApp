@@ -62,8 +62,8 @@ namespace LendingApp.UI.LoanOfficerUI
             btnCancel.Click += (s, e) => Close();
             btnNext.Click += (s, e) => GoToStep(currentStep + 1);
 
-            // Keep both routes safe (designer already wires btnSubmit_Click)
-            btnSubmit.Click += (s, e) => SubmitApplication();
+            // REMOVED: duplicate btnSubmit.Click handler
+            // The designer already wires btnSubmit_Click, so don't add another one here
 
             UpdateStepUI();
         }
@@ -256,6 +256,11 @@ namespace LendingApp.UI.LoanOfficerUI
         {
             // Designer-wired handler; keep it calling the same logic
             SubmitApplication();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
