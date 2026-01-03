@@ -197,7 +197,7 @@ namespace LendingApp.UI.LoanOfficerUI
             if (string.Equals(action, "Review", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(action, "Evaluate", StringComparison.OrdinalIgnoreCase))
             {
-                using (var dlg = new ReviewApplicationDialog(appId, customer, type, amount, applied))
+                using (var dlg = new ReviewApplicationDialog(appId))
                 {
                     dlg.ShowDialog(this);
                 }
