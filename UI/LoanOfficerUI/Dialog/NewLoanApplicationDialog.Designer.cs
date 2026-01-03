@@ -475,6 +475,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.btnSubmit.Text = "Submit";
             this.btnSubmit.UseVisualStyleBackColor = false;
             this.btnSubmit.Visible = false;
+            this.btnSubmit.Click += new System.EventHandler(this.btnSubmit_Click);
             // 
             // stepLabel
             // 
@@ -508,7 +509,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.customerGrid.ReadOnly = true;
             this.customerGrid.RowHeadersVisible = false;
             this.customerGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.customerGrid.Size = new System.Drawing.Size(480, 200);
+            this.customerGrid.Size = new System.Drawing.Size(389, 200);
             this.customerGrid.TabIndex = 3;
             // 
             // NewLoanApplicationDialog
