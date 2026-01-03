@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Linq;
 
 namespace LendingApp.UI.CustomerUI
 {
@@ -37,6 +39,9 @@ namespace LendingApp.UI.CustomerUI
         private Font navFont;
         private Font navFontActive;
 
+        // Add these fields inside CustomerRegistration class
+        private bool _isEditMode = false;
+
         // Constructor with dependency injection
         public CustomerRegistration(ICustomerRegistrationService registrationService)
         {
@@ -54,6 +59,14 @@ namespace LendingApp.UI.CustomerUI
         public CustomerRegistration()
             : this(new CustomerRegistrationService(new CustomerRepository()))
         {
+        }
+
+        // Add this constructor inside CustomerRegistration class (below the existing constructors)
+        public CustomerRegistration(CustomerRegistrationData existingCustomer)
+            : this(new CustomerRegistrationService(new CustomerRepository()))
+        {
+            if (existingCustomer == null) throw new ArgumentNullException(nameof(existingCustomer));
+            LoadExistingCustomer(existingCustomer);
         }
 
         private void InitializeFonts()
@@ -418,29 +431,135 @@ namespace LendingApp.UI.CustomerUI
                 Cursor = Cursors.WaitCursor;
                 Enabled = false;
 
-                // Call the service (no EF code here!)
+                if (_isEditMode)
+                {
+                    // UPDATE existing record
+                    using (var db = new AppDbContext())
+                    {
+                        // Ensure entity exists
+                        var existing = db.Customers.SingleOrDefault(x => x.CustomerId == formData.CustomerId);
+                        if (existing == null)
+                        {
+                            MessageBox.Show("Customer not found for update.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        // Copy values (explicit so EF tracks correctly)
+                        existing.FirstName = formData.FirstName;
+                        existing.LastName = formData.LastName;
+                        existing.MiddleName = formData.MiddleName;
+                        existing.DateOfBirth = formData.DateOfBirth;
+                        existing.Gender = formData.Gender;
+                        existing.CivilStatus = formData.CivilStatus;
+                        existing.Nationality = formData.Nationality;
+
+                        existing.EmailAddress = formData.EmailAddress;
+                        existing.MobileNumber = formData.MobileNumber;
+                        existing.TelephoneNumber = formData.TelephoneNumber;
+
+                        existing.PresentAddress = formData.PresentAddress;
+                        existing.PermanentAddress = formData.PermanentAddress;
+                        existing.City = formData.City;
+                        existing.Province = formData.Province;
+                        existing.ZipCode = formData.ZipCode;
+
+                        existing.SSSNumber = formData.SSSNumber;
+                        existing.TINNumber = formData.TINNumber;
+                        existing.PassportNumber = formData.PassportNumber;
+                        existing.DriversLicenseNumber = formData.DriversLicenseNumber;
+                        existing.UMIDNumber = formData.UMIDNumber;
+                        existing.PhilhealthNumber = formData.PhilhealthNumber;
+                        existing.PagibigNumber = formData.PagibigNumber;
+
+                        existing.EmploymentStatus = formData.EmploymentStatus;
+                        existing.CompanyName = formData.CompanyName;
+                        existing.Position = formData.Position;
+                        existing.Department = formData.Department;
+                        existing.CompanyAddress = formData.CompanyAddress;
+                        existing.CompanyPhone = formData.CompanyPhone;
+
+                        existing.BankName = formData.BankName;
+                        existing.BankAccountNumber = formData.BankAccountNumber;
+
+                        existing.InitialCreditScore = formData.InitialCreditScore;
+                        existing.CreditLimit = formData.CreditLimit;
+
+                        existing.EmergencyContactName = formData.EmergencyContactName;
+                        existing.EmergencyContactRelationship = formData.EmergencyContactRelationship;
+                        existing.EmergencyContactNumber = formData.EmergencyContactNumber;
+                        existing.EmergencyContactAddress = formData.EmergencyContactAddress;
+
+                        existing.CustomerType = formData.CustomerType;
+                        existing.Status = formData.Status;
+                        existing.Remarks = formData.Remarks;
+
+                        existing.ValidId1Path = formData.ValidId1Path;
+                        existing.ValidId2Path = formData.ValidId2Path;
+                        existing.ProofOfIncomePath = formData.ProofOfIncomePath;
+                        existing.ProofOfAddressPath = formData.ProofOfAddressPath;
+                        existing.SignatureImagePath = formData.SignatureImagePath;
+
+                        existing.LastModifiedDate = DateTime.Now;
+
+                        db.SaveChanges();
+                    }
+
+                    MessageBox.Show("Customer profile updated successfully.", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    DialogResult = DialogResult.OK;
+                    Close();
+                    return;
+                }
+
+                // CREATE new record (existing behavior)
                 var result = _registrationService.Register(formData);
 
                 if (!result.Success)
                 {
                     ShowSection(0);
-                    MessageBox.Show(result.ErrorMessage, "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(result.ErrorMessage, "Validation",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                MessageBox.Show("Registration submitted and saved to database.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Registration submitted and saved to database.", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                 DialogResult = DialogResult.OK;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Failed to submit registration.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to submit registration.\n\n" + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 Enabled = true;
                 Cursor = Cursors.Default;
             }
+        }
+
+        // Add this helper method inside CustomerRegistration class
+        private void LoadExistingCustomer(CustomerRegistrationData existingCustomer)
+        {
+            _isEditMode = true;
+
+            // Replace form data with DB entity
+            formData = existingCustomer;
+
+            // Rebuild UI so control initial values come from formData
+            // IMPORTANT: clear header first so we don't duplicate controls
+            headerPanel.Controls.Clear();
+            navigationPanel.Controls.Clear();
+            footerPanel.Controls.Clear();
+            contentHost.Controls.Clear();
+
+            BuildLayout();
+            BuildAllSections();
+            ShowSection(0);
         }
 
         private void EnableDoubleBuffer(Control c)

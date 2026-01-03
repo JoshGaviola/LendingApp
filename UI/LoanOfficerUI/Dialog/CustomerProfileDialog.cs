@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using LendingApp.Class;
+using LendingApp.Class.Models.LoanOfiicerModels;
+using LendingApp.UI.CustomerUI;
+using System.Globalization;
+using System.Linq;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -531,7 +536,47 @@ namespace LendingApp.UI.LoanOfficerUI
                     btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
                 }
 
-                btn.Click += (s, e) => MessageBox.Show($"{buttons[i]} feature", "Action");
+                btn.Click += (s, e) =>
+                {
+                    if (btn.Text == "Update Profile")
+                    {
+                        if (string.IsNullOrWhiteSpace(customer?.Id))
+                        {
+                            MessageBox.Show("Invalid customer id.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        CustomerRegistrationData dbCustomer;
+                        using (var db = new AppDbContext())
+                        {
+                            dbCustomer = db.Customers.AsNoTracking()
+                                .FirstOrDefault(cust => cust.CustomerId == customer.Id);
+                        }
+
+                        if (dbCustomer == null)
+                        {
+                            MessageBox.Show("Customer not found in database.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        using (var editForm = new CustomerRegistration(dbCustomer))
+                        {
+                            var result = editForm.ShowDialog(this);
+                            if (result == DialogResult.OK)
+                            {
+                                // close profile so caller can refresh list if desired
+                                DialogResult = DialogResult.OK;
+                                Close();
+                            }
+                        }
+
+                        return;
+                    }
+
+                    MessageBox.Show(btn.Text + " feature", "Action");
+                };
                 panel.Controls.Add(btn);
                 x += 130;
             }

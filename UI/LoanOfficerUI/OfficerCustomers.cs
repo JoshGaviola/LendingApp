@@ -302,7 +302,12 @@ namespace LendingApp.UI.LoanOfficerUI
 
                 using (var dlg = new CustomerProfileDialog(dialogData))
                 {
-                    dlg.ShowDialog(this);
+                    if (dlg.ShowDialog(this) == DialogResult.OK)
+                    {
+                        ReloadCustomersFromDb();
+                        RefreshTable();
+                        StatusUpdate();
+                    }
                 }
             }
         }
