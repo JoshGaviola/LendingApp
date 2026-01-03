@@ -299,6 +299,12 @@
     <Compile Include="UI\LoanOfficerUI\Control\OfficerCollectionFollowUpControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\NewLoanApplicationDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\NewLoanApplicationDialog.Designer.cs">
+      <DependentUpon>NewLoanApplicationDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -378,6 +384,9 @@
     <EmbeddedResource Include="UI\LoanOfficerUI\CustomerRegistration.resx">
       <DependentUpon>CustomerRegistration.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\LoanOfficerUI\Dialog\NewLoanApplicationDialog.resx">
+      <DependentUpon>NewLoanApplicationDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerApplications.resx">
       <DependentUpon>OfficerApplications.cs</DependentUpon>
     </EmbeddedResource>
@@ -412,6 +421,7 @@
     <Content Include="LendingAppDatabase.sql" />
     <Content Include="obj\Debug\LendingApp.csproj.FileListAbsolute.txt" />
     <Content Include="obj\Debug\TempPE\UI.LoanOfficerUI.OfficerCustomers1.Designer.cs.dll" />
+    <Content Include="UpgradeLog.htm" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\" />

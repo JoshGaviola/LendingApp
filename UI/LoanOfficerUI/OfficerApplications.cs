@@ -238,5 +238,11 @@ namespace LendingApp.UI.LoanOfficerUI
         {
 
         }
+
+        private void btnNewApplication_Click(object sender, EventArgs e)
+        {
+            var dialog = new NewLoanApplicationDialog();
+            dialog.ShowDialog();
+        }
     }
 }

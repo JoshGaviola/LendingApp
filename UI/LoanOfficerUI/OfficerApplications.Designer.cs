@@ -125,6 +125,7 @@ namespace LendingApp.UI.LoanOfficerUI
             this.btnNewApplication.Size = new System.Drawing.Size(160, 35);
             this.btnNewApplication.TabIndex = 2;
             this.btnNewApplication.Text = "New Application";
+            this.btnNewApplication.Click += new System.EventHandler(this.btnNewApplication_Click);
             // 
             // filtersPanel
             // 
