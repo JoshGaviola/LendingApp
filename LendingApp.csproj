@@ -127,6 +127,7 @@
     <Compile Include="Class\Models\LoanOfiicerModels\StatusSummary.cs" />
     <Compile Include="Class\Models\LoanOfiicerModels\TaskItem.cs" />
     <Compile Include="Class\Models\Loans\LoanApplicationEntity.cs" />
+    <Compile Include="Class\Models\Loans\LoanProductEntity.cs" />
     <Compile Include="Class\Repo\CustomerRepository.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />

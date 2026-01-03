@@ -13,7 +13,7 @@ namespace LendingApp.UI.LoanOfficerUI
         public OfficerApplications()
         {
             InitializeComponent();
-            logic = new OfficerApplicationLogic(DataGetter.Data);
+            logic = new OfficerApplicationLogic(null);
 
             updateStatusSummary();
             BuildUI();
@@ -27,7 +27,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblPending.Text = logic.GetStatusSummary().Find(s => s.Applied == "Pending")?.Count.ToString() ?? "0";
             lblReview.Text = logic.GetStatusSummary().Find(s => s.Applied == "Review")?.Count.ToString() ?? "0";
             lblApproved.Text = logic.GetStatusSummary().Find(s => s.Applied == "Approved")?.Count.ToString() ?? "0";
-            lblDisbursed.Text = logic.GetStatusSummary().Find(s => s.Applied == "Disbursed")?.Count.ToString() ?? "0";
+            lblDisbursed.Text = logic.GetStatusSummary().Find(s => s.Applied == "Released")?.Count.ToString() ?? "0";
         }
 
         private void BuildUI()
@@ -58,9 +58,10 @@ namespace LendingApp.UI.LoanOfficerUI
                 "All Status",
                 "Pending",
                 "Review",
-                "Released",
+                "Approved",
                 "Rejected",
-                "Disbursed"
+                "Released",
+                "Cancelled"
             });
 
             cmbType.Items.Clear();
