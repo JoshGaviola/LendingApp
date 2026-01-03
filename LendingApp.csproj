@@ -301,6 +301,12 @@
     <Compile Include="UI\LoanOfficerUI\Control\OfficerCollectionFollowUpControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.Designer.cs">
+      <DependentUpon>CustomerProfileDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\NewLoanApplicationDialog.cs">
       <SubType>Form</SubType>
     </Compile>

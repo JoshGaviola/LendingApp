@@ -127,10 +127,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             };
 
-            // IMPORTANT: remove the inline TextChanged handler to avoid double firing.
-            // The designer already wires txtSearch_TextChanged.
-            // txtSearch.TextChanged += (s, e) => { ... };
-
             gridCustomers.ReadOnly = true;
             gridCustomers.AllowUserToAddRows = false;
             gridCustomers.AllowUserToDeleteRows = false;
@@ -261,10 +257,53 @@ namespace LendingApp.UI.LoanOfficerUI
         private void GridCustomers_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
-            if (gridCustomers.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+
+            // only react to the Action button column
+            if (!(gridCustomers.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
+
+            var custId = gridCustomers.Rows[e.RowIndex].Cells["CustId"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(custId)) return;
+
+            using (var db = new AppDbContext())
             {
-                var custId = gridCustomers.Rows[e.RowIndex].Cells[0].Value?.ToString();
-                MessageBox.Show($"View {custId}", "Customer", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var c = db.Customers.AsNoTracking().FirstOrDefault(x => x.CustomerId == custId);
+                if (c == null)
+                {
+                    MessageBox.Show("Customer not found in database.", "Customer",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var dialogData = new CustomerProfileDialog.CustomerData
+                {
+                    Id = c.CustomerId,
+                    FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                    DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy") : "",
+                    Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
+                    Gender = c.Gender,
+                    CivilStatus = c.CivilStatus,
+                    Nationality = c.Nationality,
+                    Email = c.EmailAddress,
+                    Mobile = c.MobileNumber,
+                    Telephone = c.TelephoneNumber,
+                    PresentAddress = c.PresentAddress,
+                    PermanentAddress = c.PermanentAddress,
+                    RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy"),
+                    CustomerType = c.CustomerType,
+                    CreditScore = c.InitialCreditScore,
+                    CreditLimit = "₱" + c.CreditLimit.ToString("N2"),
+                    Status = c.Status,
+
+                    // Not implemented in DB yet (set safe defaults)
+                    ActiveLoans = 0,
+                    TotalBalance = "₱0.00",
+                    PaymentHistory = ""
+                };
+
+                using (var dlg = new CustomerProfileDialog(dialogData))
+                {
+                    dlg.ShowDialog(this);
+                }
             }
         }
 
