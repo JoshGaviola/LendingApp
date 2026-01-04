@@ -11,7 +11,7 @@ namespace LendingApp.Class.Data
 {
     public class CustomerData
     {
-        public static BindingList<CustomerItem> AllCustomers { get; private set; }
+        public  BindingList<CustomerItem> AllCustomers { get; private set; }
 
         public CustomerData()
         {
