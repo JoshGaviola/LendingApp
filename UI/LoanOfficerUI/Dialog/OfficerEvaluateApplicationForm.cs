@@ -669,9 +669,8 @@ namespace LoanApplicationUI
 
             var header = new Panel
             {
-                BackColor = Color.FromArgb(200, 230, 200),
                 Dock = DockStyle.Top,
-                Height = 25,
+                Height = 15,
                 Padding = new Padding(10, 0, 0, 0)
             };
 

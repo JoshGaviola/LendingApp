@@ -451,6 +451,7 @@
     <Content Include=".gitignore" />
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
+    <Content Include="lendingapp.sql" />
     <Content Include="LendingAppDatabase.sql" />
     <Content Include="obj\Debug\LendingApp.csproj.FileListAbsolute.txt" />
     <Content Include="obj\Debug\TempPE\UI.LoanOfficerUI.OfficerCustomers1.Designer.cs.dll" />

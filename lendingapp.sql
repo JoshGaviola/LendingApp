@@ -361,6 +361,85 @@ CREATE TABLE `users` (
 insert  into `users`(`user_id`,`username`,`password_hash`,`email`,`first_name`,`last_name`,`role`,`is_active`,`created_date`,`last_login`) values 
 (1,'admin','CHANGE_THIS_HASH',NULL,'System','Administrator','Admin',1,'2025-12-31 23:51:12',NULL);
 
+/*Table structure for table `loan_application_evaluations` */
+
+DROP TABLE IF EXISTS `loan_application_evaluations`;
+
+CREATE TABLE `loan_application_evaluations` (
+  `evaluation_id` BIGINT NOT NULL AUTO_INCREMENT,
+
+  -- Link to application
+  `application_id` INT NOT NULL,
+
+  -- Credit assessment UI inputs (0-100)
+  `c1_input` DECIMAL(5,2) NOT NULL,
+  `c2_input` DECIMAL(5,2) NOT NULL,
+  `c3_input` DECIMAL(5,2) NOT NULL,
+  `c4_input` DECIMAL(5,2) NOT NULL,
+
+  -- Runtime weights used (percent)
+  `w1_pct` DECIMAL(5,2) NOT NULL,
+  `w2_pct` DECIMAL(5,2) NOT NULL,
+  `w3_pct` DECIMAL(5,2) NOT NULL,
+  `w4_pct` DECIMAL(5,2) NOT NULL,
+
+  -- Computed weighted components and total (0-100)
+  `c1_weighted` DECIMAL(6,2) NOT NULL,
+  `c2_weighted` DECIMAL(6,2) NOT NULL,
+  `c3_weighted` DECIMAL(6,2) NOT NULL,
+  `c4_weighted` DECIMAL(6,2) NOT NULL,
+  `total_score`  DECIMAL(6,2) NOT NULL,
+
+  -- Decision from UI
+  `decision` ENUM('Approve','Approve with Conditions','Reject') NOT NULL,
+
+  -- Loan computation & terms (UI overrides)
+  `interest_method` ENUM('Diminishing Balance','Flat Rate','Add-on Rate') DEFAULT NULL,
+  `interest_rate_pct` DECIMAL(6,3) DEFAULT NULL,   -- supports 0.1 increments
+  `service_fee_pct`   DECIMAL(6,3) DEFAULT NULL,   -- supports 0.1 increments
+  `term_months`       INT DEFAULT NULL,
+
+  -- Approval workflow UI
+  `approval_level` ENUM('Level 1','Level 2','Level 3') DEFAULT NULL,
+
+  `require_comaker`        TINYINT(1) NOT NULL DEFAULT 0,
+  `reduce_amount`          TINYINT(1) NOT NULL DEFAULT 0,
+  `shorten_term`           TINYINT(1) NOT NULL DEFAULT 0,
+  `additional_collateral`  TINYINT(1) NOT NULL DEFAULT 0,
+
+  -- Rejection reason + remarks
+  `rejection_reason` VARCHAR(150) DEFAULT NULL,
+  `remarks` TEXT DEFAULT NULL,
+
+  -- Audit-ish fields
+  `evaluated_by` INT DEFAULT NULL, -- user_id of officer (if available in UI)
+  `status_after` ENUM('Pending','Review','Approved','Rejected','Released','Cancelled') DEFAULT NULL,
+
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`evaluation_id`),
+
+  KEY `idx_eval_application_id` (`application_id`),
+  KEY `idx_eval_created_at` (`created_at`),
+  KEY `idx_eval_decision` (`decision`),
+
+  CONSTRAINT `fk_eval_application`
+    FOREIGN KEY (`application_id`)
+    REFERENCES `loan_applications` (`application_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT `fk_eval_user`
+    FOREIGN KEY (`evaluated_by`)
+    REFERENCES `users` (`user_id`)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Data for the table `loan_application_evaluations` */
+
+SET FOREIGN_KEY_CHECKS = 1;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
