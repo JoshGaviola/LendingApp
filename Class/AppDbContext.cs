@@ -14,7 +14,7 @@ namespace LendingApp.Class
 
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
-        public DbSet<LoanProductEntity> LoanProducts { get; set; } // ADDED
+        public DbSet<LoanProductEntity> LoanProducts { get; set; } 
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

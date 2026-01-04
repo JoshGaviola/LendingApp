@@ -1,5 +1,6 @@
-﻿using LendingApp.Class;
+﻿using LendingApp.Class.Interface;
 using LendingApp.Class.Models.Loans;
+using LendingApp.Class.Repo;
 using System;
 using System.Data.Entity;
 using System.Globalization;
@@ -10,6 +11,9 @@ namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class NewLoanApplicationDialog : Form
     {
+        private readonly ILoanApplicationRepository _loanRepo;
+        private readonly ICustomerRepository _customerRepo;
+
         private int currentStep = 1;
         private TabControl tabControl;
         private Button btnBack;
@@ -33,7 +37,15 @@ namespace LendingApp.UI.LoanOfficerUI
         private Label stepLabel;
 
         public NewLoanApplicationDialog()
+            : this(new LoanApplicationRepository(), new CustomerRepository())
         {
+        }
+
+        public NewLoanApplicationDialog(ILoanApplicationRepository loanRepo, ICustomerRepository customerRepo)
+        {
+            _loanRepo = loanRepo;
+            _customerRepo = customerRepo;
+
             // Call InitializeComponent FIRST - this creates all controls
             InitializeComponent();
 
@@ -62,9 +74,6 @@ namespace LendingApp.UI.LoanOfficerUI
             btnCancel.Click += (s, e) => Close();
             btnNext.Click += (s, e) => GoToStep(currentStep + 1);
 
-            // REMOVED: duplicate btnSubmit.Click handler
-            // The designer already wires btnSubmit_Click, so don't add another one here
-
             UpdateStepUI();
         }
 
@@ -81,40 +90,34 @@ namespace LendingApp.UI.LoanOfficerUI
         {
             customerGrid.Rows.Clear();
 
-            using (var db = new AppDbContext())
+            var customers = _customerRepo.GetAll().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                IQueryable<LendingApp.Class.Models.LoanOfiicerModels.CustomerRegistrationData> query =
-                    db.Customers.AsNoTracking();
+                var s = search.Trim();
+                customers = customers.Where(c =>
+                    (c.CustomerId ?? "").Contains(s) ||
+                    (c.FirstName ?? "").Contains(s) ||
+                    (c.LastName ?? "").Contains(s));
+            }
 
-                if (!string.IsNullOrWhiteSpace(search))
+            foreach (var c in customers
+                .OrderByDescending(x => x.RegistrationDate)
+                .Select(x => new
                 {
-                    var s = search.Trim();
-                    query = query.Where(c =>
-                        c.CustomerId.Contains(s) ||
-                        c.FirstName.Contains(s) ||
-                        c.LastName.Contains(s));
-                }
-
-                var customers = query
-                    .OrderByDescending(c => c.RegistrationDate)
-                    .Select(c => new
-                    {
-                        c.CustomerId,
-                        Name = (c.FirstName ?? "") + " " + (c.LastName ?? ""),
-                        c.InitialCreditScore,
-                        c.CustomerType
-                    })
-                    .ToList();
-
-                foreach (var c in customers)
-                {
-                    customerGrid.Rows.Add(
-                        c.CustomerId,
-                        c.Name.Trim(),
-                        c.InitialCreditScore.ToString(CultureInfo.InvariantCulture),
-                        c.CustomerType
-                    );
-                }
+                    x.CustomerId,
+                    Name = (x.FirstName ?? "") + " " + (x.LastName ?? ""),
+                    x.InitialCreditScore,
+                    x.CustomerType
+                })
+                .ToList())
+            {
+                customerGrid.Rows.Add(
+                    c.CustomerId,
+                    (c.Name ?? "").Trim(),
+                    c.InitialCreditScore.ToString(CultureInfo.InvariantCulture),
+                    c.CustomerType
+                );
             }
         }
 
@@ -182,8 +185,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 return;
             }
 
-            // Required by your schema, but not currently in the UI:
-            // add a real UI field later (NumericUpDown/ComboBox).
             int preferredTerm = 12;
 
             var now = DateTime.Now;
@@ -206,11 +207,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    db.LoanApplications.Add(entity);
-                    db.SaveChanges();
-                }
+                _loanRepo.Add(entity);
 
                 MessageBox.Show("Loan application saved successfully.", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -222,8 +219,7 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 MessageBox.Show("Failed to save loan application.\n\n" + ex.Message,
                     "Database Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -236,13 +232,11 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private static string GenerateApplicationNumber(DateTime now)
         {
-            // varchar(20) safe: "APP-20260103-153045"
             return "APP-" + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
         }
 
         private static int MapLoanTypeToProductId(string loanTypeText)
         {
-            // IMPORTANT: replace with your real loan_products.product_id values
             switch ((loanTypeText ?? "").Trim())
             {
                 case "Personal Loan": return 1;
@@ -254,13 +248,11 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void btnSubmit_Click(object sender, EventArgs e)
         {
-            // Designer-wired handler; keep it calling the same logic
             SubmitApplication();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-
         }
     }
 }

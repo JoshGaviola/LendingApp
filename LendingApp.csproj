@@ -110,6 +110,7 @@
     <Compile Include="Class\Interface\ICustomerRegistrationService.cs" />
     <Compile Include="Class\Interface\ICustomerRepository.cs" />
     <Compile Include="Class\Interface\IHasAmount.cs" />
+    <Compile Include="Class\Interface\ILoanApplicationRepository.cs" />
     <Compile Include="Class\Interface\IStatusProvider.cs" />
     <Compile Include="Class\LogicClass\Admin\Admin.cs" />
     <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Class\Models\Loans\LoanApplicationEntity.cs" />
     <Compile Include="Class\Models\Loans\LoanProductEntity.cs" />
     <Compile Include="Class\Repo\CustomerRepository.cs" />
+    <Compile Include="Class\Repo\LoanApplicationRepository.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
