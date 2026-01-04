@@ -133,6 +133,26 @@ namespace LendingApp.UI.LoanOfficerUI
             txtSearch.TextChanged += (s, e) => LoadApplications();
         }
 
+        private string GetActionText(string status)
+        {
+            var s = (status ?? string.Empty).Trim();
+
+            // normalize common DB variants
+            if (s.Equals("Disbursed", StringComparison.OrdinalIgnoreCase))
+                s = "Released";
+
+            if (s.Equals("Pending", StringComparison.OrdinalIgnoreCase)) return "Review";
+            if (s.Equals("Review", StringComparison.OrdinalIgnoreCase)) return "Evaluate";
+
+            // Approved/Rejected/Released/Cancelled/etc => View
+            if (s.Equals("Approved", StringComparison.OrdinalIgnoreCase)) return "View";
+            if (s.Equals("Rejected", StringComparison.OrdinalIgnoreCase)) return "View";
+            if (s.Equals("Released", StringComparison.OrdinalIgnoreCase)) return "View";
+            if (s.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)) return "View";
+
+            return "View";
+        }
+
         private void LoadApplications()
         {
             gridApplications.Rows.Clear();
@@ -150,7 +170,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
             foreach (var app in Loans.AllLoans)
             {
-                if (app.Applied == "Paid") continue;
+                if (string.Equals(app.Applied, "Paid", StringComparison.OrdinalIgnoreCase)) continue;
 
                 int rowIndex = gridApplications.Rows.Add(
                     app.LoanNumber,
@@ -160,26 +180,11 @@ namespace LendingApp.UI.LoanOfficerUI
                     app.Applied
                 );
 
-                // Set the button caption per row
                 var btnCell = (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[5];
                 btnCell.Value = GetActionText(app.Applied);
             }
 
             lblResults.Text = $"{Loans.AllLoans.Count} of {logic.TotalApplications} applications";
-        }
-
-        private string GetActionText(string status)
-        {
-            switch (status)
-            {
-                case "Pending": return "Review";
-                case "Review": return "Evaluate";
-                case "Approved":
-                case "Rejected":
-                case "Disbursed":
-                default:
-                    return "View";
-            }
         }
 
         private void GridApplications_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -255,6 +260,19 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
 
                 // optional refresh (if evaluation later changes status)
+                updateStatusSummary();
+                LoadApplications();
+                return;
+            }
+
+            // VIEW -> show approved/released application details
+            if (string.Equals(action, "View", StringComparison.OrdinalIgnoreCase))
+            {
+                using (var dlg = new ApprovedLoanApplicationDialog(appId))
+                {
+                    dlg.ShowDialog(this);
+                }
+
                 updateStatusSummary();
                 LoadApplications();
                 return;

@@ -317,6 +317,9 @@
     <Compile Include="UI\LoanOfficerUI\Control\OfficerCollectionFollowUpControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\ApprovedLoanApplicationDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.cs">
       <SubType>Form</SubType>
     </Compile>
