@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -366,7 +367,7 @@ namespace LoanApplicationUI
 
             creditAssessmentPanel.Controls.Add(creditLayout);
 
-            // Loan Computation Section
+            // Loan Computation Section (REPLACE the whole loanLayout building block)
             var loanLayout = new TableLayoutPanel
             {
                 ColumnCount = 2,
@@ -379,38 +380,29 @@ namespace LoanApplicationUI
             loanLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             loanLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
-            AddLoanRow(loanLayout, 0, "Interest Method:", interestMethodComboBox);
-            AddLoanRow(loanLayout, 1, "Rate:", interestRateInput, new Label { Text = "% p.a.", AutoSize = true });
+            // Rate row
+            AddLoanRow(loanLayout, 0, "Rate:", interestRateInput, new Label { Text = "% p.a.", AutoSize = true });
 
-            // Service fee row
-            loanLayout.Controls.Add(new Label { Text = "Service Fee:", AutoSize = true }, 0, 2);
-            var serviceFeePanel = new FlowLayoutPanel
-            {
-                FlowDirection = FlowDirection.LeftToRight,
-                AutoSize = true
-            };
+            // Service fee row (with peso amount)
+            loanLayout.Controls.Add(new Label { Text = "Service Fee:", AutoSize = true }, 0, 1);
+            var serviceFeePanel = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true };
             serviceFeePanel.Controls.Add(serviceFeeInput);
-            serviceFeePanel.Controls.Add(new Label
-            {
-                Text = "%",
-                Margin = new Padding(5, 3, 0, 0),
-                AutoSize = true
-            });
+            serviceFeePanel.Controls.Add(new Label { Text = "%", Margin = new Padding(5, 3, 0, 0), AutoSize = true });
             serviceFeePanel.Controls.Add(serviceFeeAmountLabel);
-            loanLayout.Controls.Add(serviceFeePanel, 1, 2);
+            loanLayout.Controls.Add(serviceFeePanel, 1, 1);
 
-            // Calculation results
+            // Results panel
             var resultsPanel = CreateResultsPanel();
             loanLayout.SetColumnSpan(resultsPanel, 2);
-            loanLayout.Controls.Add(resultsPanel, 0, 3);
+            loanLayout.Controls.Add(resultsPanel, 0, 2);
 
-            // Adjust terms row
+            // Adjust terms row (term + recalc)
             loanLayout.Controls.Add(new Label
             {
                 Text = "Adjust Terms:",
                 AutoSize = true,
                 Margin = new Padding(0, 10, 0, 0)
-            }, 0, 4);
+            }, 0, 3);
 
             var termsPanel = new FlowLayoutPanel
             {
@@ -422,8 +414,9 @@ namespace LoanApplicationUI
             var recalcButton = CreateButton("Recalculate", Color.FromArgb(240, 240, 240), 100);
             recalcButton.Click += (s, e) => RecalculateLoan();
             termsPanel.Controls.Add(recalcButton);
-            loanLayout.Controls.Add(termsPanel, 1, 4);
+            loanLayout.Controls.Add(termsPanel, 1, 3);
 
+            loanComputationPanel.Controls.Clear();
             loanComputationPanel.Controls.Add(loanLayout);
 
             // Approval Workflow Section
@@ -519,11 +512,15 @@ namespace LoanApplicationUI
             mainContainer.Controls.Add(mainLayout);
         }
 
-        // NEW overload: accept a label instance so we can change it later
-        private void AddCreditRow(TableLayoutPanel panel, int row, Label label, Control inputControl)
+        // add field near other fields
+        private readonly Dictionary<NumericUpDown, Label> _scoreLabels = new Dictionary<NumericUpDown, Label>();
+
+        // REPLACE AddCreditRow with this version
+        private void AddCreditRow(TableLayoutPanel panel, int row, Label label, NumericUpDown inputControl)
         {
             panel.Controls.Add(label, 0, row);
             panel.Controls.Add(inputControl, 1, row);
+
             panel.Controls.Add(new Label
             {
                 Text = "/100",
@@ -531,7 +528,6 @@ namespace LoanApplicationUI
                 Margin = new Padding(10, 0, 0, 0)
             }, 2, row);
 
-            // Score calculation label
             var scoreLabel = new Label
             {
                 Text = "→ 0.0",
@@ -540,6 +536,8 @@ namespace LoanApplicationUI
                 Margin = new Padding(10, 0, 0, 0)
             };
             panel.Controls.Add(scoreLabel, 3, row);
+
+            _scoreLabels[inputControl] = scoreLabel;
         }
 
         private void AddLoanRow(TableLayoutPanel panel, int row, string labelText, Control inputControl, Control additionalControl = null)
@@ -757,23 +755,23 @@ namespace LoanApplicationUI
 
         private void UpdateCreditScore(object sender, EventArgs e)
         {
-            decimal ph = (paymentHistoryInput.Value / 100m) * _w1;
-            decimal cu = (creditUtilizationInput.Value / 100m) * _w2;
-            decimal chl = (creditHistoryLengthInput.Value / 100m) * _w3;
-            decimal @is = (incomeStabilityInput.Value / 100m) * _w4;
+            decimal s1 = (paymentHistoryInput.Value / 100m) * _w1;
+            decimal s2 = (creditUtilizationInput.Value / 100m) * _w2;
+            decimal s3 = (creditHistoryLengthInput.Value / 100m) * _w3;
+            decimal s4 = (incomeStabilityInput.Value / 100m) * _w4;
 
-            decimal totalScore = ph + cu + chl + @is;
+            if (_scoreLabels.TryGetValue(paymentHistoryInput, out var l1)) l1.Text = $"→ {s1:F1}";
+            if (_scoreLabels.TryGetValue(creditUtilizationInput, out var l2)) l2.Text = $"→ {s2:F1}";
+            if (_scoreLabels.TryGetValue(creditHistoryLengthInput, out var l3)) l3.Text = $"→ {s3:F1}";
+            if (_scoreLabels.TryGetValue(incomeStabilityInput, out var l4)) l4.Text = $"→ {s4:F1}";
+
+            decimal totalScore = s1 + s2 + s3 + s4;
             totalCreditScoreLabel.Text = $"{totalScore:F2}/100";
 
-            // Update color based on score
-            if (totalScore >= 80)
-                totalCreditScoreLabel.ForeColor = Color.Green;
-            else if (totalScore >= 60)
-                totalCreditScoreLabel.ForeColor = Color.Blue;
-            else if (totalScore >= 40)
-                totalCreditScoreLabel.ForeColor = Color.Orange;
-            else
-                totalCreditScoreLabel.ForeColor = Color.Red;
+            if (totalScore >= 80) totalCreditScoreLabel.ForeColor = Color.Green;
+            else if (totalScore >= 60) totalCreditScoreLabel.ForeColor = Color.Blue;
+            else if (totalScore >= 40) totalCreditScoreLabel.ForeColor = Color.Orange;
+            else totalCreditScoreLabel.ForeColor = Color.Red;
         }
 
         private void UpdateServiceFeeAmount(object sender, EventArgs e)
