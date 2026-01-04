@@ -99,7 +99,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             };
 
-            // IMPORTANT: ensure search change is wired
+            // Ensure the search handler is wired exactly once
             txtSearch.TextChanged -= txtSearch_TextChanged;
             txtSearch.TextChanged += txtSearch_TextChanged;
 
@@ -146,9 +146,12 @@ namespace LendingApp.UI.LoanOfficerUI
             cmbCustomerType.SelectedIndex = 0;
         }
 
+
         private IEnumerable<CustomerItem> Filtered()
         {
-            return customers.Where(c =>
+            var list = customers ?? new BindingList<CustomerItem>();
+
+            return list.Where(c =>
             {
                 bool matchesType = customerFilter == "all" || (c.Type ?? "").Equals(customerFilter, StringComparison.OrdinalIgnoreCase);
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery)
@@ -159,7 +162,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 return matchesType && matchesSearch;
             });
         }
-
 
         private void RefreshTable()
         {
@@ -177,6 +179,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     c.TotalLoans,            // Loans
                     c.Balance,               // Balance
                     "View"                   // Action button
+                  
                   
                 );
 
@@ -197,7 +200,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
-            lblResults.Text = $"Showing {filtered.Count} of {customers.Count} customers";
+            lblResults.Text = $"Showing {filtered.Count} of {(customers?.Count ?? 0)} customers";
         }
 
         private void GridCustomers_CellContentClick(object sender, DataGridViewCellEventArgs e)
