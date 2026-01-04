@@ -6,12 +6,15 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class.Interface;
+using LendingApp.Class.Repo;
+using LendingApp.Class;
 
 namespace LendingApp.UI.CashierUI
 {
     public partial class CashierLoanRelease : Form
     {
-
+        private readonly ILoanRepository _loanRepo;
         private LoanReleaseModels _selected;
 
         // layout
@@ -54,17 +57,81 @@ namespace LendingApp.UI.CashierUI
         private BindingList<LoanReleaseModels> _pendingLoans;
 
         public CashierLoanRelease(BindingList<LoanReleaseModels> pending)
+            : this(pending, new LoanRepository())
+        {
+        }
+
+        public CashierLoanRelease(BindingList<LoanReleaseModels> pending, ILoanRepository loanRepo)
         {
             InitializeComponent();
-            _pendingLoans = pending;
+
+            _loanRepo = loanRepo ?? new LoanRepository();
+            _pendingLoans = pending ?? new BindingList<LoanReleaseModels>();
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
             TopLevel = false;
 
             BuildUI();
+            ReloadPendingFromDb();
             BindToday();
             RefreshUI();
+        }
+
+        private void ReloadPendingFromDb()
+        {
+            try
+            {
+                var loans = _loanRepo.GetLoansForRelease().ToList();
+
+                using (var db = new AppDbContext())
+                {
+                    // Join to display borrower name + product name
+                    var rows =
+                        (from l in loans
+                         join a in db.LoanApplications.AsNoTracking() on l.ApplicationId equals a.ApplicationId
+                         join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId
+                         join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId
+                         select new
+                         {
+                             l.LoanNumber,
+                             Borrower = (c.FirstName ?? "") + " " + (c.LastName ?? ""),
+                             LoanType = p.ProductName,
+                             l.PrincipalAmount,
+                             ApprovedDate = a.ApprovedDate,
+                             l.TermMonths,
+                             l.InterestRate,
+                             l.ProcessingFee,
+                             Status = l.Status
+                         })
+                        .OrderByDescending(x => x.ApprovedDate)
+                        .ToList();
+
+                    _pendingLoans.Clear();
+
+                    foreach (var r in rows)
+                    {
+                        _pendingLoans.Add(new LoanReleaseModels
+                        {
+                            LoanNumber = r.LoanNumber,
+                            Borrower = (r.Borrower ?? "").Trim(),
+                            LoanType = r.LoanType,
+                            Amount = r.PrincipalAmount,
+                            ApprovedDate = r.ApprovedDate ?? DateTime.Today,
+                            TermMonths = r.TermMonths,
+                            InterestRate = r.InterestRate,
+                            ProcessingFee = r.ProcessingFee,
+
+                            // Keep UI label. You can change text later (e.g., "Pending Release").
+                            Status = "Pending"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Toast("Failed to load loans from database: " + ex.Message, true);
+            }
         }
 
         private void BuildUI()

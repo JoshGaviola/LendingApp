@@ -150,7 +150,7 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
                 var currentStatus = (_application.Status ?? "").Trim();
 
-                // 1) Send for Evaluation: Pending -> Review (persist)
+                // 1) Send for Evaluation: Pending -> Review (persist), then open evaluation form
                 if (string.Equals(currentStatus, "Pending", StringComparison.OrdinalIgnoreCase))
                 {
                     var creditScore = GetCreditScore();
@@ -185,18 +185,23 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
                         return;
                     }
 
-                    MessageBox.Show("Application sent for evaluation. Status is now REVIEW.", "Updated",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Ensure dialog has fresh objects before opening eval
+                    LoadFromDb();
 
-                    // Refresh screen so the button changes into Evaluate immediately
-                    ReloadFromDbAndRefreshUi();
+                    // Open evaluation immediately (no return to review dialog UI)
+                    OpenEvaluationForm();
+
+                    DialogResult = DialogResult.OK;
+                    Close();
                     return;
                 }
 
-                // 2) Evaluate: open evaluation form
+                // 2) Evaluate: open evaluation form directly
                 if (string.Equals(currentStatus, "Review", StringComparison.OrdinalIgnoreCase))
                 {
                     OpenEvaluationForm();
+                    DialogResult = DialogResult.OK;
+                    Close();
                     return;
                 }
 
@@ -236,6 +241,34 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             };
             btnClose.Click += (s, e) => Close();
             mainPanel.Controls.Add(btnClose);
+
+            // NEW: if already Approved, allow viewing final details dialog
+            var statusNow = (_application?.Status ?? "").Trim();
+            if (string.Equals(statusNow, "Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                var btnViewApproved = new Button
+                {
+                    Text = "View Approved Details",
+                    Location = new Point(360, currentY),
+                    Size = new Size(150, 30),
+                    Font = new Font("Segoe UI", 9),
+                    BackColor = Color.White,
+                    ForeColor = Color.FromArgb(22, 101, 52),
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnViewApproved.FlatAppearance.BorderColor = Color.FromArgb(22, 101, 52);
+                btnViewApproved.FlatAppearance.BorderSize = 1;
+
+                btnViewApproved.Click += (s, e) =>
+                {
+                    using (var dlg = new ApprovedLoanApplicationDialog(_appId))
+                    {
+                        dlg.ShowDialog(this);
+                    }
+                };
+
+                mainPanel.Controls.Add(btnViewApproved);
+            }
 
             if (_application == null)
             {
