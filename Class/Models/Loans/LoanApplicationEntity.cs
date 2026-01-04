@@ -12,8 +12,11 @@ namespace LendingApp.Class.Models.Loans
         public int PreferredTerm { get; set; }
         public string Purpose { get; set; }
         public DateTime? DesiredReleaseDate { get; set; }
-        public string Status { get; set; }           // enum in DB, keep string in EF6
-        public string Priority { get; set; }         // enum in DB, keep string in EF6
+
+        // enum in DB, keep string in EF6
+        public string Status { get; set; }
+        public string Priority { get; set; }
+
         public string RejectionReason { get; set; }
         public DateTime ApplicationDate { get; set; }
         public DateTime StatusDate { get; set; }
@@ -21,4 +24,5 @@ namespace LendingApp.Class.Models.Loans
         public int? AssignedOfficerId { get; set; }
         public int? ApprovedBy { get; set; }
     }
+
 }

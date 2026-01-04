@@ -3,23 +3,22 @@ using System.Data.Entity.ModelConfiguration.Conventions;
 using Customer = LendingApp.Class.Models.LoanOfiicerModels.CustomerRegistrationData;
 using LoanApplicationEntity = LendingApp.Class.Models.Loans.LoanApplicationEntity;
 using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
+using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 
 namespace LendingApp.Class
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext() : base("name=LendingAppDb")
-        {
-        }
+        public AppDbContext() : base("name=LendingAppDb") { }
 
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
-        public DbSet<LoanProductEntity> LoanProducts { get; set; } 
+        public DbSet<LoanProductEntity> LoanProducts { get; set; }
+        public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; } // NEW
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
 
             modelBuilder.Entity<Customer>()
@@ -129,6 +128,49 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
+
+            // NEW: loan_application_evaluations
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>()
+                .ToTable("loan_application_evaluations")
+                .HasKey(x => x.EvaluationId);
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.EvaluationId).HasColumnName("evaluation_id");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.ApplicationId).HasColumnName("application_id");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C1Input).HasColumnName("c1_input");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C2Input).HasColumnName("c2_input");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C3Input).HasColumnName("c3_input");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C4Input).HasColumnName("c4_input");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.W1Pct).HasColumnName("w1_pct");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.W2Pct).HasColumnName("w2_pct");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.W3Pct).HasColumnName("w3_pct");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.W4Pct).HasColumnName("w4_pct");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C1Weighted).HasColumnName("c1_weighted");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C2Weighted).HasColumnName("c2_weighted");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C3Weighted).HasColumnName("c3_weighted");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.C4Weighted).HasColumnName("c4_weighted");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.TotalScore).HasColumnName("total_score");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.Decision).HasColumnName("decision");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.InterestMethod).HasColumnName("interest_method");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.InterestRatePct).HasColumnName("interest_rate_pct");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.ServiceFeePct).HasColumnName("service_fee_pct");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.TermMonths).HasColumnName("term_months");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.ApprovalLevel).HasColumnName("approval_level");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.RequireComaker).HasColumnName("require_comaker");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.ReduceAmount).HasColumnName("reduce_amount");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.ShortenTerm).HasColumnName("shorten_term");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.AdditionalCollateral).HasColumnName("additional_collateral");
+
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.RejectionReason).HasColumnName("rejection_reason");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.Remarks).HasColumnName("remarks");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.EvaluatedBy).HasColumnName("evaluated_by");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.StatusAfter).HasColumnName("status_after");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.CreatedAt).HasColumnName("created_at");
+            modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.UpdatedAt).HasColumnName("updated_at");
         }
     }
 }
