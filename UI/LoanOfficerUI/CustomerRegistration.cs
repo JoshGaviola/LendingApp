@@ -532,7 +532,13 @@ namespace LendingApp.UI.CustomerUI
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Failed to submit registration.\n\n" + ex.Message, "Error",
+                var fullError = $"Failed to submit registration.\n\n" +
+                                $"ERROR:\n{ex.Message}\n\n" +
+                                $"INNER EXCEPTION:\n{ex.InnerException?.Message ?? "None"}\n\n" +
+                                $"INNER INNER:\n{ex.InnerException?.InnerException?.Message ?? "None"}\n\n" +
+                                $"STACK TRACE:\n{ex.StackTrace}";
+
+                MessageBox.Show(fullError, "Error Details",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

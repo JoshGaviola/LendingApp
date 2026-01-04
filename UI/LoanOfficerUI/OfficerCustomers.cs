@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.ComponentModel;
+using LendingApp.Class.Data;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -15,17 +17,16 @@ namespace LendingApp.UI.LoanOfficerUI
         private string searchQuery = "";
 
         private CustomerRegistration _openRegistrationForm;
-
-        private List<CustomerItem> _dbCustomers = new List<CustomerItem>();
-
+        private CustomerData customerData = new CustomerData();
+        private BindingList<CustomerItem> customers;     
         public OfficerCustomers()
         {
             InitializeComponent();
+            customers = customerData.GetAllCustomers();
 
             BuildUI();
             BindFilters();
 
-            ReloadCustomersFromDb();
             RefreshTable();
             StatusUpdate();
         }
@@ -40,7 +41,7 @@ namespace LendingApp.UI.LoanOfficerUI
             RefreshTable();
             StatusUpdate();
         }
-
+        /*
         private void ReloadCustomersFromDb()
         {
             using (var db = new AppDbContext())
@@ -81,7 +82,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     .ToList();
             }
         }
-
+        */
         private void BuildUI()
         {
             Text = "Customer Management";
@@ -162,17 +163,17 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void StatusUpdate()
         {
-            lblTotalCustomers.Text = _dbCustomers.Count.ToString();
+            lblTotalCustomers.Text = customers.Count.ToString();
 
-            lblNew.Text = _dbCustomers.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblRegular.Text = _dbCustomers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblVIP.Text = _dbCustomers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblDelinquent.Text = _dbCustomers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblNew.Text = customers.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblRegular.Text = customers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblVIP.Text = customers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblDelinquent.Text = customers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
         }
 
         private IEnumerable<CustomerItem> Filtered()
         {
-            return _dbCustomers.Where(c =>
+            return customers.Where(c =>
             {
                 bool matchesType = customerFilter == "all" || (c.Type ?? "").Equals(customerFilter, StringComparison.OrdinalIgnoreCase);
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery)
@@ -219,7 +220,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
-            lblResults.Text = $"Showing {filtered.Count} of {_dbCustomers.Count} customers";
+            lblResults.Text = $"Showing {filtered.Count} of {customers.Count} customers";
         }
 
         private Color GetTypeBackColor(string type)
@@ -304,7 +305,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 {
                     if (dlg.ShowDialog(this) == DialogResult.OK)
                     {
-                        ReloadCustomersFromDb();
+                        customerData.LoadCustomerFromDb();
                         RefreshTable();
                         StatusUpdate();
                     }
@@ -324,7 +325,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
                     if (result == DialogResult.OK)
                     {
-                        ReloadCustomersFromDb();
+                        customerData.LoadCustomerFromDb();
                         RefreshTable();
                         StatusUpdate();
                     }
