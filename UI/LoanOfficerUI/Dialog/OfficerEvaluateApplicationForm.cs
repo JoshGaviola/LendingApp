@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using LendingApp.Class.Interface;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
-
 namespace LoanApplicationUI
 {
     public partial class OfficerEvaluateApplicationForm : Form
@@ -14,6 +14,7 @@ namespace LoanApplicationUI
         // Repos
         private readonly ILoanApplicationRepository _loanRepo;
         private readonly ILoanApplicationEvaluationRepository _evalRepo;
+        private readonly LendingApp.Class.Interface.ILoanRepository _loanReleaseRepo;
         private readonly int? _currentUserId;
 
         // Business constants (align with UI text)
@@ -92,18 +93,19 @@ namespace LoanApplicationUI
 
         // Default ctor
         public OfficerEvaluateApplicationForm()
-            : this(new LoanApplicationRepository(), new LoanApplicationEvaluationRepository(), null)
+    : this(new LoanApplicationRepository(), new LoanApplicationEvaluationRepository(), new LendingApp.Class.Repo.LoanRepository(), null)
         {
         }
 
-        // DI-friendly ctor
         public OfficerEvaluateApplicationForm(
             ILoanApplicationRepository loanRepo,
             ILoanApplicationEvaluationRepository evalRepo,
+            LendingApp.Class.Interface.ILoanRepository loanReleaseRepo,
             int? currentUserId)
         {
             _loanRepo = loanRepo ?? new LoanApplicationRepository();
             _evalRepo = evalRepo ?? new LoanApplicationEvaluationRepository();
+            _loanReleaseRepo = loanReleaseRepo ?? new LendingApp.Class.Repo.LoanRepository();
             _currentUserId = currentUserId;
 
             InitializeComponent();
@@ -921,6 +923,7 @@ namespace LoanApplicationUI
                     app.RequestedAmount = ReducedAmountValue;
 
                 _loanRepo.Update(app);
+                CreateLoanRecordIfMissing(app);
 
                 MessageBox.Show("Application approved successfully.", "Updated",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1132,15 +1135,86 @@ namespace LoanApplicationUI
 
             return panel;
         }
-    }
 
-    public class ApplicationData
-    {
-        public string Id { get; set; }          // application_number
-        public string Customer { get; set; }
-        public string LoanType { get; set; }
-        public string Amount { get; set; }      // "₱12,345.00"
-        public string AppliedDate { get; set; }
-        public string Status { get; set; }
+        private static string GenerateLoanNumber(string applicationNumber)
+        {
+            // Fits VARCHAR(20). Example: LN-APP-20240104-083000 might be too long.
+            // Keep it short & deterministic.
+            // Example: APP-20240104-083000 => LN-240104083000 (14 chars + "LN-" = 17)
+            var digits = new string((applicationNumber ?? "").Where(char.IsDigit).ToArray());
+            if (digits.Length >= 12) digits = digits.Substring(digits.Length - 12);
+            if (string.IsNullOrWhiteSpace(digits)) digits = DateTime.Now.ToString("yyMMddHHmmss", CultureInfo.InvariantCulture);
+            return "LN-" + digits;
+        }
+
+        private static DateTime GetNext15th(DateTime from)
+        {
+            // if today is <= 15, choose this month 15th; else next month 15th
+            var baseDate = new DateTime(from.Year, from.Month, 1);
+            var fifteenth = baseDate.AddDays(14);
+            return (from.Date <= fifteenth) ? fifteenth : baseDate.AddMonths(1).AddDays(14);
+        }
+
+        private void CreateLoanRecordIfMissing(LoanApplicationEntity app)
+        {
+            // DB has UNIQUE(application_id), so don't insert twice.
+            var existing = _loanReleaseRepo.GetByApplicationId(app.ApplicationId);
+            if (existing != null) return;
+
+            // Use current evaluation UI values (these are exactly what officer approved with)
+            var principal = app.RequestedAmount; // already updated if reduced amount checkbox was checked
+            var termMonths = app.PreferredTerm > 0 ? app.PreferredTerm : ParseSelectedTermMonths(loanTermComboBox);
+
+            var interestRatePct = (decimal)interestRateInput.Value;
+            var serviceFeePct = (decimal)serviceFeeInput.Value;
+            var method = interestMethodComboBox.SelectedItem != null ? interestMethodComboBox.SelectedItem.ToString() : "Diminishing Balance";
+
+            var calc = CalculateLoan(principal, interestRatePct, termMonths, serviceFeePct, method);
+
+            var releaseDate = DateTime.Today;
+            var firstDue = GetNext15th(releaseDate);
+            var maturity = firstDue.AddMonths(termMonths);
+
+            var processingFeeAmount = RoundMoney(principal * (serviceFeePct / 100m));
+
+            var loan = new LoanEntity
+            {
+                LoanNumber = GenerateLoanNumber(app.ApplicationNumber),
+
+                ApplicationId = app.ApplicationId,
+                CustomerId = app.CustomerId,
+                ProductId = app.ProductId,
+
+                PrincipalAmount = RoundMoney(principal),
+                InterestRate = RoundMoney(interestRatePct),
+                TermMonths = termMonths,
+                MonthlyPayment = RoundMoney(calc.MonthlyPayment),
+
+                ProcessingFee = processingFeeAmount,
+                TotalPayable = RoundMoney(calc.TotalPayable),
+                OutstandingBalance = RoundMoney(calc.TotalPayable),
+
+                TotalPaid = 0m,
+                TotalInterestPaid = 0m,
+                TotalPenaltyPaid = 0m,
+
+                Status = "Active",
+                DaysOverdue = 0,
+
+                ReleaseDate = releaseDate,
+                FirstDueDate = firstDue,
+                NextDueDate = firstDue,
+                MaturityDate = maturity,
+                LastPaymentDate = null,
+
+                ReleaseMode = null,
+                ReleasedBy = null,
+
+                CreatedDate = DateTime.Now,
+                LastUpdated = DateTime.Now
+            };
+
+            _loanReleaseRepo.Add(loan);
+        }
     }
 }

@@ -4,6 +4,7 @@ using Customer = LendingApp.Class.Models.LoanOfiicerModels.CustomerRegistrationD
 using LoanApplicationEntity = LendingApp.Class.Models.Loans.LoanApplicationEntity;
 using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
+using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
 
 namespace LendingApp.Class
 {
@@ -14,7 +15,8 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
-        public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; } // NEW
+        public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
+        public DbSet<LoanEntity> Loans { get; set; } 
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -171,6 +173,44 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.StatusAfter).HasColumnName("status_after");
             modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.CreatedAt).HasColumnName("created_at");
             modelBuilder.Entity<LoanApplicationEvaluationEntity>().Property(x => x.UpdatedAt).HasColumnName("updated_at");
+
+            // ===== loans mapping (NEW) =====
+            modelBuilder.Entity<LoanEntity>()
+                .ToTable("loans")
+                .HasKey(x => x.LoanId);
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.LoanId).HasColumnName("loan_id");
+            modelBuilder.Entity<LoanEntity>().Property(x => x.LoanNumber).HasColumnName("loan_number").HasMaxLength(20).IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ApplicationId).HasColumnName("application_id").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.CustomerId).HasColumnName("customer_id").HasMaxLength(32).IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ProductId).HasColumnName("product_id").IsRequired();
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.PrincipalAmount).HasColumnName("principal_amount").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.InterestRate).HasColumnName("interest_rate").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.TermMonths).HasColumnName("term_months").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.MonthlyPayment).HasColumnName("monthly_payment").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ProcessingFee).HasColumnName("processing_fee").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.TotalPayable).HasColumnName("total_payable").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.OutstandingBalance).HasColumnName("outstanding_balance").IsRequired();
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.TotalPaid).HasColumnName("total_paid").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.TotalInterestPaid).HasColumnName("total_interest_paid").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.TotalPenaltyPaid).HasColumnName("total_penalty_paid").IsRequired();
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.DaysOverdue).HasColumnName("days_overdue").IsRequired();
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ReleaseDate).HasColumnName("release_date").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.FirstDueDate).HasColumnName("first_due_date").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.NextDueDate).HasColumnName("next_due_date");
+            modelBuilder.Entity<LoanEntity>().Property(x => x.MaturityDate).HasColumnName("maturity_date").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.LastPaymentDate).HasColumnName("last_payment_date");
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ReleaseMode).HasColumnName("release_mode").HasMaxLength(50);
+            modelBuilder.Entity<LoanEntity>().Property(x => x.ReleasedBy).HasColumnName("released_by");
+
+            modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
+            modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
         }
     }
 }
