@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.Models
 {
-    public class Borrower : User
+    public class Borrower
     {
         private int CustomerId { get; set; }
 

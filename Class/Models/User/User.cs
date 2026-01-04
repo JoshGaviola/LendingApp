@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LendingApp.Models
+namespace LendingApp.Class.Models.User
 {
-    public abstract class User
+    public class User
     {
-        public int UserId { get; set; }
         public string UserName { get; set; }
         public string PasswordHash { get; set; }
         public string Role { get; set; }
@@ -18,22 +17,8 @@ namespace LendingApp.Models
         public DateTime CreatedDate { get; set; }
         public bool IsActive { get; set; }
 
+        public DateTime? LastLogin { get; set; }
 
-        public bool Login()
-        {
-            return true;
-        }
-
-        public void Logout()
-        {
-            // Implementation for user logout
-        }
-
-        public void ChangePassword(string NewPasswordHash)
-        {
-            // Implementation for changing password
-             PasswordHash = NewPasswordHash;
-        }
 
     }
 }

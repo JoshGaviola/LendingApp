@@ -112,7 +112,6 @@
     <Compile Include="Class\Interface\IHasAmount.cs" />
     <Compile Include="Class\Interface\ILoanApplicationRepository.cs" />
     <Compile Include="Class\Interface\IStatusProvider.cs" />
-    <Compile Include="Class\LogicClass\Admin\Admin.cs" />
     <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
     <Compile Include="Class\LogicClass\Cashier\Cashier.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
@@ -124,7 +123,7 @@
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
     <Compile Include="Class\LogicClass\Loans\LoanApplication.cs" />
-    <Compile Include="Class\LogicClass\User\User.cs" />
+    <Compile Include="Class\Models\User\User.cs" />
     <Compile Include="Class\Models\CashierModels\LoanReleaseModels.cs" />
     <Compile Include="Class\Models\CashierModels\TransactionModels.cs" />
     <Compile Include="Class\Models\LoanOfiicerModels\ActivityItem.cs" />
@@ -157,6 +156,12 @@
     </Compile>
     <Compile Include="UI\AdminUI\AddUserDialog.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\AdminLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\AdminUI\AdminLogin.Designer.cs">
+      <DependentUpon>AdminLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\AdminUI\EditUserForm.cs">
       <SubType>Form</SubType>

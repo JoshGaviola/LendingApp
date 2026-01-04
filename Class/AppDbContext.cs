@@ -8,19 +8,19 @@ namespace LendingApp.Class
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext() : base("name=LendingAppDb")
-        {
-        }
+        public AppDbContext() : base("name=LendingAppDb") { }
 
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
-        public DbSet<LoanProductEntity> LoanProducts { get; set; } 
+        public DbSet<LoanProductEntity> LoanProducts { get; set; }
+
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
+            Database.SetInitializer<AppDbContext>(null);  // Disable migrations
+
 
             modelBuilder.Entity<Customer>()
                 .ToTable("customers")
@@ -129,6 +129,8 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
+
+          
         }
     }
 }

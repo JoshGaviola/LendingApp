@@ -2,6 +2,7 @@
 using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Data;
 using LendingApp.Interface;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -30,7 +31,11 @@ namespace LendingApp.Models.LoanOfficer
                         ProductName = p.ProductName,
                         a.RequestedAmount,
                         a.Status,
-                        a.ApplicationDate
+                        a.ApplicationDate,
+                        a.ApprovedDate,        // ← Added
+                        p.InterestRate,        // ← Added
+                        p.ProcessingFeePct,    // ← Added
+                        a.PreferredTerm        // ← Added
                     };
 
                 if (!string.IsNullOrEmpty(applied) && applied != "All Status")
@@ -57,7 +62,15 @@ namespace LendingApp.Models.LoanOfficer
                     Borrower = x.CustomerName.Trim(),
                     Type = x.ProductName,
                     Amount = x.RequestedAmount,
-                    Applied = x.Status
+                    Applied = x.Status,
+                    LoanRef = x.ProductName,                    // ← Added
+                    ApprovedDate = x.ApprovedDate ?? DateTime.MinValue,  // ← Added
+                    TermMonths = x.PreferredTerm,              // ← Added
+                    InterestRate = x.InterestRate,             // ← Added
+                    ProcessingFee = x.ProcessingFeePct,        // ← Added
+                    PaidAmount = 0,                            // ← Added (default)
+                    ReceiptNo = "",                            // ← Added (default)
+                    Time = x.ApplicationDate.ToString("MMM dd, yyyy") // ← Added
                 }).ToList();
             }
         }

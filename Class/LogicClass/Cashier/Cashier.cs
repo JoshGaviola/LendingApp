@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.Models
 {
-    public class Cashier : User
+    public class Cashier
     {
         public void ProcessPayment()
         {
