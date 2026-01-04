@@ -22,6 +22,18 @@ namespace LoanApplicationUI
         private Label totalCreditScoreLabel;
         private ComboBox decisionComboBox;
 
+        // NEW: labels so we can update the displayed weights per customer type
+        private Label lblC1;
+        private Label lblC2;
+        private Label lblC3;
+        private Label lblC4;
+
+        // NEW: runtime weights (percent)
+        private decimal _w1 = 35m;
+        private decimal _w2 = 30m;
+        private decimal _w3 = 15m;
+        private decimal _w4 = 20m;
+
         // Loan computation controls
         private ComboBox interestMethodComboBox;
         private NumericUpDown interestRateInput;
@@ -49,6 +61,9 @@ namespace LoanApplicationUI
         private Button rejectButton;
         private Button approveButton;
 
+        // Main container for scrolling
+        private Panel mainContainer;
+
         public ApplicationData CurrentApplication
         {
             get => currentApplication;
@@ -66,22 +81,85 @@ namespace LoanApplicationUI
             SetupLayout();
         }
 
+        /// <summary>
+        /// Sets the credit assessment calculator defaults based on customer type.
+        /// </summary>
+        public void ApplyDefaultsForCustomerType(string customerType)
+        {
+            var type = (customerType ?? "").Trim();
+
+            if (type.Equals("New", StringComparison.OrdinalIgnoreCase))
+            {
+                // NEW CUSTOMER SCORING (0-100)
+                // 1. DOCUMENT VERIFICATION & IDENTITY (40%)
+                // 2. EMPLOYMENT & INCOME STABILITY (30%)
+                // 3. PERSONAL PROFILE & STABILITY (20%)
+                // 4. INITIAL RELATIONSHIP & DEPOSIT (10%)
+
+                // Update runtime weights
+                _w1 = 40m;
+                _w2 = 30m;
+                _w3 = 20m;
+                _w4 = 10m;
+
+                // Update labels (meaning + weights)
+                if (lblC1 != null) lblC1.Text = "Document Verification & Identity (40%):";
+                if (lblC2 != null) lblC2.Text = "Employment & Income Stability (30%):";
+                if (lblC3 != null) lblC3.Text = "Personal Profile & Stability (20%):";
+                if (lblC4 != null) lblC4.Text = "Initial Relationship & Deposit (10%):";
+
+                // Defaults for a "New" customer (you can tune these later)
+                paymentHistoryInput.Value = 80;
+                creditUtilizationInput.Value = 50;
+                creditHistoryLengthInput.Value = 60;
+                incomeStabilityInput.Value = 70;
+
+                UpdateCreditScore(this, EventArgs.Empty);
+                return;
+            }
+
+            // Default scoring (existing calculator meaning)
+            _w1 = 35m;
+            _w2 = 30m;
+            _w3 = 15m;
+            _w4 = 20m;
+
+            if (lblC1 != null) lblC1.Text = "Payment History (35%):";
+            if (lblC2 != null) lblC2.Text = "Credit Utilization (30%):";
+            if (lblC3 != null) lblC3.Text = "Credit History Length (15%):";
+            if (lblC4 != null) lblC4.Text = "Income Stability (20%):";
+
+            paymentHistoryInput.Value = 90;
+            creditUtilizationInput.Value = 65;
+            creditHistoryLengthInput.Value = 85;
+            incomeStabilityInput.Value = 70;
+
+            UpdateCreditScore(this, EventArgs.Empty);
+        }
+
         private void InitializeComponent()
         {
             this.Text = "Evaluate Loan Application";
-            this.Size = new Size(950, 850);
+            this.Size = new Size(900, 700); // Fixed size, not too large
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Padding = new Padding(20);
+            this.Padding = new Padding(10);
             this.BackColor = Color.White;
         }
 
         private void InitializeControls()
         {
-            // Credit Assessment Panel
-            creditAssessmentPanel = CreatePanel("Credit Assessment Calculator", Color.FromArgb(240, 248, 255));
+            // Initialize main container for scrolling
+            mainContainer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                Padding = new Padding(5)
+            };
+
+            creditAssessmentPanel = CreatePanel("Credit Assessment Calculator", Color.FromArgb(240, 248, 255), 850);
 
             paymentHistoryInput = CreateNumericInput(90, 0, 100);
             creditUtilizationInput = CreateNumericInput(65, 0, 100);
@@ -101,18 +179,24 @@ namespace LoanApplicationUI
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Items = { "Approve", "Approve with Conditions", "Reject" },
                 SelectedIndex = 0,
-                Width = 200
+                Width = 180
             };
 
-            // Loan Computation Panel
-            loanComputationPanel = CreatePanel("Loan Computation & Terms", Color.FromArgb(240, 255, 240));
+            // Initialize label references
+            lblC1 = new Label { Text = "Payment History (35%):", AutoSize = true, Width = 250 };
+            lblC2 = new Label { Text = "Credit Utilization (30%):", AutoSize = true, Width = 250 };
+            lblC3 = new Label { Text = "Credit History Length (15%):", AutoSize = true, Width = 250 };
+            lblC4 = new Label { Text = "Income Stability (20%):", AutoSize = true, Width = 250 };
+
+            // Loan computation controls
+            loanComputationPanel = CreatePanel("Loan Computation & Terms", Color.FromArgb(240, 255, 240), 850);
 
             interestMethodComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 Items = { "Diminishing Balance", "Flat Rate", "Add-on Rate" },
                 SelectedIndex = 0,
-                Width = 200
+                Width = 180
             };
 
             interestRateInput = CreateNumericInput(12.0m, 0, 50, 0.1m);
@@ -125,7 +209,6 @@ namespace LoanApplicationUI
                 ForeColor = SystemColors.ControlDarkDark
             };
 
-            // Calculation results labels
             monthlyPaymentLabel = CreateResultLabel("₱0.00");
             totalInterestLabel = CreateResultLabel("₱0.00");
             totalPayableLabel = CreateResultLabel("₱0.00");
@@ -139,8 +222,8 @@ namespace LoanApplicationUI
                 Width = 120
             };
 
-            // Approval Workflow Panel
-            approvalWorkflowPanel = CreatePanel("Approval Workflow & Conditions", Color.FromArgb(255, 248, 225));
+            // Approval workflow controls
+            approvalWorkflowPanel = CreatePanel("Approval Workflow & Conditions", Color.FromArgb(255, 248, 225), 850);
 
             approvalLevelComboBox = new ComboBox
             {
@@ -150,7 +233,6 @@ namespace LoanApplicationUI
                 Width = 250
             };
 
-            // Checkboxes
             requireCoMakerCheckBox = CreateCheckBox("Require co-maker/guarantor");
             reduceAmountCheckBox = CreateCheckBox("Reduce loan amount to ₱12,000");
             shortenTermCheckBox = CreateCheckBox("Shorten term to 6 months");
@@ -178,57 +260,109 @@ namespace LoanApplicationUI
                 Multiline = true,
                 ScrollBars = ScrollBars.Vertical,
                 Height = 60,
-                Width = 400,
-                Text = "Enter evaluation remarks..."
+                Width = 400
             };
+            remarksTextBox.Enter += (s, e) => {
+                if (remarksTextBox.Text == "Enter evaluation remarks...")
+                {
+                    remarksTextBox.Text = "";
+                    remarksTextBox.ForeColor = SystemColors.WindowText;
+                }
+            };
+            remarksTextBox.Leave += (s, e) => {
+                if (string.IsNullOrWhiteSpace(remarksTextBox.Text))
+                {
+                    remarksTextBox.Text = "Enter evaluation remarks...";
+                    remarksTextBox.ForeColor = SystemColors.GrayText;
+                }
+            };
+            remarksTextBox.Text = "Enter evaluation remarks...";
+            remarksTextBox.ForeColor = SystemColors.GrayText;
 
-            // Action buttons
-            generateContractButton = CreateButton("Generate Contract Preview", Color.FromArgb(240, 240, 240));
-            viewAmortizationButton = CreateButton("View Amortization Schedule", Color.FromArgb(240, 240, 240));
-            saveAsDraftButton = CreateButton("Save as Draft", Color.FromArgb(240, 240, 240));
-            rejectButton = CreateButton("Reject Application", Color.FromArgb(255, 240, 240));
-            approveButton = CreateButton("Approve Application", Color.FromArgb(230, 255, 230));
+            generateContractButton = CreateButton("Generate Contract Preview", Color.FromArgb(240, 240, 240), 180);
+            viewAmortizationButton = CreateButton("View Amortization Schedule", Color.FromArgb(240, 240, 240), 180);
+            saveAsDraftButton = CreateButton("Save as Draft", Color.FromArgb(240, 240, 240), 120);
+            rejectButton = CreateButton("Reject Application", Color.FromArgb(255, 240, 240), 140);
+            approveButton = CreateButton("Approve Application", Color.FromArgb(230, 255, 230), 140);
 
-            // Set button colors
             rejectButton.ForeColor = Color.FromArgb(200, 0, 0);
             approveButton.ForeColor = Color.FromArgb(0, 100, 0);
             approveButton.BackColor = Color.FromArgb(144, 238, 144);
 
-            // Wire up events
             WireUpEvents();
         }
 
         private void SetupLayout()
         {
+            // Add main container to form
+            this.Controls.Add(mainContainer);
+
             var mainLayout = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 ColumnCount = 1,
-                RowCount = 6,
-                Padding = new Padding(0, 0, 0, 10)
+                Padding = new Padding(5)
             };
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
             // Credit Assessment Section
             var creditLayout = new TableLayoutPanel
             {
                 ColumnCount = 4,
-                RowCount = 5,
+                RowCount = 6,
                 Padding = new Padding(10),
-                AutoSize = true
+                AutoSize = true,
+                Width = 800
             };
 
-            AddCreditRow(creditLayout, 0, "Payment History (35%):", paymentHistoryInput);
-            AddCreditRow(creditLayout, 1, "Credit Utilization (30%):", creditUtilizationInput);
-            AddCreditRow(creditLayout, 2, "Credit History Length (15%):", creditHistoryLengthInput);
-            AddCreditRow(creditLayout, 3, "Income Stability (20%):", incomeStabilityInput);
+            creditLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            creditLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            creditLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            creditLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+            // Add rows using the label references
+            AddCreditRow(creditLayout, 0, lblC1, paymentHistoryInput);
+            AddCreditRow(creditLayout, 1, lblC2, creditUtilizationInput);
+            AddCreditRow(creditLayout, 2, lblC3, creditHistoryLengthInput);
+            AddCreditRow(creditLayout, 3, lblC4, incomeStabilityInput);
 
             // Total score row
-            creditLayout.Controls.Add(new Label { Text = "TOTAL CREDIT SCORE:", AutoSize = true }, 0, 4);
+            creditLayout.Controls.Add(new Label
+            {
+                Text = "TOTAL CREDIT SCORE:",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            }, 0, 4);
             creditLayout.Controls.Add(totalCreditScoreLabel, 1, 4);
+            creditLayout.SetColumnSpan(totalCreditScoreLabel, 3);
 
             // Decision row
-            creditLayout.Controls.Add(new Label { Text = "Decision:", AutoSize = true }, 0, 5);
-            creditLayout.Controls.Add(decisionComboBox, 1, 5);
+            creditLayout.Controls.Add(new Label
+            {
+                Text = "Decision:",
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 0)
+            }, 0, 5);
+
+            var decisionPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 0)
+            };
+            decisionPanel.Controls.Add(decisionComboBox);
+            decisionPanel.Controls.Add(new Label
+            {
+                Text = "(Auto-suggested based on score)",
+                AutoSize = true,
+                ForeColor = SystemColors.GrayText,
+                Font = new Font("Segoe UI", 8),
+                Margin = new Padding(10, 5, 0, 0)
+            });
+
+            creditLayout.Controls.Add(decisionPanel, 1, 5);
+            creditLayout.SetColumnSpan(decisionPanel, 3);
 
             creditAssessmentPanel.Controls.Add(creditLayout);
 
@@ -236,19 +370,32 @@ namespace LoanApplicationUI
             var loanLayout = new TableLayoutPanel
             {
                 ColumnCount = 2,
-                RowCount = 8,
+                RowCount = 5,
                 Padding = new Padding(10),
-                AutoSize = true
+                AutoSize = true,
+                Width = 800
             };
+
+            loanLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            loanLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
             AddLoanRow(loanLayout, 0, "Interest Method:", interestMethodComboBox);
             AddLoanRow(loanLayout, 1, "Rate:", interestRateInput, new Label { Text = "% p.a.", AutoSize = true });
 
             // Service fee row
             loanLayout.Controls.Add(new Label { Text = "Service Fee:", AutoSize = true }, 0, 2);
-            var serviceFeePanel = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true };
+            var serviceFeePanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true
+            };
             serviceFeePanel.Controls.Add(serviceFeeInput);
-            serviceFeePanel.Controls.Add(new Label { Text = "%", Margin = new Padding(5, 3, 0, 0) });
+            serviceFeePanel.Controls.Add(new Label
+            {
+                Text = "%",
+                Margin = new Padding(5, 3, 0, 0),
+                AutoSize = true
+            });
             serviceFeePanel.Controls.Add(serviceFeeAmountLabel);
             loanLayout.Controls.Add(serviceFeePanel, 1, 2);
 
@@ -256,13 +403,23 @@ namespace LoanApplicationUI
             var resultsPanel = CreateResultsPanel();
             loanLayout.SetColumnSpan(resultsPanel, 2);
             loanLayout.Controls.Add(resultsPanel, 0, 3);
-            loanLayout.SetRow(resultsPanel, 3);
 
             // Adjust terms row
-            loanLayout.Controls.Add(new Label { Text = "Adjust Terms:", AutoSize = true }, 0, 4);
-            var termsPanel = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true };
+            loanLayout.Controls.Add(new Label
+            {
+                Text = "Adjust Terms:",
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 0)
+            }, 0, 4);
+
+            var termsPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 0)
+            };
             termsPanel.Controls.Add(loanTermComboBox);
-            var recalcButton = CreateButton("Recalculate", Color.FromArgb(240, 240, 240));
+            var recalcButton = CreateButton("Recalculate", Color.FromArgb(240, 240, 240), 100);
             recalcButton.Click += (s, e) => RecalculateLoan();
             termsPanel.Controls.Add(recalcButton);
             loanLayout.Controls.Add(termsPanel, 1, 4);
@@ -273,15 +430,29 @@ namespace LoanApplicationUI
             var approvalLayout = new TableLayoutPanel
             {
                 ColumnCount = 1,
-                RowCount = 7,
+                RowCount = 8,
                 Padding = new Padding(10),
-                AutoSize = true
+                AutoSize = true,
+                Width = 800
             };
 
-            AddApprovalRow(approvalLayout, 0, "Approval Level Required:", approvalLevelComboBox);
+            // Approval Level
+            approvalLayout.Controls.Add(new Label
+            {
+                Text = "Approval Level Required:",
+                AutoSize = true,
+                Margin = new Padding(0, 0, 0, 5)
+            }, 0, 0);
+            approvalLayout.Controls.Add(approvalLevelComboBox, 0, 1);
 
             // Conditions
-            approvalLayout.Controls.Add(new Label { Text = "Conditions:", AutoSize = true }, 0, 1);
+            approvalLayout.Controls.Add(new Label
+            {
+                Text = "Conditions:",
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 5)
+            }, 0, 2);
+
             var conditionsPanel = new FlowLayoutPanel
             {
                 FlowDirection = FlowDirection.TopDown,
@@ -292,10 +463,25 @@ namespace LoanApplicationUI
             conditionsPanel.Controls.Add(reduceAmountCheckBox);
             conditionsPanel.Controls.Add(shortenTermCheckBox);
             conditionsPanel.Controls.Add(additionalCollateralCheckBox);
-            approvalLayout.Controls.Add(conditionsPanel, 0, 2);
+            approvalLayout.Controls.Add(conditionsPanel, 0, 3);
 
-            AddApprovalRow(approvalLayout, 3, "Rejection Reason:", rejectionReasonComboBox);
-            AddApprovalRow(approvalLayout, 4, "Remarks:", remarksTextBox);
+            // Rejection Reason
+            approvalLayout.Controls.Add(new Label
+            {
+                Text = "Rejection Reason:",
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 5)
+            }, 0, 4);
+            approvalLayout.Controls.Add(rejectionReasonComboBox, 0, 5);
+
+            // Remarks
+            approvalLayout.Controls.Add(new Label
+            {
+                Text = "Remarks:",
+                AutoSize = true,
+                Margin = new Padding(0, 10, 0, 5)
+            }, 0, 6);
+            approvalLayout.Controls.Add(remarksTextBox, 0, 7);
 
             approvalWorkflowPanel.Controls.Add(approvalLayout);
 
@@ -304,7 +490,8 @@ namespace LoanApplicationUI
             {
                 FlowDirection = FlowDirection.LeftToRight,
                 AutoSize = true,
-                Padding = new Padding(0, 10, 0, 10)
+                Padding = new Padding(10, 10, 10, 10),
+                Margin = new Padding(0, 10, 0, 0)
             };
             actionButtonsPanel.Controls.Add(generateContractButton);
             actionButtonsPanel.Controls.Add(viewAmortizationButton);
@@ -313,9 +500,9 @@ namespace LoanApplicationUI
             var footerPanel = new FlowLayoutPanel
             {
                 FlowDirection = FlowDirection.RightToLeft,
-                Dock = DockStyle.Bottom,
-                Height = 50,
-                Padding = new Padding(0, 10, 0, 0)
+                AutoSize = true,
+                Padding = new Padding(10, 20, 10, 10),
+                Margin = new Padding(0, 20, 0, 0)
             };
             footerPanel.Controls.Add(approveButton);
             footerPanel.Controls.Add(rejectButton);
@@ -326,35 +513,51 @@ namespace LoanApplicationUI
             mainLayout.Controls.Add(loanComputationPanel, 0, 1);
             mainLayout.Controls.Add(approvalWorkflowPanel, 0, 2);
             mainLayout.Controls.Add(actionButtonsPanel, 0, 3);
-            mainLayout.Controls.Add(new Panel(), 0, 4); // Spacer
-            mainLayout.Controls.Add(footerPanel, 0, 5);
+            mainLayout.Controls.Add(footerPanel, 0, 4);
 
-            this.Controls.Add(mainLayout);
+            // Add main layout to container
+            mainContainer.Controls.Add(mainLayout);
         }
 
-        private void AddCreditRow(TableLayoutPanel panel, int row, string labelText, Control inputControl)
+        // NEW overload: accept a label instance so we can change it later
+        private void AddCreditRow(TableLayoutPanel panel, int row, Label label, Control inputControl)
         {
-            panel.Controls.Add(new Label { Text = labelText, AutoSize = true }, 0, row);
+            panel.Controls.Add(label, 0, row);
             panel.Controls.Add(inputControl, 1, row);
-            panel.Controls.Add(new Label { Text = "/100", AutoSize = true }, 2, row);
+            panel.Controls.Add(new Label
+            {
+                Text = "/100",
+                AutoSize = true,
+                Margin = new Padding(10, 0, 0, 0)
+            }, 2, row);
 
             // Score calculation label
             var scoreLabel = new Label
             {
                 Text = "→ 0.0",
                 AutoSize = true,
-                ForeColor = SystemColors.ControlDarkDark
+                ForeColor = SystemColors.ControlDarkDark,
+                Margin = new Padding(10, 0, 0, 0)
             };
             panel.Controls.Add(scoreLabel, 3, row);
         }
 
         private void AddLoanRow(TableLayoutPanel panel, int row, string labelText, Control inputControl, Control additionalControl = null)
         {
-            panel.Controls.Add(new Label { Text = labelText, AutoSize = true }, 0, row);
+            panel.Controls.Add(new Label
+            {
+                Text = labelText,
+                AutoSize = true,
+                Margin = new Padding(0, 5, 0, 5)
+            }, 0, row);
 
             if (additionalControl != null)
             {
-                var flowPanel = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true };
+                var flowPanel = new FlowLayoutPanel
+                {
+                    FlowDirection = FlowDirection.LeftToRight,
+                    AutoSize = true
+                };
                 flowPanel.Controls.Add(inputControl);
                 flowPanel.Controls.Add(additionalControl);
                 panel.Controls.Add(flowPanel, 1, row);
@@ -365,19 +568,15 @@ namespace LoanApplicationUI
             }
         }
 
-        private void AddApprovalRow(TableLayoutPanel panel, int row, string labelText, Control inputControl)
-        {
-            panel.Controls.Add(new Label { Text = labelText, AutoSize = true, Margin = new Padding(0, 5, 0, 5) }, 0, row);
-            panel.Controls.Add(inputControl, 0, row + 1);
-        }
-
-        private Panel CreatePanel(string title, Color headerColor)
+        private Panel CreatePanel(string title, Color headerColor, int width)
         {
             var panel = new Panel
             {
                 BorderStyle = BorderStyle.FixedSingle,
                 AutoSize = true,
-                Margin = new Padding(0, 0, 0, 15)
+                Margin = new Padding(0, 0, 0, 15),
+                Padding = new Padding(0, 0, 0, 5),
+                Width = width
             };
 
             var header = new Panel
@@ -412,7 +611,8 @@ namespace LoanApplicationUI
                 Maximum = max,
                 Increment = increment,
                 DecimalPlaces = increment < 1 ? 1 : 0,
-                Width = 80
+                Width = 80,
+                Margin = new Padding(0, 0, 5, 0)
             };
         }
 
@@ -427,9 +627,9 @@ namespace LoanApplicationUI
             };
         }
 
-        private Button CreateButton(string text, Color backColor)
+        private Button CreateButton(string text, Color backColor, int width = 0)
         {
-            return new Button
+            var button = new Button
             {
                 Text = text,
                 BackColor = backColor,
@@ -439,6 +639,11 @@ namespace LoanApplicationUI
                 Margin = new Padding(0, 0, 5, 0),
                 Cursor = Cursors.Hand
             };
+
+            if (width > 0)
+                button.Width = width;
+
+            return button;
         }
 
         private Label CreateResultLabel(string text)
@@ -460,7 +665,8 @@ namespace LoanApplicationUI
                 BackColor = Color.FromArgb(245, 255, 245),
                 Margin = new Padding(0, 10, 0, 10),
                 Padding = new Padding(10),
-                AutoSize = true
+                AutoSize = true,
+                Width = 780
             };
 
             var header = new Panel
@@ -488,16 +694,39 @@ namespace LoanApplicationUI
                 Padding = new Padding(0, 30, 0, 0)
             };
 
-            resultsLayout.Controls.Add(new Label { Text = "Monthly Payment:", AutoSize = true }, 0, 0);
+            resultsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            resultsLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+            resultsLayout.Controls.Add(new Label
+            {
+                Text = "Monthly Payment:",
+                AutoSize = true,
+                Margin = new Padding(0, 2, 10, 2)
+            }, 0, 0);
             resultsLayout.Controls.Add(monthlyPaymentLabel, 1, 0);
 
-            resultsLayout.Controls.Add(new Label { Text = "Total Interest:", AutoSize = true }, 0, 1);
+            resultsLayout.Controls.Add(new Label
+            {
+                Text = "Total Interest:",
+                AutoSize = true,
+                Margin = new Padding(0, 2, 10, 2)
+            }, 0, 1);
             resultsLayout.Controls.Add(totalInterestLabel, 1, 1);
 
-            resultsLayout.Controls.Add(new Label { Text = "Total Payable:", AutoSize = true }, 0, 2);
+            resultsLayout.Controls.Add(new Label
+            {
+                Text = "Total Payable:",
+                AutoSize = true,
+                Margin = new Padding(0, 2, 10, 2)
+            }, 0, 2);
             resultsLayout.Controls.Add(totalPayableLabel, 1, 2);
 
-            resultsLayout.Controls.Add(new Label { Text = "APR:", AutoSize = true }, 0, 3);
+            resultsLayout.Controls.Add(new Label
+            {
+                Text = "APR:",
+                AutoSize = true,
+                Margin = new Padding(0, 2, 10, 2)
+            }, 0, 3);
             resultsLayout.Controls.Add(aprLabel, 1, 3);
 
             header.Controls.Add(headerLabel);
@@ -528,10 +757,10 @@ namespace LoanApplicationUI
 
         private void UpdateCreditScore(object sender, EventArgs e)
         {
-            decimal ph = (paymentHistoryInput.Value / 100) * 35;
-            decimal cu = (creditUtilizationInput.Value / 100) * 30;
-            decimal chl = (creditHistoryLengthInput.Value / 100) * 15;
-            decimal @is = (incomeStabilityInput.Value / 100) * 20;
+            decimal ph = (paymentHistoryInput.Value / 100m) * _w1;
+            decimal cu = (creditUtilizationInput.Value / 100m) * _w2;
+            decimal chl = (creditHistoryLengthInput.Value / 100m) * _w3;
+            decimal @is = (incomeStabilityInput.Value / 100m) * _w4;
 
             decimal totalScore = ph + cu + chl + @is;
             totalCreditScoreLabel.Text = $"{totalScore:F2}/100";
@@ -551,9 +780,16 @@ namespace LoanApplicationUI
         {
             if (currentApplication != null)
             {
-                decimal principal = decimal.Parse(currentApplication.Amount.Replace("₱", "").Replace(",", ""));
-                decimal serviceFeeAmount = (principal * serviceFeeInput.Value) / 100;
-                serviceFeeAmountLabel.Text = $"(₱{serviceFeeAmount:F2})";
+                try
+                {
+                    decimal principal = decimal.Parse(currentApplication.Amount.Replace("₱", "").Replace(",", ""));
+                    decimal serviceFeeAmount = (principal * serviceFeeInput.Value) / 100;
+                    serviceFeeAmountLabel.Text = $"(₱{serviceFeeAmount:F2})";
+                }
+                catch
+                {
+                    serviceFeeAmountLabel.Text = "(₱0.00)";
+                }
             }
         }
 
@@ -629,26 +865,4 @@ namespace LoanApplicationUI
         public string AppliedDate { get; set; }
         public string Status { get; set; }
     }
-
-    // Usage example:
-    // In your main form, when you want to show this dialog:
-    /*
-    private void ShowEvaluationDialog()
-    {
-        var dialog = new OfficerEvaluateApplicationForm
-        {
-            CurrentApplication = new ApplicationData
-            {
-                Id = "APP-2024-00123",
-                Customer = "John Doe",
-                LoanType = "Personal Loan",
-                Amount = "₱15,000.00",
-                AppliedDate = "2024-01-15",
-                Status = "Under Review"
-            }
-        };
-        
-        dialog.ShowDialog();
-    }
-    */
 }

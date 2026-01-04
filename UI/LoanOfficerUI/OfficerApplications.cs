@@ -188,26 +188,78 @@ namespace LendingApp.UI.LoanOfficerUI
             if (!(gridApplications.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
 
             string appId = gridApplications.Rows[e.RowIndex].Cells["AppId"].Value?.ToString();
-            string customer = gridApplications.Rows[e.RowIndex].Cells["Customer"].Value?.ToString();
-            string type = gridApplications.Rows[e.RowIndex].Cells["Type"].Value?.ToString();
-            string amount = gridApplications.Rows[e.RowIndex].Cells["Amount"].Value?.ToString();
-            string applied = gridApplications.Rows[e.RowIndex].Cells["Applied"].Value?.ToString();
-
             var action = gridApplications.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
 
-            // Open Review dialog when Review/Evaluate is clicked
-            if (string.Equals(action, "Review", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(action, "Evaluate", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(appId)) return;
+
+            // REVIEW -> show review dialog (send for evaluation happens there)
+            if (string.Equals(action, "Review", StringComparison.OrdinalIgnoreCase))
             {
                 using (var dlg = new ReviewApplicationDialog(appId))
                 {
                     dlg.ShowDialog(this);
                 }
 
+                updateStatusSummary();
+                LoadApplications();
                 return;
             }
 
-            // default behavior
+            // EVALUATE -> open evaluation form directly
+            if (string.Equals(action, "Evaluate", StringComparison.OrdinalIgnoreCase))
+            {
+                // Use the same flow ReviewApplicationDialog uses: load from DB, determine customer type,
+                // then apply defaults and show the evaluation form.
+                var loanRepo = new LendingApp.Class.Repo.LoanApplicationRepository();
+                var customerRepo = new LendingApp.Class.Repo.CustomerRepository();
+
+                var app = loanRepo.GetByApplicationNumber(appId);
+                if (app == null)
+                {
+                    MessageBox.Show("Application not found in database.", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                var customer = customerRepo.GetById(app.CustomerId);
+
+                string customerName = customer != null
+                    ? ((customer.FirstName ?? "") + " " + (customer.LastName ?? "")).Trim()
+                    : (app.CustomerId ?? "N/A");
+
+                string loanTypeText;
+                switch (app.ProductId)
+                {
+                    case 1: loanTypeText = "Personal Loan"; break;
+                    case 2: loanTypeText = "Emergency Loan"; break;
+                    case 3: loanTypeText = "Salary Loan"; break;
+                    default: loanTypeText = "Product " + app.ProductId; break;
+                }
+
+                string amountText = "₱" + app.RequestedAmount.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+
+                using (var eval = new LoanApplicationUI.OfficerEvaluateApplicationForm())
+                {
+                    eval.CurrentApplication = new LoanApplicationUI.ApplicationData
+                    {
+                        Id = app.ApplicationNumber,
+                        Customer = customerName,
+                        LoanType = loanTypeText,
+                        Amount = amountText,
+                        AppliedDate = app.ApplicationDate.ToString("MMM dd, yyyy", System.Globalization.CultureInfo.GetCultureInfo("en-US")),
+                        Status = app.Status
+                    };
+
+                    eval.ApplyDefaultsForCustomerType(customer?.CustomerType);
+                    eval.ShowDialog(this);
+                }
+
+                // optional refresh (if evaluation later changes status)
+                updateStatusSummary();
+                LoadApplications();
+                return;
+            }
+
             MessageBox.Show($"{action} {appId}", "Application Action",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }

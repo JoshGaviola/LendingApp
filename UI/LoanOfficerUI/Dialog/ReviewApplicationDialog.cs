@@ -7,6 +7,9 @@ using LendingApp.Class.Interface;
 using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
+using LendingApp.Class.Services;
+using LoanApplicationUI;
+using LendingApp.Class.Service;
 
 namespace LendingApp.UI.LoanOfficerUI.Dialog
 {
@@ -49,6 +52,12 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             if (_application == null) return;
 
             _customer = _customerRepo.GetById(_application.CustomerId);
+        }
+
+        private void ReloadFromDbAndRefreshUi()
+        {
+            LoadFromDb();
+            SetupUI();
         }
 
         private void SetupUI()
@@ -101,38 +110,101 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             currentY += 20;
 
             AddSection(mainPanel, "Preliminary Assessment", ref currentY);
-            AddAssessment(mainPanel, ref currentY);
             currentY += 20;
 
-            AddActionButtons(mainPanel, ref currentY);
             currentY += 50;
 
-            // ADDED: Send for Evaluation and Reject buttons
-            Panel decisionPanel = new Panel
+            // Decision panel
+            var decisionPanel = new Panel
             {
                 Location = new Point(0, currentY),
                 Size = new Size(600, 40)
             };
 
-            Button btnSendEvaluation = new Button
+            // Determine workflow action based on status
+            var appStatus = (_application?.Status ?? "").Trim();
+            bool canEvaluate = string.Equals(appStatus, "Review", StringComparison.OrdinalIgnoreCase);
+            bool canSendForEvaluation = string.Equals(appStatus, "Pending", StringComparison.OrdinalIgnoreCase);
+
+            var btnPrimary = new Button
             {
-                Text = "Send for Evaluation",
+                Text = canEvaluate ? "Evaluate" : "Send for Evaluation",
                 Location = new Point(0, 5),
                 Size = new Size(140, 30),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 BackColor = Color.FromArgb(59, 130, 246),
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Enabled = canEvaluate || canSendForEvaluation
             };
-            btnSendEvaluation.FlatAppearance.BorderSize = 0;
-            btnSendEvaluation.Click += (s, e) =>
+            btnPrimary.FlatAppearance.BorderSize = 0;
+
+            btnPrimary.Click += (s, e) =>
             {
-                // Don't implement the feature - just show a message
-                MessageBox.Show("Send for Evaluation clicked.", "Info",
+                if (_application == null)
+                {
+                    MessageBox.Show("Application not found in database.", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                var currentStatus = (_application.Status ?? "").Trim();
+
+                // 1) Send for Evaluation: Pending -> Review (persist)
+                if (string.Equals(currentStatus, "Pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    var creditScore = GetCreditScore();
+                    var loanTypeText = GetLoanTypeText();
+
+                    if (!CreditScoringService.MeetsMinimumScore(loanTypeText, creditScore, out int min))
+                    {
+                        MessageBox.Show(
+                            $"This application does not meet the minimum credit score requirement.\n\n" +
+                            $"Loan Type: {loanTypeText}\n" +
+                            $"Customer Score: {creditScore}/1000\n" +
+                            $"Minimum Required: {min}/1000",
+                            "Minimum Score Not Met",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+
+                        return;
+                    }
+
+                    // Update status in DB
+                    _application.Status = "Review";
+                    _application.StatusDate = DateTime.Now;
+
+                    try
+                    {
+                        _loanRepo.Update(_application);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Failed to update application status.\n\n" + ex.Message, "Database Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    MessageBox.Show("Application sent for evaluation. Status is now REVIEW.", "Updated",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // Refresh screen so the button changes into Evaluate immediately
+                    ReloadFromDbAndRefreshUi();
+                    return;
+                }
+
+                // 2) Evaluate: open evaluation form
+                if (string.Equals(currentStatus, "Review", StringComparison.OrdinalIgnoreCase))
+                {
+                    OpenEvaluationForm();
+                    return;
+                }
+
+                MessageBox.Show("Action not allowed for the current status: " + currentStatus, "Info",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
 
-            Button btnReject = new Button
+            var btnReject = new Button
             {
                 Text = "Reject",
                 Location = new Point(150, 5),
@@ -146,12 +218,11 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             btnReject.FlatAppearance.BorderSize = 1;
             btnReject.Click += (s, e) =>
             {
-                // Don't implement the feature - just show a message
                 MessageBox.Show("Reject clicked. Feature not implemented.", "Info",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
 
-            decisionPanel.Controls.Add(btnSendEvaluation);
+            decisionPanel.Controls.Add(btnPrimary);
             decisionPanel.Controls.Add(btnReject);
             mainPanel.Controls.Add(decisionPanel);
             currentY += 50;
@@ -180,6 +251,66 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
             Controls.Add(mainPanel);
         }
+
+        private void OpenEvaluationForm()
+        {
+            if (_application == null)
+            {
+                MessageBox.Show("Application not found.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var customerName = _customer != null
+                ? ((_customer.FirstName ?? "") + " " + (_customer.LastName ?? "")).Trim()
+                : (_application.CustomerId ?? "N/A");
+
+            var loanTypeText = GetLoanTypeText();
+            var amountText = Money(_application.RequestedAmount);
+
+            var eval = new LoanApplicationUI.OfficerEvaluateApplicationForm
+            {
+                CurrentApplication = new LoanApplicationUI.ApplicationData
+                {
+                    Id = _application.ApplicationNumber,
+                    Customer = customerName,
+                    LoanType = loanTypeText,
+                    Amount = amountText,
+                    AppliedDate = _application.ApplicationDate.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US")),
+                    Status = _application.Status
+                }
+            };
+
+            eval.ApplyDefaultsForCustomerType(_customer?.CustomerType);
+            eval.ShowDialog(this);
+        }
+
+        private string GetLoanTypeText()
+        {
+            if (_application == null) return "Unknown";
+
+            switch (_application.ProductId)
+            {
+                case 1: return "Personal Loan";
+                case 2: return "Emergency Loan";
+                case 3: return "Salary Loan";
+                default: return "Product " + _application.ProductId.ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+        private int GetCreditScore()
+        {
+            if (_customer == null) return 0;
+            return _customer.InitialCreditScore;
+        }
+
+        private static string Money(decimal? amount)
+        {
+            if (!amount.HasValue) return "";
+            return "₱" + amount.Value.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
+        }
+
+        // ===== existing layout helpers unchanged =====
 
         private void AddApplicationDetails(Panel parent, ref int y)
         {
@@ -234,10 +365,13 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             };
 
             int creditScore = GetCreditScore();
+            string loanTypeText = GetLoanTypeText();
+            int minScore = CreditScoringService.GetMinimumApprovalScore(loanTypeText);
 
             string[] info =
             {
                 $"Credit Score: {creditScore}/1000",
+                minScore > 0 ? $"Min Required ({loanTypeText}): {minScore}/1000" : $"Min Required ({loanTypeText}): N/A",
                 $"Customer Type: {_customer?.CustomerType ?? "N/A"}",
                 $"Status: {_customer?.Status ?? "N/A"}",
                 $"Mobile: {_customer?.MobileNumber ?? ""}",
@@ -324,22 +458,6 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             y += 30;
         }
 
-        private int GetCreditScore()
-        {
-            // For now: use the DB value you already store.
-            // Next step: replace this with a computed score (see below).
-            if (_customer == null) return 0;
-            return _customer.InitialCreditScore;
-        }
-
-        private static string Money(decimal? amount)
-        {
-            if (!amount.HasValue) return "";
-            return "₱" + amount.Value.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
-        }
-
-        // ===== existing layout helpers unchanged =====
-
         private void AddSection(Panel parent, string title, ref int y)
         {
             Panel section = new Panel
@@ -411,9 +529,5 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             parent.Controls.Add(section);
             y += 40;
         }
-
-        // NOTE: left your existing assessment/actions as-is.
-        private void AddAssessment(Panel parent, ref int y) { /* keep existing implementation */ }
-        private void AddActionButtons(Panel parent, ref int y) { /* keep existing implementation */ }
     }
 }

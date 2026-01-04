@@ -9,6 +9,7 @@ using System.IO;
 using System.Windows.Forms;
 using LendingApp.Class;
 using System.Linq;
+using LendingApp.Class.Services;
 
 namespace LendingApp.UI.CustomerUI
 {
@@ -482,8 +483,12 @@ namespace LendingApp.UI.CustomerUI
                         existing.BankName = formData.BankName;
                         existing.BankAccountNumber = formData.BankAccountNumber;
 
-                        existing.InitialCreditScore = formData.InitialCreditScore;
-                        existing.CreditLimit = formData.CreditLimit;
+                        // Recalculate score based on current edited profile details
+                        var newScore = CreditScoringService.RecalculateScore1000(formData);
+                        existing.InitialCreditScore = newScore;
+
+                        // Optional: increase credit limit as profile improves but never decrease it
+                        existing.CreditLimit = CreditScoringService.SuggestCreditLimitNoDecrease(newScore, existing.CreditLimit);
 
                         existing.EmergencyContactName = formData.EmergencyContactName;
                         existing.EmergencyContactRelationship = formData.EmergencyContactRelationship;

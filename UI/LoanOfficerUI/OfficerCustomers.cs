@@ -99,7 +99,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             };
 
-            // IMPORTANT: ensure search change is wired
+            // Ensure the search handler is wired exactly once
             txtSearch.TextChanged -= txtSearch_TextChanged;
             txtSearch.TextChanged += txtSearch_TextChanged;
 
@@ -133,25 +133,14 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BindFilters()
         {
-<<<<<<< HEAD
             cmbCustomerType.SelectedIndex = 0; // All Customers
-        }
-
-        private void StatusUpdate()
-        {
-            lblTotalCustomers.Text = customers.Count.ToString();
-            lblNew.Text = customers.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblRegular.Text = customers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblVIP.Text = customers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblDelinquent.Text = customers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
-=======
-            cmbCustomerType.SelectedIndex = 0;
->>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
         }
 
         private IEnumerable<CustomerItem> Filtered()
         {
-            return customers.Where(c =>
+            var list = customers ?? new BindingList<CustomerItem>();
+
+            return list.Where(c =>
             {
                 bool matchesType = customerFilter == "all" || (c.Type ?? "").Equals(customerFilter, StringComparison.OrdinalIgnoreCase);
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery)
@@ -163,15 +152,12 @@ namespace LendingApp.UI.LoanOfficerUI
             });
         }
 
+        // KEEP ONLY THIS StatusUpdate() (filtered-aware)
         private void StatusUpdate()
         {
-            var all = customers;
             var filtered = Filtered().ToList();
 
-            // Total should show filtered *visibility* count, and the label already shows full count separately.
             lblTotalCustomers.Text = filtered.Count.ToString();
-
-            // Status cards should reflect the filtered view (so the UI feels consistent)
             lblNew.Text = filtered.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
             lblRegular.Text = filtered.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
             lblVIP.Text = filtered.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
@@ -186,25 +172,14 @@ namespace LendingApp.UI.LoanOfficerUI
             foreach (var c in filtered)
             {
                 int rowIndex = gridCustomers.Rows.Add(
-<<<<<<< HEAD
-                    c.Id,                    // Cust ID
-                    c.Name,
-                    c.Contact,               // Contact
-                    c.Type,                  // Type
-                    c.CreditScore,           // Score
-                    c.TotalLoans,            // Loans
-                    c.Balance,               // Balance
-                    "View"                   // Action button
-=======
                     c.Id,
-                    $"{c.Name} ({c.Email})",
+                    c.Name,
                     c.Contact,
                     c.Type,
                     c.CreditScore,
                     c.TotalLoans,
                     c.Balance,
                     "View"
->>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
                 );
 
                 var row = gridCustomers.Rows[rowIndex];
@@ -224,7 +199,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
-            lblResults.Text = $"Showing {filtered.Count} of {customers.Count} customers";
+            lblResults.Text = $"Showing {filtered.Count} of {(customers?.Count ?? 0)} customers";
         }
 
         private void GridCustomers_CellContentClick(object sender, DataGridViewCellEventArgs e)

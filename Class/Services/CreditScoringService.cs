@@ -28,27 +28,33 @@ namespace LendingApp.Class.Services
             var score = new CreditScoreBreakdown
             {
                 // New customers: proxies
-                PaymentHistory = ScoreIdentityAndDocs(c),      // proxy
-                CreditUtilization = ScoreCreditUtilization(c), // proxy/default
-                CreditHistoryLength = ScoreHistoryLength(c),   // proxy/default
-                IncomeStability = ScoreIncomeStability(c)      // derived
+                PaymentHistory = ScoreIdentityAndDocs(c),
+                CreditUtilization = ScoreCreditUtilization(c),
+                CreditHistoryLength = ScoreHistoryLength(c),
+                IncomeStability = ScoreIncomeStability(c)
             };
 
-            // total in 0..100 using same weighted math as UI
             decimal total100 =
                 (score.PaymentHistory / 100m) * W_PH +
                 (score.CreditUtilization / 100m) * W_CU +
                 (score.CreditHistoryLength / 100m) * W_CHL +
                 (score.IncomeStability / 100m) * W_IS;
 
-            // convert 0..100 => 0..1000
             score.TotalScore1000 = ClampInt((int)Math.Round(total100 * 10m), 0, 1000);
             return score;
         }
 
         /// <summary>
+        /// Recompute the score based on current customer details.
+        /// This is intended for EDIT scenarios (add/remove details).
+        /// </summary>
+        public static int RecalculateScore1000(CustomerRegistrationData c)
+        {
+            return CalculateInitial(c).TotalScore1000;
+        }
+
+        /// <summary>
         /// Conservative initial credit limit suggestion based on score only.
-        /// Keep it simple for now; you can later tie this to loan product rules.
         /// </summary>
         public static decimal SuggestCreditLimit(int score1000)
         {
@@ -57,6 +63,39 @@ namespace LendingApp.Class.Services
             if (score1000 >= 650) return 25_000m;
             if (score1000 >= 550) return 10_000m;
             return 5_000m;
+        }
+
+        /// <summary>
+        /// If you want credit limit to auto-adjust upward when profile improves.
+        /// Never lowers the limit to avoid surprising the user.
+        /// </summary>
+        public static decimal SuggestCreditLimitNoDecrease(int score1000, decimal currentLimit)
+        {
+            var suggested = SuggestCreditLimit(score1000);
+            return currentLimit > suggested ? currentLimit : suggested;
+        }
+
+        /// <summary>
+        /// Minimum score requirement per loan type.
+        /// Score uses the 0..1000 scale used throughout the app.
+        /// </summary>
+        public static int GetMinimumApprovalScore(string loanType)
+        {
+            var t = (loanType ?? "").Trim();
+
+            if (t.Equals("Personal Loan", StringComparison.OrdinalIgnoreCase)) return 650;
+            if (t.Equals("Emergency Loan", StringComparison.OrdinalIgnoreCase)) return 600;
+            if (t.Equals("Salary Loan", StringComparison.OrdinalIgnoreCase)) return 620;
+
+            // Unknown => no strict rule (0 means "not enforced")
+            return 0;
+        }
+
+        public static bool MeetsMinimumScore(string loanType, int creditScore1000, out int minimumScore)
+        {
+            minimumScore = GetMinimumApprovalScore(loanType);
+            if (minimumScore <= 0) return true;
+            return creditScore1000 >= minimumScore;
         }
 
         private static int ScoreIdentityAndDocs(CustomerRegistrationData c)
