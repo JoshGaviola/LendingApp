@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using LendingApp.Models.LoanOfficer;
 using LendingApp.Class.Services;
+using LendingApp.UI.LoanOfficerUI.Dialog;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -38,7 +39,7 @@ namespace LendingApp.UI.LoanOfficerUI
             WindowState = FormWindowState.Maximized;
 
             // Headers
-            lblHeaderTitle.Text = "Loan Applications";  
+            lblHeaderTitle.Text = "Loan Applications";
             lblHeaderTitle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 
             lblHeaderSubtitle.Text = "Manage and review customer loan applications";
@@ -110,8 +111,8 @@ namespace LendingApp.UI.LoanOfficerUI
             var actionCol = new DataGridViewButtonColumn
             {
                 HeaderText = "Action",
-                Text = "View",
-                UseColumnTextForButtonValue = false
+                Text = "Review",
+                UseColumnTextForButtonValue = true   // IMPORTANT
             };
             gridApplications.Columns.Add(actionCol);
 
@@ -147,7 +148,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
             foreach (var app in data)
             {
-
                 if (app.Applied == "Paid") continue;
 
                 int rowIndex = gridApplications.Rows.Add(
@@ -158,13 +158,9 @@ namespace LendingApp.UI.LoanOfficerUI
                     app.Applied
                 );
 
-                var btnCell =
-                    (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[5];
+                // Set the button caption per row
+                var btnCell = (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[5];
                 btnCell.Value = GetActionText(app.Applied);
-
-                var statusCell = gridApplications.Rows[rowIndex].Cells[5];
-                statusCell.Style.BackColor = GetStatusBackColor(app.Applied);
-                statusCell.Style.ForeColor = GetStatusForeColor(app.Applied);
             }
 
             lblResults.Text = $"{data.Count} of {logic.TotalApplications} applications";
@@ -184,58 +180,34 @@ namespace LendingApp.UI.LoanOfficerUI
             }
         }
 
-        private Color GetStatusBackColor(string status)
-        {
-            switch (status)
-            {
-                case "Pending": return ColorTranslator.FromHtml("#FEF3C7");
-                case "Review": return ColorTranslator.FromHtml("#DBEAFE");
-                case "Approved": return ColorTranslator.FromHtml("#D1FAE5");
-                case "Rejected": return ColorTranslator.FromHtml("#FECACA");
-                case "Disbursed": return ColorTranslator.FromHtml("#EDE9FE");
-                default: return ColorTranslator.FromHtml("#F3F4F6");
-            }
-        }
-
-        private Color GetStatusForeColor(string status)
-        {
-            switch (status)
-            {
-                case "Pending": return ColorTranslator.FromHtml("#92400E");
-                case "Review": return ColorTranslator.FromHtml("#1D4ED8");
-                case "Approved": return ColorTranslator.FromHtml("#065F46");
-                case "Rejected": return ColorTranslator.FromHtml("#7F1D1D");
-                case "Disbursed": return ColorTranslator.FromHtml("#5B21B6");
-                default: return ColorTranslator.FromHtml("#374151");
-            }
-        }
-
         private void GridApplications_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
+            if (!(gridApplications.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
 
-            if (gridApplications.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+            string appId = gridApplications.Rows[e.RowIndex].Cells["AppId"].Value?.ToString();
+            string customer = gridApplications.Rows[e.RowIndex].Cells["Customer"].Value?.ToString();
+            string type = gridApplications.Rows[e.RowIndex].Cells["Type"].Value?.ToString();
+            string amount = gridApplications.Rows[e.RowIndex].Cells["Amount"].Value?.ToString();
+            string applied = gridApplications.Rows[e.RowIndex].Cells["Applied"].Value?.ToString();
+
+            var action = gridApplications.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+
+            // Open Review dialog when Review/Evaluate is clicked
+            if (string.Equals(action, "Review", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(action, "Evaluate", StringComparison.OrdinalIgnoreCase))
             {
-                string appId = gridApplications.Rows[e.RowIndex].Cells[0].Value?.ToString();
-                string action = gridApplications.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
+                using (var dlg = new ReviewApplicationDialog(appId))
+                {
+                    dlg.ShowDialog(this);
+                }
 
-                MessageBox.Show(
-                    $"{action} {appId}",
-                    "Application Action",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
+                return;
             }
-        }
 
-        private void lblTotalTitle_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblTotal_Click(object sender, EventArgs e)
-        {
-
+            // default behavior
+            MessageBox.Show($"{action} {appId}", "Application Action",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnNewApplication_Click(object sender, EventArgs e)
@@ -244,7 +216,6 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 if (dialog.ShowDialog(this) == DialogResult.OK)
                 {
-                    // Refresh the grid from DB after successful submission
                     updateStatusSummary();
                     LoadApplications();
                 }
