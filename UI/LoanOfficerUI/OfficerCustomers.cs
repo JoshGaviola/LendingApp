@@ -133,7 +133,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BindFilters()
         {
-<<<<<<< HEAD
             cmbCustomerType.SelectedIndex = 0; // All Customers
         }
 
@@ -144,9 +143,7 @@ namespace LendingApp.UI.LoanOfficerUI
             lblRegular.Text = customers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
             lblVIP.Text = customers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
             lblDelinquent.Text = customers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
-=======
             cmbCustomerType.SelectedIndex = 0;
->>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
         }
 
         private IEnumerable<CustomerItem> Filtered()
@@ -163,20 +160,6 @@ namespace LendingApp.UI.LoanOfficerUI
             });
         }
 
-        private void StatusUpdate()
-        {
-            var all = customers;
-            var filtered = Filtered().ToList();
-
-            // Total should show filtered *visibility* count, and the label already shows full count separately.
-            lblTotalCustomers.Text = filtered.Count.ToString();
-
-            // Status cards should reflect the filtered view (so the UI feels consistent)
-            lblNew.Text = filtered.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblRegular.Text = filtered.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblVIP.Text = filtered.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
-            lblDelinquent.Text = filtered.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
-        }
 
         private void RefreshTable()
         {
@@ -186,7 +169,6 @@ namespace LendingApp.UI.LoanOfficerUI
             foreach (var c in filtered)
             {
                 int rowIndex = gridCustomers.Rows.Add(
-<<<<<<< HEAD
                     c.Id,                    // Cust ID
                     c.Name,
                     c.Contact,               // Contact
@@ -195,16 +177,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     c.TotalLoans,            // Loans
                     c.Balance,               // Balance
                     "View"                   // Action button
-=======
-                    c.Id,
-                    $"{c.Name} ({c.Email})",
-                    c.Contact,
-                    c.Type,
-                    c.CreditScore,
-                    c.TotalLoans,
-                    c.Balance,
-                    "View"
->>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
+                  
                 );
 
                 var row = gridCustomers.Rows[rowIndex];
