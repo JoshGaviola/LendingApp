@@ -11,7 +11,7 @@ namespace LendingApp.Models.LoanOfficer
     public class OfficerApplicationLogic : IStatusProvider
     {
         // Keep constructor for compatibility with older calls
-        public OfficerApplicationLogic(DataSample data)
+        public OfficerApplicationLogic(ApplicantsData data)
         {
         }
 

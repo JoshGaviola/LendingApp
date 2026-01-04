@@ -16,7 +16,7 @@ namespace LendingApp.Models.LoanOfficer
 
         private readonly BindingList<LoanModel> allLoans;
 
-        public OfficerCustomersLogic(DataSample data)
+        public OfficerCustomersLogic(ApplicantsData data)
         {
             allLoans = data.AllLoans;
         }

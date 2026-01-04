@@ -9,6 +9,6 @@ namespace LendingApp.Class.Services
 {
     public static class DataGetter
     {
-        public static DataSample Data { get; } = new DataSample();
+        public static ApplicantsData Data { get; } = new ApplicantsData();
     }
 }

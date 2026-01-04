@@ -8,6 +8,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.ComponentModel;
 using LendingApp.Class.Data;
+using LendingApp.Class.Interface;
+using LendingApp.Class.Repo;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -18,7 +20,9 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private CustomerRegistration _openRegistrationForm;
         private CustomerData customerData = new CustomerData();
-        private BindingList<CustomerItem> customers;     
+
+        private BindingList<CustomerItem> customers;
+        private readonly ICustomerRepository _customerRepo = new CustomerRepository();
         public OfficerCustomers()
         {
             InitializeComponent();
@@ -164,7 +168,6 @@ namespace LendingApp.UI.LoanOfficerUI
         private void StatusUpdate()
         {
             lblTotalCustomers.Text = customers.Count.ToString();
-
             lblNew.Text = customers.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
             lblRegular.Text = customers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
             lblVIP.Text = customers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
@@ -194,7 +197,7 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 int rowIndex = gridCustomers.Rows.Add(
                     c.Id,                    // Cust ID
-                    $"{c.Name} ({c.Email})", // Name with email
+                    c.Name,
                     c.Contact,               // Contact
                     c.Type,                  // Type
                     c.CreditScore,           // Score
@@ -265,50 +268,47 @@ namespace LendingApp.UI.LoanOfficerUI
             var custId = gridCustomers.Rows[e.RowIndex].Cells["CustId"].Value?.ToString();
             if (string.IsNullOrWhiteSpace(custId)) return;
 
-            using (var db = new AppDbContext())
+            var c = _customerRepo.GetById(custId);
+            if (c == null)
             {
-                var c = db.Customers.AsNoTracking().FirstOrDefault(x => x.CustomerId == custId);
-                if (c == null)
-                {
-                    MessageBox.Show("Customer not found in database.", "Customer",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+                MessageBox.Show("Customer not found in database.", "Customer",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-                var dialogData = new CustomerProfileDialog.CustomerData
-                {
-                    Id = c.CustomerId,
-                    FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
-                    DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy") : "",
-                    Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
-                    Gender = c.Gender,
-                    CivilStatus = c.CivilStatus,
-                    Nationality = c.Nationality,
-                    Email = c.EmailAddress,
-                    Mobile = c.MobileNumber,
-                    Telephone = c.TelephoneNumber,
-                    PresentAddress = c.PresentAddress,
-                    PermanentAddress = c.PermanentAddress,
-                    RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy"),
-                    CustomerType = c.CustomerType,
-                    CreditScore = c.InitialCreditScore,
-                    CreditLimit = "₱" + c.CreditLimit.ToString("N2"),
-                    Status = c.Status,
+            var dialogData = new CustomerProfileDialog.CustomerData
+            {
+                Id = c.CustomerId,
+                FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy") : "",
+                Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
+                Gender = c.Gender,
+                CivilStatus = c.CivilStatus,
+                Nationality = c.Nationality,
+                Email = c.EmailAddress,
+                Mobile = c.MobileNumber,
+                Telephone = c.TelephoneNumber,
+                PresentAddress = c.PresentAddress,
+                PermanentAddress = c.PermanentAddress,
+                RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy"),
+                CustomerType = c.CustomerType,
+                CreditScore = c.InitialCreditScore,
+                CreditLimit = "₱" + c.CreditLimit.ToString("N2"),
+                Status = c.Status,
 
-                    // Not implemented in DB yet (set safe defaults)
-                    ActiveLoans = 0,
-                    TotalBalance = "₱0.00",
-                    PaymentHistory = ""
-                };
+                // Not implemented in DB yet (set safe defaults)
+                ActiveLoans = 0,
+                TotalBalance = "₱0.00",
+                PaymentHistory = ""
+            };
 
-                using (var dlg = new CustomerProfileDialog(dialogData))
+            using (var dlg = new CustomerProfileDialog(dialogData))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
-                    if (dlg.ShowDialog(this) == DialogResult.OK)
-                    {
-                        customerData.LoadCustomerFromDb();
-                        RefreshTable();
-                        StatusUpdate();
-                    }
+                    customerData.LoadCustomerFromDb();
+                    RefreshTable();
+                    StatusUpdate();
                 }
             }
         }

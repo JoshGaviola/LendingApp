@@ -10,11 +10,13 @@ namespace LendingApp.UI.LoanOfficerUI
     public partial class OfficerApplications : Form
     {
         private OfficerApplicationLogic logic;
+        private ApplicantsData Loans;
 
         public OfficerApplications()
         {
             InitializeComponent();
             logic = new OfficerApplicationLogic(null);
+            Loans = new ApplicantsData();
 
             updateStatusSummary();
             BuildUI();
@@ -140,13 +142,13 @@ namespace LendingApp.UI.LoanOfficerUI
                 ? ""
                 : txtSearch.Text;
 
-            var data = logic.GetApplications(
+            Loans.LoadLoans(
                 cmbStatus.SelectedItem?.ToString(),
                 cmbType.SelectedItem?.ToString(),
                 searchText
-            );
+              );
 
-            foreach (var app in data)
+            foreach (var app in Loans.AllLoans)
             {
                 if (app.Applied == "Paid") continue;
 
@@ -163,7 +165,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 btnCell.Value = GetActionText(app.Applied);
             }
 
-            lblResults.Text = $"{data.Count} of {logic.TotalApplications} applications";
+            lblResults.Text = $"{Loans.AllLoans.Count} of {logic.TotalApplications} applications";
         }
 
         private string GetActionText(string status)
@@ -215,6 +217,7 @@ namespace LendingApp.UI.LoanOfficerUI
             using (var dialog = new NewLoanApplicationDialog())
             {
                 if (dialog.ShowDialog(this) == DialogResult.OK)
+                    
                 {
                     updateStatusSummary();
                     LoadApplications();

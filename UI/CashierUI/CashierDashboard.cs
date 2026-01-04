@@ -59,7 +59,7 @@ namespace LendingApp.UI.CashierUI
         private BindingList<TransactionModels> _transactions;
         private BindingList<LoanReleaseModels> _pendingLoans;
        
-        public CashierDashboard(DataSample data)
+        public CashierDashboard(ApplicantsData data)
         {
             InitializeComponent();
             _transactions = data.recentTransactions;

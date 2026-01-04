@@ -2,16 +2,19 @@
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
-using LendingApp.Class;
+using LendingApp.Class.Interface;
 using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Class.Models.Loans;
+using LendingApp.Class.Repo;
 
 namespace LendingApp.UI.LoanOfficerUI.Dialog
 {
     public partial class ReviewApplicationDialog : Form
     {
+        private readonly ILoanApplicationRepository _loanRepo;
+        private readonly ICustomerRepository _customerRepo;
+
         private readonly string _appId;
 
         // Loaded from DB
@@ -19,8 +22,15 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
         private CustomerRegistrationData _customer;
 
         public ReviewApplicationDialog(string appId)
+            : this(appId, new LoanApplicationRepository(), new CustomerRepository())
+        {
+        }
+
+        public ReviewApplicationDialog(string appId, ILoanApplicationRepository loanRepo, ICustomerRepository customerRepo)
         {
             _appId = appId;
+            _loanRepo = loanRepo;
+            _customerRepo = customerRepo;
 
             InitializeComponent();
             LoadFromDb();
@@ -35,19 +45,10 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
         private void LoadFromDb()
         {
-            using (var db = new AppDbContext())
-            {
-                // ApplicationNumber == "APP-20260103-153045"
-                _application = db.LoanApplications
-                    .AsNoTracking()
-                    .FirstOrDefault(a => a.ApplicationNumber == _appId);
+            _application = _loanRepo.GetByApplicationNumber(_appId);
+            if (_application == null) return;
 
-                if (_application == null) return;
-
-                _customer = db.Customers
-                    .AsNoTracking()
-                    .FirstOrDefault(c => c.CustomerId == _application.CustomerId);
-            }
+            _customer = _customerRepo.GetById(_application.CustomerId);
         }
 
         private void SetupUI()

@@ -30,7 +30,7 @@ namespace LendingApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var data = new DataSample();
+            var data = new ApplicantsData();
            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
 
 

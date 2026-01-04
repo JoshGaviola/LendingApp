@@ -1,11 +1,13 @@
-﻿using LendingApp.Data;
+﻿using LendingApp.Class.Models.CashierModels;
+using LendingApp.Data;
 using LendingApp.LogicClass.Cashier;
-using LendingApp.Class.Models.CashierModels;
+using LendingApp.Models.LoanOfficer;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 
-public class DataSample
+public class ApplicantsData
 {
     public BindingList<LoanModel> AllLoans { get; set; }
     public BindingList<LoanReleaseModels> releaseLoan { get; private set; }
@@ -14,7 +16,7 @@ public class DataSample
     private CashierProcessLogic cashierProcessLogic;
     private string timeNow;
 
-    public DataSample()
+    public ApplicantsData()
     {
         AllLoans = new BindingList<LoanModel>();
         releaseLoan = new BindingList<LoanReleaseModels>();
@@ -26,12 +28,25 @@ public class DataSample
         AllLoans.ListChanged += (s, e) => RefreshDerivedLists();
     }
 
+
+    public void LoadLoans(string applied, string type, string search)
+    {
+        var logic = new OfficerApplicationLogic(this);
+        List<LoanModel> loans = logic.GetApplications(applied, type, search);
+        AllLoans.Clear();
+
+        foreach (var loan in loans)
+        {
+            AllLoans.Add(loan);
+        }
+    }
+
     public void RefreshDerivedLists()
     {
         releaseLoan.Clear();
-
         foreach (var l in AllLoans.Where(l => l.Applied == "Released" && l.Amount > 0))
         {
+
             releaseLoan.Add(new LoanReleaseModels
             {
                 LoanNumber = l.LoanNumber,
@@ -47,7 +62,6 @@ public class DataSample
         }
 
         recentTransactions.Clear();
-
         foreach (var l in AllLoans.Where(l => l.PaidAmount > 0))
         {
             recentTransactions.Add(new TransactionModels

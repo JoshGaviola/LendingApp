@@ -14,7 +14,7 @@ namespace LendingApp.LogicClass.Cashier
     {
         private BindingList<TransactionModels> transaction;
         private BindingList<LoanReleaseModels> releaseLoan;
-        public CashierDashboardLogic(DataSample data)
+        public CashierDashboardLogic(ApplicantsData data)
         {
             transaction = data.recentTransactions;
             releaseLoan = data.releaseLoan;
