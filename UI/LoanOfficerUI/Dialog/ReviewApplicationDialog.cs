@@ -107,6 +107,55 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             AddActionButtons(mainPanel, ref currentY);
             currentY += 50;
 
+            // ADDED: Send for Evaluation and Reject buttons
+            Panel decisionPanel = new Panel
+            {
+                Location = new Point(0, currentY),
+                Size = new Size(600, 40)
+            };
+
+            Button btnSendEvaluation = new Button
+            {
+                Text = "Send for Evaluation",
+                Location = new Point(0, 5),
+                Size = new Size(140, 30),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                BackColor = Color.FromArgb(59, 130, 246),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnSendEvaluation.FlatAppearance.BorderSize = 0;
+            btnSendEvaluation.Click += (s, e) =>
+            {
+                // Don't implement the feature - just show a message
+                MessageBox.Show("Send for Evaluation clicked.", "Info",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
+
+            Button btnReject = new Button
+            {
+                Text = "Reject",
+                Location = new Point(150, 5),
+                Size = new Size(100, 30),
+                Font = new Font("Segoe UI", 9),
+                BackColor = Color.White,
+                ForeColor = Color.Red,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnReject.FlatAppearance.BorderColor = Color.Red;
+            btnReject.FlatAppearance.BorderSize = 1;
+            btnReject.Click += (s, e) =>
+            {
+                // Don't implement the feature - just show a message
+                MessageBox.Show("Reject clicked. Feature not implemented.", "Info",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
+
+            decisionPanel.Controls.Add(btnSendEvaluation);
+            decisionPanel.Controls.Add(btnReject);
+            mainPanel.Controls.Add(decisionPanel);
+            currentY += 50;
+
             var btnClose = new Button
             {
                 Text = "Close",

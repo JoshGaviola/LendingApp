@@ -279,7 +279,7 @@ namespace LendingApp.UI.CustomerUI
                     AddTextRow(outer, "Bank Name", formData.BankName, v => formData.BankName = v);
                     AddTextRow(outer, "Bank Account Number", formData.BankAccountNumber, v => formData.BankAccountNumber = v);
                     AddNumericRow(outer, "Credit Limit", formData.CreditLimit, v => formData.CreditLimit = v);
-                    AddNumericRow(outer, "Initial Credit Score", formData.InitialCreditScore, v => formData.InitialCreditScore = (int)v);
+                    //AddNumericRow(outer, "Initial Credit Score", formData.InitialCreditScore, v => formData.InitialCreditScore = (int)v);
                     break;
                 case 5:
                     AddTextRow(outer, "Name", formData.EmergencyContactName, v => formData.EmergencyContactName = v);
