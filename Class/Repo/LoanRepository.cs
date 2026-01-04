@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using LendingApp.Class.Interface;
@@ -21,6 +22,19 @@ namespace LendingApp.Class.Repo
             {
                 db.Loans.Add(loan);
                 db.SaveChanges();
+            }
+        }
+
+        public IEnumerable<LoanEntity> GetLoansForRelease()
+        {
+            using (var db = new AppDbContext())
+            {
+                // For now: show loans that exist (created on approval) and are Active
+                return db.Loans
+                    .AsNoTracking()
+                    .Where(l => l.Status == "Active")
+                    .OrderByDescending(l => l.CreatedDate)
+                    .ToList();
             }
         }
     }
