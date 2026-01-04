@@ -141,6 +141,7 @@
     <Compile Include="Class\Models\Loans\LoanProductEntity.cs" />
     <Compile Include="Class\Repo\CustomerRepository.cs" />
     <Compile Include="Class\Repo\LoanApplicationRepository.cs" />
+    <Compile Include="Class\Services\CreditScoringService.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
@@ -324,6 +325,12 @@
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\NewLoanApplicationDialog.Designer.cs">
       <DependentUpon>NewLoanApplicationDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\OfficerEvaluateApplicationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\OfficerEvaluateApplicationForm.Designer.cs">
+      <DependentUpon>OfficerEvaluateApplicationForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\ReviewApplicationDialog.cs">
       <SubType>Form</SubType>

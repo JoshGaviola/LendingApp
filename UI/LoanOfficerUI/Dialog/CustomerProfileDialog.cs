@@ -1,25 +1,111 @@
 ﻿using System;
 using System.Drawing;
-using System.Windows.Forms;
-using LendingApp.Class;
-using LendingApp.Class.Models.LoanOfiicerModels;
-using LendingApp.UI.CustomerUI;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Forms;
+using LendingApp.Class.Interface;
+using LendingApp.Class.Models.LoanOfiicerModels;
+using LendingApp.Class.Repo;
+using LendingApp.UI.CustomerUI;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
     public partial class CustomerProfileDialog : Form
     {
-        private readonly CustomerData customer;
+        private readonly ICustomerRepository _customerRepo;
+        private CustomerData customer;
 
         public CustomerProfileDialog(CustomerData customerData)
+            : this(customerData, new CustomerRepository())
         {
-            customer = customerData;
+        }
+
+        public CustomerProfileDialog(CustomerData customerData, ICustomerRepository customerRepo)
+        {
+            customer = customerData ?? throw new ArgumentNullException(nameof(customerData));
+            _customerRepo = customerRepo ?? throw new ArgumentNullException(nameof(customerRepo));
 
             InitializeComponent();   // calls the designer one
             SetupUI();
             LoadCustomerData();
+        }
+
+        private void ReloadFromDb()
+        {
+            if (string.IsNullOrWhiteSpace(customer?.Id)) return;
+
+            var c = _customerRepo.GetById(customer.Id);
+            if (c == null) return;
+
+            customer = MapToDialogCustomerData(c);
+
+            // Rebuild UI to reflect updated values (labels are static text created once)
+            SetupUI();
+            LoadCustomerData();
+        }
+
+        private static CustomerData MapToDialogCustomerData(CustomerRegistrationData c)
+        {
+            return new CustomerData
+            {
+                Id = c.CustomerId,
+                FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US")) : "",
+                Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
+                Gender = c.Gender,
+                CivilStatus = c.CivilStatus,
+                Nationality = c.Nationality,
+                Email = c.EmailAddress,
+                Mobile = c.MobileNumber,
+                Telephone = c.TelephoneNumber,
+                PresentAddress = c.PresentAddress,
+                PermanentAddress = c.PermanentAddress,
+                RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US")),
+                CustomerType = c.CustomerType,
+                CreditScore = c.InitialCreditScore,
+                CreditLimit = "₱" + c.CreditLimit.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
+                Status = c.Status,
+
+                // Not implemented in DB yet (safe defaults)
+                ActiveLoans = 0,
+                TotalBalance = "₱0.00",
+                PaymentHistory = "",
+
+                // Government
+                SSS = c.SSSNumber,
+                TIN = c.TINNumber,
+                Passport = c.PassportNumber,
+                DriversLicense = c.DriversLicenseNumber,
+                UMID = c.UMIDNumber,
+                PhilHealth = c.PhilhealthNumber,
+                Pagibig = c.PagibigNumber,
+
+                // Employment
+                EmploymentStatus = c.EmploymentStatus,
+                CompanyName = c.CompanyName,
+                Position = c.Position,
+                Department = c.Department,
+                CompanyAddress = c.CompanyAddress,
+                CompanyPhone = c.CompanyPhone,
+
+                // Bank
+                BankName = c.BankName,
+                BankAccountNumber = c.BankAccountNumber,
+
+                // Emergency
+                EmergencyContactName = c.EmergencyContactName,
+                EmergencyContactRelationship = c.EmergencyContactRelationship,
+                EmergencyContactNumber = c.EmergencyContactNumber,
+                EmergencyContactAddress = c.EmergencyContactAddress,
+
+                // Docs
+                ValidId1Path = c.ValidId1Path,
+                ValidId2Path = c.ValidId2Path,
+
+                Remarks = c.Remarks,
+                CreatedByText = c.CreatedBy.HasValue ? c.CreatedBy.Value.ToString(CultureInfo.InvariantCulture) : "",
+                LastModifiedText = c.LastModifiedDate.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US"))
+            };
         }
 
         private void SetupUI()
@@ -138,6 +224,168 @@ namespace LendingApp.UI.LoanOfficerUI
             MinimizeBox = false;
         }
 
+        private void AddQuickActions(Panel parent, ref int y)
+        {
+            Panel panel = new Panel
+            {
+                Location = new Point(0, y),
+                Size = new Size(700, 90),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+
+            string[] buttons =
+            {
+                "Update Profile",
+                "Apply Loan",
+                "View Loans",
+                "Credit History",
+                "Add Co-maker",
+                "Generate Report",
+                customer?.Status == "Active" ? "Blacklist" : "Activate"
+            };
+
+            int x = 10;
+            int rowY = 10;
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (i == 4)
+                {
+                    x = 10;
+                    rowY = 50;
+                }
+
+                Button btn = new Button
+                {
+                    Text = buttons[i],
+                    Location = new Point(x, rowY),
+                    Size = new Size(120, 30),
+                    Font = new Font("Segoe UI", 9),
+                    FlatStyle = FlatStyle.Flat
+                };
+
+                if (buttons[i] == "Blacklist")
+                {
+                    btn.ForeColor = Color.Red;
+                    btn.FlatAppearance.BorderColor = Color.Red;
+                }
+                else if (buttons[i] == "Activate")
+                {
+                    btn.ForeColor = Color.Green;
+                    btn.FlatAppearance.BorderColor = Color.Green;
+                }
+                else
+                {
+                    btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
+                }
+
+                btn.Click += (s, e) =>
+                {
+                    if (btn.Text == "Update Profile")
+                    {
+                        if (string.IsNullOrWhiteSpace(customer?.Id))
+                        {
+                            MessageBox.Show("Invalid customer id.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        var dbCustomer = _customerRepo.GetById(customer.Id);
+                        if (dbCustomer == null)
+                        {
+                            MessageBox.Show("Customer not found in database.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        using (var editForm = new CustomerRegistration(dbCustomer))
+                        {
+                            var result = editForm.ShowDialog(this);
+                            if (result == DialogResult.OK)
+                            {
+                                // Refresh this dialog UI immediately
+                                ReloadFromDb();
+
+                                // Also let the caller know changes happened (optional behavior kept)
+                                DialogResult = DialogResult.OK;
+                            }
+                        }
+
+                        return;
+                    }
+
+                    MessageBox.Show(btn.Text + " feature", "Action");
+                };
+                panel.Controls.Add(btn);
+                x += 130;
+            }
+
+            parent.Controls.Add(panel);
+            y += 100;
+        }
+
+        private void LoadCustomerData()
+        {
+            // Data is already injected through constructor.
+            // This method exists for compatibility.
+        }
+
+        // Expanded customer data class to support what UI is showing
+        public class CustomerData
+        {
+            public string Id { get; set; }
+            public string FullName { get; set; }
+            public string DOB { get; set; }
+            public int Age { get; set; }
+            public string Gender { get; set; }
+            public string CivilStatus { get; set; }
+            public string Nationality { get; set; }
+            public string Email { get; set; }
+            public string Mobile { get; set; }
+            public string Telephone { get; set; }
+            public string PresentAddress { get; set; }
+            public string PermanentAddress { get; set; }
+            public string RegistrationDate { get; set; }
+            public string CustomerType { get; set; }
+            public int CreditScore { get; set; }
+            public string CreditLimit { get; set; }
+            public string Status { get; set; }
+
+            public int ActiveLoans { get; set; }
+            public string TotalBalance { get; set; }
+            public string PaymentHistory { get; set; }
+
+            public string SSS { get; set; }
+            public string TIN { get; set; }
+            public string Passport { get; set; }
+            public string DriversLicense { get; set; }
+            public string UMID { get; set; }
+            public string PhilHealth { get; set; }
+            public string Pagibig { get; set; }
+
+            public string EmploymentStatus { get; set; }
+            public string CompanyName { get; set; }
+            public string Position { get; set; }
+            public string Department { get; set; }
+            public string CompanyAddress { get; set; }
+            public string CompanyPhone { get; set; }
+
+            public string BankName { get; set; }
+            public string BankAccountNumber { get; set; }
+
+            public string EmergencyContactName { get; set; }
+            public string EmergencyContactRelationship { get; set; }
+            public string EmergencyContactNumber { get; set; }
+            public string EmergencyContactAddress { get; set; }
+
+            public string ValidId1Path { get; set; }
+            public string ValidId2Path { get; set; }
+
+            public string Remarks { get; set; }
+            public string CreatedByText { get; set; }
+            public string LastModifiedText { get; set; }
+        }
+
         private void AddSection(Panel parent, string title, ref int y)
         {
             Panel section = new Panel
@@ -219,7 +467,8 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            string[] info = {
+            string[] info =
+            {
                 $"Customer ID: {customer?.Id}",
                 $"Registration Date: {customer?.RegistrationDate}",
                 $"Name: {customer?.FullName}",
@@ -293,7 +542,8 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            string[] financial = {
+            string[] financial =
+            {
                 $"Customer Type: {customer?.CustomerType}",
                 $"Credit Score: {customer?.CreditScore}",
                 $"Credit Limit: {customer?.CreditLimit}",
@@ -479,171 +729,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
             parent.Controls.Add(panel);
             y += 110;
-        }
-
-        private void AddQuickActions(Panel parent, ref int y)
-        {
-            Panel panel = new Panel
-            {
-                Location = new Point(0, y),
-                Size = new Size(700, 90),
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
-            string[] buttons =
-            {
-                "Update Profile",
-                "Apply Loan",
-                "View Loans",
-                "Credit History",
-                "Add Co-maker",
-                "Generate Report",
-                customer?.Status == "Active" ? "Blacklist" : "Activate"
-            };
-
-            int x = 10;
-            int rowY = 10;
-
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                if (i == 4)
-                {
-                    x = 10;
-                    rowY = 50;
-                }
-
-                Button btn = new Button
-                {
-                    Text = buttons[i],
-                    Location = new Point(x, rowY),
-                    Size = new Size(120, 30),
-                    Font = new Font("Segoe UI", 9),
-                    FlatStyle = FlatStyle.Flat
-                };
-
-                if (buttons[i] == "Blacklist")
-                {
-                    btn.ForeColor = Color.Red;
-                    btn.FlatAppearance.BorderColor = Color.Red;
-                }
-                else if (buttons[i] == "Activate")
-                {
-                    btn.ForeColor = Color.Green;
-                    btn.FlatAppearance.BorderColor = Color.Green;
-                }
-                else
-                {
-                    btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
-                }
-
-                btn.Click += (s, e) =>
-                {
-                    if (btn.Text == "Update Profile")
-                    {
-                        if (string.IsNullOrWhiteSpace(customer?.Id))
-                        {
-                            MessageBox.Show("Invalid customer id.", "Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        CustomerRegistrationData dbCustomer;
-                        using (var db = new AppDbContext())
-                        {
-                            dbCustomer = db.Customers.AsNoTracking()
-                                .FirstOrDefault(cust => cust.CustomerId == customer.Id);
-                        }
-
-                        if (dbCustomer == null)
-                        {
-                            MessageBox.Show("Customer not found in database.", "Error",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        using (var editForm = new CustomerRegistration(dbCustomer))
-                        {
-                            var result = editForm.ShowDialog(this);
-                            if (result == DialogResult.OK)
-                            {
-                                // close profile so caller can refresh list if desired
-                                DialogResult = DialogResult.OK;
-                                Close();
-                            }
-                        }
-
-                        return;
-                    }
-
-                    MessageBox.Show(btn.Text + " feature", "Action");
-                };
-                panel.Controls.Add(btn);
-                x += 130;
-            }
-
-            parent.Controls.Add(panel);
-            y += 100;
-        }
-
-        private void LoadCustomerData()
-        {
-            // Data is already injected through constructor
-        }
-
-        // Expanded customer data class to support what UI is showing
-        public class CustomerData
-        {
-            public string Id { get; set; }
-            public string FullName { get; set; }
-            public string DOB { get; set; }
-            public int Age { get; set; }
-            public string Gender { get; set; }
-            public string CivilStatus { get; set; }
-            public string Nationality { get; set; }
-            public string Email { get; set; }
-            public string Mobile { get; set; }
-            public string Telephone { get; set; }
-            public string PresentAddress { get; set; }
-            public string PermanentAddress { get; set; }
-            public string RegistrationDate { get; set; }
-            public string CustomerType { get; set; }
-            public int CreditScore { get; set; }
-            public string CreditLimit { get; set; }
-            public string Status { get; set; }
-
-            public int ActiveLoans { get; set; }
-            public string TotalBalance { get; set; }
-            public string PaymentHistory { get; set; }
-
-            public string SSS { get; set; }
-            public string TIN { get; set; }
-            public string Passport { get; set; }
-            public string DriversLicense { get; set; }
-            public string UMID { get; set; }
-            public string PhilHealth { get; set; }
-            public string Pagibig { get; set; }
-
-            public string EmploymentStatus { get; set; }
-            public string CompanyName { get; set; }
-            public string Position { get; set; }
-            public string Department { get; set; }
-            public string CompanyAddress { get; set; }
-            public string CompanyPhone { get; set; }
-
-            public string BankName { get; set; }
-            public string BankAccountNumber { get; set; }
-
-            public string EmergencyContactName { get; set; }
-            public string EmergencyContactRelationship { get; set; }
-            public string EmergencyContactNumber { get; set; }
-            public string EmergencyContactAddress { get; set; }
-
-            public string ValidId1Path { get; set; }
-            public string ValidId2Path { get; set; }
-
-            public string Remarks { get; set; }
-            public string CreatedByText { get; set; }
-            public string LastModifiedText { get; set; }
         }
     }
 }

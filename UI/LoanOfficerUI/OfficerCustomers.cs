@@ -1,15 +1,15 @@
-using LendingApp.Class;
+using LendingApp.Class.Data;
+using LendingApp.Class.Interface;
 using LendingApp.Class.Models.LoanOfiicerModels;
+using LendingApp.Class.Repo;
 using LendingApp.UI.CustomerUI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
-using System.ComponentModel;
-using LendingApp.Class.Data;
-using LendingApp.Class.Interface;
-using LendingApp.Class.Repo;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -23,6 +23,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private BindingList<CustomerItem> customers;
         private readonly ICustomerRepository _customerRepo = new CustomerRepository();
+
         public OfficerCustomers()
         {
             InitializeComponent();
@@ -35,58 +36,24 @@ namespace LendingApp.UI.LoanOfficerUI
             StatusUpdate();
         }
 
-        // ADD THIS METHOD (fixes the designer compile error)
+        private void ReloadCustomers()
+        {
+            customerData.LoadCustomerFromDb();
+            customers = customerData.GetAllCustomers();
+
+            RefreshTable();
+            StatusUpdate();
+        }
+
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            // Keep behavior consistent with your placeholder setup in BuildUI()
             if (txtSearch.ForeColor == Color.Gray) return;
 
             searchQuery = txtSearch.Text ?? "";
             RefreshTable();
             StatusUpdate();
         }
-        /*
-        private void ReloadCustomersFromDb()
-        {
-            using (var db = new AppDbContext())
-            {
-                // Step 1: Fetch raw data from DB (no ToString formatting)
-                var rawData = db.Customers
-                    .AsNoTracking()
-                    .OrderByDescending(c => c.RegistrationDate)
-                    .Select(c => new
-                    {
-                        c.CustomerId,
-                        c.FirstName,
-                        c.LastName,
-                        c.MobileNumber,
-                        c.EmailAddress,
-                        c.CustomerType,
-                        c.InitialCreditScore,
-                        c.RegistrationDate
-                    })
-                    .ToList();
 
-                // Step 2: Project to CustomerItem in memory (formatting allowed here)
-                _dbCustomers = rawData
-                    .Select(c => new CustomerItem
-                    {
-                        Id = c.CustomerId,
-                        Name = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
-                        Contact = c.MobileNumber,
-                        Email = c.EmailAddress,
-                        Type = c.CustomerType,
-                        CreditScore = c.InitialCreditScore,
-                        TotalLoans = 0,
-                        BalanceAmount = 0,
-                        Balance = "₱0.00",
-                        RegisteredDate = c.RegistrationDate.ToString("MMM dd, yyyy"),
-                        LastActivity = ""
-                    })
-                    .ToList();
-            }
-        }
-        */
         private void BuildUI()
         {
             Text = "Customer Management";
@@ -132,6 +99,10 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             };
 
+            // IMPORTANT: ensure search change is wired
+            txtSearch.TextChanged -= txtSearch_TextChanged;
+            txtSearch.TextChanged += txtSearch_TextChanged;
+
             gridCustomers.ReadOnly = true;
             gridCustomers.AllowUserToAddRows = false;
             gridCustomers.AllowUserToDeleteRows = false;
@@ -162,6 +133,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BindFilters()
         {
+<<<<<<< HEAD
             cmbCustomerType.SelectedIndex = 0; // All Customers
         }
 
@@ -172,6 +144,9 @@ namespace LendingApp.UI.LoanOfficerUI
             lblRegular.Text = customers.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
             lblVIP.Text = customers.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
             lblDelinquent.Text = customers.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
+=======
+            cmbCustomerType.SelectedIndex = 0;
+>>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
         }
 
         private IEnumerable<CustomerItem> Filtered()
@@ -188,6 +163,21 @@ namespace LendingApp.UI.LoanOfficerUI
             });
         }
 
+        private void StatusUpdate()
+        {
+            var all = customers;
+            var filtered = Filtered().ToList();
+
+            // Total should show filtered *visibility* count, and the label already shows full count separately.
+            lblTotalCustomers.Text = filtered.Count.ToString();
+
+            // Status cards should reflect the filtered view (so the UI feels consistent)
+            lblNew.Text = filtered.Count(c => string.Equals(c.Type, "New", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblRegular.Text = filtered.Count(c => string.Equals(c.Type, "Regular", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblVIP.Text = filtered.Count(c => string.Equals(c.Type, "VIP", StringComparison.OrdinalIgnoreCase)).ToString();
+            lblDelinquent.Text = filtered.Count(c => string.Equals(c.Type, "Delinquent", StringComparison.OrdinalIgnoreCase)).ToString();
+        }
+
         private void RefreshTable()
         {
             var filtered = Filtered().ToList();
@@ -196,6 +186,7 @@ namespace LendingApp.UI.LoanOfficerUI
             foreach (var c in filtered)
             {
                 int rowIndex = gridCustomers.Rows.Add(
+<<<<<<< HEAD
                     c.Id,                    // Cust ID
                     c.Name,
                     c.Contact,               // Contact
@@ -204,6 +195,16 @@ namespace LendingApp.UI.LoanOfficerUI
                     c.TotalLoans,            // Loans
                     c.Balance,               // Balance
                     "View"                   // Action button
+=======
+                    c.Id,
+                    $"{c.Name} ({c.Email})",
+                    c.Contact,
+                    c.Type,
+                    c.CreditScore,
+                    c.TotalLoans,
+                    c.Balance,
+                    "View"
+>>>>>>> de445c1b7fd8cb81c529267bb7df767d6f4fcd54
                 );
 
                 var row = gridCustomers.Rows[rowIndex];
@@ -224,6 +225,79 @@ namespace LendingApp.UI.LoanOfficerUI
             }
 
             lblResults.Text = $"Showing {filtered.Count} of {customers.Count} customers";
+        }
+
+        private void GridCustomers_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (!(gridCustomers.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
+
+            var custId = gridCustomers.Rows[e.RowIndex].Cells["CustId"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(custId)) return;
+
+            var c = _customerRepo.GetById(custId);
+            if (c == null)
+            {
+                MessageBox.Show("Customer not found in database.", "Customer",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var dialogData = new CustomerProfileDialog.CustomerData
+            {
+                Id = c.CustomerId,
+                FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US")) : "",
+                Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
+                Gender = c.Gender,
+                CivilStatus = c.CivilStatus,
+                Nationality = c.Nationality,
+                Email = c.EmailAddress,
+                Mobile = c.MobileNumber,
+                Telephone = c.TelephoneNumber,
+                PresentAddress = c.PresentAddress,
+                PermanentAddress = c.PermanentAddress,
+                RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy", CultureInfo.GetCultureInfo("en-US")),
+                CustomerType = c.CustomerType,
+                CreditScore = c.InitialCreditScore,
+                CreditLimit = "₱" + c.CreditLimit.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
+                Status = c.Status,
+
+                ActiveLoans = 0,
+                TotalBalance = "₱0.00",
+                PaymentHistory = ""
+            };
+
+            using (var dlg = new CustomerProfileDialog(dialogData))
+            {
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    ReloadCustomers();
+                }
+            }
+        }
+
+        private void btnRegisterCustomer_Click(object sender, EventArgs e)
+        {
+            if (_openRegistrationForm == null || _openRegistrationForm.IsDisposed)
+            {
+                _openRegistrationForm = new CustomerRegistration();
+                _openRegistrationForm.FormClosed += (s, args) =>
+                {
+                    var result = _openRegistrationForm.DialogResult;
+                    _openRegistrationForm = null;
+
+                    if (result == DialogResult.OK)
+                    {
+                        ReloadCustomers();
+                    }
+                };
+                _openRegistrationForm.Show(this);
+            }
+            else
+            {
+                _openRegistrationForm.Focus();
+            }
         }
 
         private Color GetTypeBackColor(string type)
@@ -256,86 +330,6 @@ namespace LendingApp.UI.LoanOfficerUI
             if (score >= 700) return ColorTranslator.FromHtml("#2563EB");
             if (score >= 600) return ColorTranslator.FromHtml("#CA8A04");
             return ColorTranslator.FromHtml("#DC2626");
-        }
-
-        private void GridCustomers_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            // only react to the Action button column
-            if (!(gridCustomers.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
-
-            var custId = gridCustomers.Rows[e.RowIndex].Cells["CustId"].Value?.ToString();
-            if (string.IsNullOrWhiteSpace(custId)) return;
-
-            var c = _customerRepo.GetById(custId);
-            if (c == null)
-            {
-                MessageBox.Show("Customer not found in database.", "Customer",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            var dialogData = new CustomerProfileDialog.CustomerData
-            {
-                Id = c.CustomerId,
-                FullName = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
-                DOB = c.DateOfBirth.HasValue ? c.DateOfBirth.Value.ToString("MMM dd, yyyy") : "",
-                Age = c.DateOfBirth.HasValue ? (int)((DateTime.Today - c.DateOfBirth.Value.Date).TotalDays / 365.2425) : 0,
-                Gender = c.Gender,
-                CivilStatus = c.CivilStatus,
-                Nationality = c.Nationality,
-                Email = c.EmailAddress,
-                Mobile = c.MobileNumber,
-                Telephone = c.TelephoneNumber,
-                PresentAddress = c.PresentAddress,
-                PermanentAddress = c.PermanentAddress,
-                RegistrationDate = c.RegistrationDate.ToString("MMM dd, yyyy"),
-                CustomerType = c.CustomerType,
-                CreditScore = c.InitialCreditScore,
-                CreditLimit = "₱" + c.CreditLimit.ToString("N2"),
-                Status = c.Status,
-
-                // Not implemented in DB yet (set safe defaults)
-                ActiveLoans = 0,
-                TotalBalance = "₱0.00",
-                PaymentHistory = ""
-            };
-
-            using (var dlg = new CustomerProfileDialog(dialogData))
-            {
-                if (dlg.ShowDialog(this) == DialogResult.OK)
-                {
-                    customerData.LoadCustomerFromDb();
-                    RefreshTable();
-                    StatusUpdate();
-                }
-            }
-        }
-
-        private void btnRegisterCustomer_Click(object sender, EventArgs e)
-        {
-            if (_openRegistrationForm == null || _openRegistrationForm.IsDisposed)
-            {
-                _openRegistrationForm = new CustomerRegistration();
-                _openRegistrationForm.FormClosed += (s, args) =>
-                {
-                    var result = _openRegistrationForm.DialogResult;
-                    _openRegistrationForm = null;
-
-                    if (result == DialogResult.OK)
-                    {
-                        customerData.LoadCustomerFromDb();
-                        RefreshTable();
-                        StatusUpdate();
-                    }
-                };
-                _openRegistrationForm.Show(this);
-            }
-            else
-            {
-                _openRegistrationForm.Focus();
-            }
         }
     }
 }
