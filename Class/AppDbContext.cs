@@ -15,12 +15,9 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
-<<<<<<< HEAD
 
-=======
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
->>>>>>> d80b352633c7f6debe61e84b5bda49a4891597b8
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -137,9 +134,7 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
 
-<<<<<<< HEAD
-          
-=======
+
             // NEW: loan_application_evaluations
             modelBuilder.Entity<LoanApplicationEvaluationEntity>()
                 .ToTable("loan_application_evaluations")
@@ -220,7 +215,6 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
->>>>>>> d80b352633c7f6debe61e84b5bda49a4891597b8
         }
     }
 }
