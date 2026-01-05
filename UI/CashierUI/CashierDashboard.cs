@@ -17,7 +17,7 @@ namespace LendingApp.UI.CashierUI
         private string activeNav = "Process Payment";
         private readonly List<string> navItems = new List<string>
         {
-            "Process Payment", "Release Loan", "Daily Report", "Receipts", "Reports", "Settings"
+            "Process Payment", "Collections", "Release Loan", "Daily Report", "Receipts", "Reports", "Settings"
         };
 
         // Daily summary stats (sample values like the React version)
@@ -55,10 +55,11 @@ namespace LendingApp.UI.CashierUI
         private CashierSettings _settingsForm;
         private CashierDashboardLogic _dashboardLogic;
         private CashierProcessPayment _cashierProcessPayment;
+        private CashierCollections _cashierCollectionsForm;
 
         private BindingList<TransactionModels> _transactions;
         private BindingList<LoanReleaseModels> _pendingLoans;
-       
+
         public CashierDashboard(ApplicantsData data)
         {
             InitializeComponent();
@@ -84,6 +85,35 @@ namespace LendingApp.UI.CashierUI
             }
             contentPanel.Controls.Add(_cashierProcessPayment);
             _cashierProcessPayment.Show();
+        }
+
+        private void ShowCollectionsView()
+        {
+            if (_cashierCollectionsForm == null || _cashierCollectionsForm.IsDisposed)
+            {
+                _cashierCollectionsForm = new CashierCollections(hosted: true)
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+
+                // When user clicks Collect in the grid, route to Process Payment and prefill loan #
+                _cashierCollectionsForm.CollectLoanRequested += loanNumber =>
+                {
+                    activeNav = "Process Payment";
+                    BuildSidebar();
+                    ShowActiveView();
+
+                    // Wait until view is shown then set textbox.
+                    // Simple approach: bring the ProcessPayment view and let cashier search with pasted value
+                    Clipboard.SetText(loanNumber);
+                    MessageBox.Show("Loan number copied: " + loanNumber + "\r\nPaste it in Loan Number and press Enter.", "Collect", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                };
+            }
+
+            contentPanel.Controls.Add(_cashierCollectionsForm);
+            _cashierCollectionsForm.Show();
         }
 
         private void ShowLoanReleaseView()
@@ -349,6 +379,10 @@ namespace LendingApp.UI.CashierUI
             if (activeNav == "Process Payment")
             {
                 ShowProcessPaymentView();
+            }
+            else if (activeNav == "Collections")
+            {
+                ShowCollectionsView();
             }
             else if (activeNav == "Release Loan")
             {

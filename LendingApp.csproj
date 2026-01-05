@@ -235,6 +235,12 @@
     <Compile Include="UI\AdminUI\Controls\UserActionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierCollections.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierCollections.Designer.cs">
+      <DependentUpon>CashierCollections.cs</DependentUpon>
+    </Compile>
     <!-- UI\CashierUI -->
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
       <SubType>Form</SubType>
