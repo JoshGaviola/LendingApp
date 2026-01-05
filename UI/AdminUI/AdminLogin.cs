@@ -281,8 +281,6 @@ namespace LendingApp.UI.AdminUI
             if (success)
             {
                 this.Hide();
-                MessageBox.Show("Login successful! Welcome back.", "Success",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
                 AdminDashboard dashboard = new AdminDashboard();
                 dashboard.ShowDialog();
             }

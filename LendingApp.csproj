@@ -114,7 +114,8 @@
     <Compile Include="Class\Interface\ILoanApplicationRepository.cs" />
     <Compile Include="Class\Interface\ILoanRepository.cs" />
     <Compile Include="Class\Interface\IStatusProvider.cs" />
-    <Compile Include="Class\LogicClass\AdminLoginLogic.cs" />
+    <Compile Include="Class\LogicClass\Admin\AdminLoginLogic.cs" />
+    <Compile Include="Class\LogicClass\Admin\UserRegisterLogic.cs" />
     <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
     <Compile Include="Class\LogicClass\Cashier\Cashier.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
@@ -144,6 +145,7 @@
     <Compile Include="Class\Models\Loans\LoanApplicationEvaluationEntity.cs" />
     <Compile Include="Class\Models\Loans\LoanEntity.cs" />
     <Compile Include="Class\Models\Loans\LoanProductEntity.cs" />
+    <Compile Include="Class\Models\User\UserData.cs" />
     <Compile Include="Class\Repo\CustomerRepository.cs" />
     <Compile Include="Class\Repo\LoanApplicationEvaluationRepository.cs" />
     <Compile Include="Class\Repo\LoanApplicationRepository.cs" />

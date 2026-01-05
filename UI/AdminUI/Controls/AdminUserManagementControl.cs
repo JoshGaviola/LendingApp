@@ -955,7 +955,6 @@ namespace LendingApp.UI.AdminUI.Views
                     Username = userData.Username,
                     FullName = userData.FullName,
                     Role = mappedRole,
-                    EmployeeId = userData.EmployeeId,
                     Email = userData.Email,
                     Phone = userData.Phone,
                     LastLogin = "Never"

@@ -16,7 +16,6 @@ namespace LendingApp.Class.Models.User
         public string LastName { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool IsActive { get; set; }
-
         public DateTime? LastLogin { get; set; }
 
 

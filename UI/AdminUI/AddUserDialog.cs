@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using LendingApp.Class.LogicClass.Admin;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.UI.AdminUI.Views
 {
@@ -8,22 +10,12 @@ namespace LendingApp.UI.AdminUI.Views
     {
         public event Action<UserData> UserCreated;
 
-        public class UserData
-        {
-            public string Username { get; set; }
-            public string Password { get; set; }
-            public string FullName { get; set; }
-            public string Email { get; set; }
-            public string Phone { get; set; }
-            public string Role { get; set; }
-            public string EmployeeId { get; set; }
-            public string Department { get; set; }
-            public DateTime HireDate { get; set; }
-            public bool IsActive { get; set; }
-            public bool CanApproveLoan { get; set; }
-            public bool CanReleaseLoan { get; set; }
-            public bool CanGenerateReports { get; set; }
-        }
+        private TextBox txtUsername, txtPassword, txtConfirmPassword;
+        private TextBox txtFirstName, txtLastName, txtEmail, txtPhone;
+        private ComboBox cmbRole;
+        private DateTimePicker dtpHireDate;
+        private RadioButton rbActive, rbInactive;
+        private Button btnCancel, btnCreate;
 
         public AddUserDialog()
         {
@@ -34,397 +26,361 @@ namespace LendingApp.UI.AdminUI.Views
         private void InitializeComponent()
         {
             Text = "Add New User";
-            Size = new Size(500, 600);
+            Size = new Size(550, 680);
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.White;
+            BackColor = Color.FromArgb(248, 250, 252);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            Padding = new Padding(20);
         }
 
         private void InitializeUI()
         {
-            // Main container
-            var mainPanel = new TableLayoutPanel
+            // Header Panel
+            var headerPanel = new Panel
             {
-                Dock = DockStyle.Fill,
-                ColumnCount = 1,
-                RowCount = 2,
-                AutoSize = true
+                Dock = DockStyle.Top,
+                Height = 80,
+                BackColor = Color.FromArgb(30, 41, 59)
             };
 
-            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); // Content
-            mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Buttons
+            var lblHeader = new Label
+            {
+                Text = "Add New User",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                ForeColor = Color.White,
+                AutoSize = true,
+                Location = new Point(25, 20)
+            };
+            headerPanel.Controls.Add(lblHeader);
 
-            // Content panel
+            var lblSubHeader = new Label
+            {
+                Text = "Create a new user account for the system",
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.FromArgb(203, 213, 225),
+                AutoSize = true,
+                Location = new Point(25, 50)
+            };
+            headerPanel.Controls.Add(lblSubHeader);
+
+            Controls.Add(headerPanel);
+
+            // Content Panel with ScrollBar
             var contentPanel = new Panel
             {
-                Dock = DockStyle.Fill,
+                Location = new Point(0, 80),
+                Size = new Size(550, 510),
+                BackColor = Color.FromArgb(248, 250, 252),
                 AutoScroll = true
             };
 
-            var fieldsPanel = new FlowLayoutPanel
+            var innerPanel = new Panel
             {
-                FlowDirection = FlowDirection.TopDown,
-                WrapContents = false,
-                AutoSize = true,
-                Padding = new Padding(0, 10, 0, 0)
+                Location = new Point(25, 20),
+                Size = new Size(480, 750),
+                BackColor = Color.Transparent
             };
 
-            // Title
-            var titleLabel = new Label
-            {
-                Text = "ADD NEW USER",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(37, 99, 235),
-                Margin = new Padding(0, 0, 0, 20),
-                AutoSize = true
-            };
-            fieldsPanel.Controls.Add(titleLabel);
+            int y = 0;
 
-            // Basic Information Section
-            AddSectionLabel("BASIC INFORMATION:", fieldsPanel);
-            var txtUsername = AddTextField("Username:", fieldsPanel);
-            var txtPassword = AddPasswordField("Password:", fieldsPanel);
-            var txtConfirmPassword = AddPasswordField("Confirm Password:", fieldsPanel);
-            var txtFullName = AddTextField("Full Name:", fieldsPanel);
-            var txtEmail = AddTextField("Email:", fieldsPanel);
-            var txtPhone = AddTextField("Phone:", fieldsPanel);
+            // Account Credentials Section
+            y = AddSectionHeader(innerPanel, "Account Credentials", y);
+            txtUsername = AddStyledTextBox(innerPanel, "Username", y, true); y += 65;
+            txtPassword = AddStyledTextBox(innerPanel, "Password", y, true, true); y += 65;
+            txtConfirmPassword = AddStyledTextBox(innerPanel, "Confirm Password", y, true, true); y += 80;
 
-            // Role Assignment Section
-            AddSectionLabel("ROLE ASSIGNMENT:", fieldsPanel);
-            var cmbRole = AddComboBox("Role:", new[] { "Admin", "Loan Officer", "Cashier" }, fieldsPanel);
+            // Personal Information Section
+            y = AddSectionHeader(innerPanel, "Personal Information", y);
+            txtFirstName = AddStyledTextBox(innerPanel, "First Name", y, true); y += 65;
+            txtLastName = AddStyledTextBox(innerPanel, "Last Name", y, true); y += 65;
+            txtEmail = AddStyledTextBox(innerPanel, "Email Address", y, false); y += 65;
+            txtPhone = AddStyledTextBox(innerPanel, "Phone Number", y, false); y += 80;
 
-            // User-Specific Settings Section
-            AddSectionLabel("USER-SPECIFIC SETTINGS:", fieldsPanel);
-            var txtEmployeeId = AddTextField("Employee ID:", fieldsPanel);
-            var txtDepartment = AddTextField("Department:", fieldsPanel);
-            var dtpHireDate = AddDatePicker("Hire Date:", fieldsPanel);
+            // Role & Status Section
+            y = AddSectionHeader(innerPanel, "Role & Status", y);
+            cmbRole = AddStyledComboBox(innerPanel, "User Role", new[] { "Admin", "Loan Officer", "Cashier" }, y);
+            cmbRole.SelectedIndex = 1;
+            y += 65;
 
-            // Status Section
-            AddSectionLabel("INITIAL STATUS:", fieldsPanel);
-            var rbActive = AddRadioButton("Active - User can login immediately", true, fieldsPanel);
-            var rbInactive = AddRadioButton("Inactive - User requires activation", false, fieldsPanel);
+            AddStyledStatusRadioButtons(innerPanel, y); y += 65;
+            dtpHireDate = AddStyledDatePicker(innerPanel, "Hire Date", y); y += 65;
 
-            // Permissions Section
-            AddSectionLabel("PERMISSIONS (if applicable):", fieldsPanel);
-            var chkCanApproveLoan = AddCheckBox("Can approve loans", true, fieldsPanel);
-            var chkCanReleaseLoan = AddCheckBox("Can release loans", false, fieldsPanel);
-            var chkCanGenerateReports = AddCheckBox("Can generate reports", true, fieldsPanel);
+            contentPanel.Controls.Add(innerPanel);
+            Controls.Add(contentPanel);
 
-            // Set defaults based on role
-            cmbRole.SelectedIndex = 1; // Loan Officer
-            UpdateEmployeeIdPrefix(txtEmployeeId, cmbRole.Text);
-            UpdatePermissions(chkCanApproveLoan, chkCanReleaseLoan, chkCanGenerateReports, cmbRole.Text);
-
-            cmbRole.SelectedIndexChanged += (s, e) =>
-            {
-                UpdateEmployeeIdPrefix(txtEmployeeId, cmbRole.Text);
-                UpdatePermissions(chkCanApproveLoan, chkCanReleaseLoan, chkCanGenerateReports, cmbRole.Text);
-            };
-
-            // Add fields to content panel
-            contentPanel.Controls.Add(fieldsPanel);
-            mainPanel.Controls.Add(contentPanel, 0, 0);
-
-            // Button panel at bottom
-            var buttonPanel = new Panel
+            // Footer Button Panel
+            var footerPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 50,
-                Padding = new Padding(0, 10, 20, 0) // Add right padding
+                Height = 70,
+                BackColor = Color.White
             };
 
-            // Calculate total width needed for both buttons with spacing
-            int buttonSpacing = 10;
-            int cancelButtonWidth = 100;
-            int createButtonWidth = 120;
-            int totalButtonsWidth = cancelButtonWidth + createButtonWidth + buttonSpacing;
+            // Add top border to footer
+            footerPanel.Paint += (s, e) =>
+            {
+                using (Pen pen = new Pen(Color.FromArgb(226, 232, 240), 1))
+                {
+                    e.Graphics.DrawLine(pen, 0, 0, footerPanel.Width, 0);
+                }
+            };
 
-            var btnCancel = new Button
+            btnCancel = new Button
             {
                 Text = "Cancel",
-                Size = new Size(cancelButtonWidth, 35),
-                FlatStyle = FlatStyle.Flat,
+                Size = new Size(100, 38),
+                Location = new Point(320, 16),
                 BackColor = Color.White,
-                ForeColor = Color.Black
+                ForeColor = Color.FromArgb(71, 85, 105),
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10),
+                Cursor = Cursors.Hand
             };
-            btnCancel.FlatAppearance.BorderColor = Color.LightGray;
+            btnCancel.FlatAppearance.BorderColor = Color.FromArgb(203, 213, 225);
+            btnCancel.FlatAppearance.BorderSize = 1;
+            btnCancel.FlatAppearance.MouseOverBackColor = Color.FromArgb(248, 250, 252);
+            btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
 
-            var btnCreate = new Button
+            btnCreate = new Button
             {
                 Text = "Create User",
-                Size = new Size(createButtonWidth, 35),
+                Size = new Size(120, 38),
+                Location = new Point(430, 16),
+                BackColor = Color.FromArgb(30, 41, 59),
+                ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(22, 163, 74),
-                ForeColor = Color.White
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Cursor = Cursors.Hand
             };
+            btnCreate.FlatAppearance.BorderSize = 0;
+            btnCreate.FlatAppearance.MouseOverBackColor = Color.FromArgb(51, 65, 85);
+            btnCreate.Click += BtnCreate_Click;
 
-            // Position buttons next to each other on the right
-            btnCancel.Location = new Point(buttonPanel.Width - totalButtonsWidth, 10);
-            btnCreate.Location = new Point(buttonPanel.Width - createButtonWidth, 10);
-
-            btnCancel.Click += (s, e) => DialogResult = DialogResult.Cancel;
-            btnCreate.Click += (s, e) => CreateUser(
-                txtUsername, txtPassword, txtConfirmPassword, txtFullName, txtEmail, txtPhone,
-                cmbRole, txtEmployeeId, txtDepartment, dtpHireDate,
-                rbActive, chkCanApproveLoan, chkCanReleaseLoan, chkCanGenerateReports);
-
-            // Handle resizing to keep buttons on the right
-            buttonPanel.Resize += (s, e) =>
-            {
-                btnCancel.Left = buttonPanel.Width - totalButtonsWidth;
-                btnCreate.Left = buttonPanel.Width - createButtonWidth;
-            };
-
-            buttonPanel.Controls.Add(btnCancel);
-            buttonPanel.Controls.Add(btnCreate);
-            mainPanel.Controls.Add(buttonPanel, 0, 1);
-
-            Controls.Add(mainPanel);
+            footerPanel.Controls.Add(btnCancel);
+            footerPanel.Controls.Add(btnCreate);
+            Controls.Add(footerPanel);
         }
 
-        private void AddSectionLabel(string text, FlowLayoutPanel panel)
+        private int AddSectionHeader(Panel parent, string text, int y)
         {
-            var label = new Label
+            var panel = new Panel
+            {
+                Location = new Point(0, y),
+                Size = new Size(480, 40),
+                BackColor = Color.Transparent
+            };
+
+            var lbl = new Label
             {
                 Text = text,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Margin = new Padding(0, 20, 0, 5),
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(30, 41, 59),
+                Location = new Point(0, 8),
                 AutoSize = true
             };
-            panel.Controls.Add(label);
+            panel.Controls.Add(lbl);
+
+            var line = new Panel
+            {
+                BackColor = Color.FromArgb(226, 232, 240),
+                Location = new Point(0, 35),
+                Size = new Size(480, 1)
+            };
+            panel.Controls.Add(line);
+
+            parent.Controls.Add(panel);
+            return y + 50;
         }
 
-        private TextBox AddTextField(string labelText, FlowLayoutPanel panel)
+        private TextBox AddStyledTextBox(Panel parent, string labelText, int y, bool required, bool isPassword = false)
         {
-            var label = new Label
+            var lbl = new Label
             {
-                Text = labelText,
-                Width = 150,
-                AutoSize = true,
-                Margin = new Padding(0, 5, 0, 0)
+                Text = labelText + (required ? " *" : ""),
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                ForeColor = Color.FromArgb(71, 85, 105),
+                Location = new Point(0, y),
+                AutoSize = true
             };
-            panel.Controls.Add(label);
+            parent.Controls.Add(lbl);
 
-            var textBox = new TextBox
+            var tb = new TextBox
             {
-                Width = 300,
-                Height = 30,
-                Margin = new Padding(0, 0, 0, 10)
+                Width = 480,
+                Height = 35,
+                Location = new Point(0, y + 22),
+                Font = new Font("Segoe UI", 10),
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(30, 41, 59),
+                BorderStyle = BorderStyle.FixedSingle,
+                UseSystemPasswordChar = isPassword
             };
-            panel.Controls.Add(textBox);
 
-            return textBox;
+            tb.GotFocus += (s, e) =>
+            {
+                tb.BackColor = Color.FromArgb(249, 250, 251);
+            };
+
+            tb.LostFocus += (s, e) =>
+            {
+                tb.BackColor = Color.White;
+            };
+
+            parent.Controls.Add(tb);
+            return tb;
         }
 
-        private TextBox AddPasswordField(string labelText, FlowLayoutPanel panel)
+        private ComboBox AddStyledComboBox(Panel parent, string labelText, string[] items, int y)
         {
-            var textBox = AddTextField(labelText, panel);
-            textBox.UseSystemPasswordChar = true;
-            return textBox;
-        }
-
-        private ComboBox AddComboBox(string labelText, string[] items, FlowLayoutPanel panel)
-        {
-            var label = new Label
+            var lbl = new Label
             {
-                Text = labelText,
-                Width = 150,
-                AutoSize = true,
-                Margin = new Padding(0, 5, 0, 0)
+                Text = labelText + " *",
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                ForeColor = Color.FromArgb(71, 85, 105),
+                Location = new Point(0, y),
+                AutoSize = true
             };
-            panel.Controls.Add(label);
+            parent.Controls.Add(lbl);
 
-            var comboBox = new ComboBox
+            var cb = new ComboBox
             {
-                Width = 300,
-                Height = 30,
+                Width = 480,
+                Height = 35,
+                Location = new Point(0, y + 22),
+                Font = new Font("Segoe UI", 10),
+                BackColor = Color.White,
+                ForeColor = Color.FromArgb(30, 41, 59),
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Margin = new Padding(0, 0, 0, 10)
+                FlatStyle = FlatStyle.Flat
             };
-            comboBox.Items.AddRange(items);
-            panel.Controls.Add(comboBox);
+            cb.Items.AddRange(items);
 
-            return comboBox;
+            parent.Controls.Add(cb);
+            return cb;
         }
 
-        private DateTimePicker AddDatePicker(string labelText, FlowLayoutPanel panel)
+        private void AddStyledStatusRadioButtons(Panel parent, int y)
         {
-            var label = new Label
+            var lbl = new Label
+            {
+                Text = "Account Status *",
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                ForeColor = Color.FromArgb(71, 85, 105),
+                Location = new Point(0, y),
+                AutoSize = true
+            };
+            parent.Controls.Add(lbl);
+
+            var statusPanel = new Panel
+            {
+                Location = new Point(0, y + 22),
+                Size = new Size(480, 40),
+                BackColor = Color.Transparent
+            };
+
+            rbActive = new RadioButton
+            {
+                Text = "Active",
+                Checked = true,
+                Location = new Point(0, 8),
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.FromArgb(30, 41, 59),
+                AutoSize = true
+            };
+            statusPanel.Controls.Add(rbActive);
+
+            rbInactive = new RadioButton
+            {
+                Text = "Inactive",
+                Location = new Point(100, 8),
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.FromArgb(30, 41, 59),
+                AutoSize = true
+            };
+            statusPanel.Controls.Add(rbInactive);
+
+            parent.Controls.Add(statusPanel);
+        }
+
+        private DateTimePicker AddStyledDatePicker(Panel parent, string labelText, int y)
+        {
+            var lbl = new Label
             {
                 Text = labelText,
-                Width = 150,
-                AutoSize = true,
-                Margin = new Padding(0, 5, 0, 0)
+                Font = new Font("Segoe UI", 9, FontStyle.Regular),
+                ForeColor = Color.FromArgb(71, 85, 105),
+                Location = new Point(0, y),
+                AutoSize = true
             };
-            panel.Controls.Add(label);
+            parent.Controls.Add(lbl);
 
-            var datePicker = new DateTimePicker
+            var dp = new DateTimePicker
             {
-                Width = 300,
-                Height = 30,
-                Format = DateTimePickerFormat.Short,
-                Margin = new Padding(0, 0, 0, 10)
+                Width = 480,
+                Height = 35,
+                Location = new Point(0, y + 22),
+                Font = new Font("Segoe UI", 10),
+                Format = DateTimePickerFormat.Long,
+                CalendarForeColor = Color.FromArgb(30, 41, 59)
             };
-            panel.Controls.Add(datePicker);
 
-            return datePicker;
+            parent.Controls.Add(dp);
+            return dp;
         }
 
-        private RadioButton AddRadioButton(string text, bool isChecked, FlowLayoutPanel panel)
+        private void BtnCreate_Click(object sender, EventArgs e)
         {
-            var radioButton = new RadioButton
+            if (string.IsNullOrWhiteSpace(txtUsername.Text) ||
+                string.IsNullOrWhiteSpace(txtPassword.Text) ||
+                string.IsNullOrWhiteSpace(txtFirstName.Text) ||
+                string.IsNullOrWhiteSpace(txtLastName.Text) ||
+                cmbRole.SelectedIndex == -1)
             {
-                Text = text,
-                AutoSize = true,
-                Margin = new Padding(0, 5, 0, 5),
-                Checked = isChecked
-            };
-            panel.Controls.Add(radioButton);
-
-            return radioButton;
-        }
-
-        private CheckBox AddCheckBox(string text, bool isChecked, FlowLayoutPanel panel)
-        {
-            var checkBox = new CheckBox
-            {
-                Text = text,
-                AutoSize = true,
-                Margin = new Padding(0, 5, 0, 5),
-                Checked = isChecked
-            };
-            panel.Controls.Add(checkBox);
-
-            return checkBox;
-        }
-
-        private void UpdateEmployeeIdPrefix(TextBox txtEmployeeId, string role)
-        {
-            string prefix;
-            switch (role)
-            {
-                case "Admin":
-                    prefix = "ADMIN-";
-                    break;
-                case "Loan Officer":
-                    prefix = "LO-";
-                    break;
-                case "Cashier":
-                    prefix = "CSH-";
-                    break;
-                default:
-                    prefix = "LO-";
-                    break;
-            }
-
-            if (string.IsNullOrEmpty(txtEmployeeId.Text) ||
-                txtEmployeeId.Text.StartsWith("ADMIN-") ||
-                txtEmployeeId.Text.StartsWith("LO-") ||
-                txtEmployeeId.Text.StartsWith("CSH-"))
-            {
-                txtEmployeeId.Text = prefix;
-            }
-        }
-
-        private void UpdatePermissions(CheckBox chkApprove, CheckBox chkRelease, CheckBox chkReports, string role)
-        {
-            switch (role)
-            {
-                case "Admin":
-                    chkApprove.Visible = true;
-                    chkRelease.Visible = true;
-                    chkReports.Visible = true;
-                    chkApprove.Checked = true;
-                    chkRelease.Checked = true;
-                    chkReports.Checked = true;
-                    break;
-                case "Loan Officer":
-                    chkApprove.Visible = true;
-                    chkRelease.Visible = false;
-                    chkReports.Visible = true;
-                    chkApprove.Checked = true;
-                    chkReports.Checked = true;
-                    break;
-                case "Cashier":
-                    chkApprove.Visible = false;
-                    chkRelease.Visible = true;
-                    chkReports.Visible = true;
-                    chkRelease.Checked = true;
-                    chkReports.Checked = true;
-                    break;
-            }
-        }
-
-        private void CreateUser(
-            TextBox txtUsername, TextBox txtPassword, TextBox txtConfirmPassword,
-            TextBox txtFullName, TextBox txtEmail, TextBox txtPhone,
-            ComboBox cmbRole, TextBox txtEmployeeId, TextBox txtDepartment, DateTimePicker dtpHireDate,
-            RadioButton rbActive, CheckBox chkApprove, CheckBox chkRelease, CheckBox chkReports)
-        {
-            // Validation
-            if (string.IsNullOrWhiteSpace(txtUsername.Text))
-            {
-                MessageBox.Show("Please enter a username", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtUsername.Focus();
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtPassword.Text))
-            {
-                MessageBox.Show("Please enter a password", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtPassword.Focus();
+                MessageBox.Show("Please fill in all required fields marked with *",
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (txtPassword.Text != txtConfirmPassword.Text)
             {
-                MessageBox.Show("Passwords do not match", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtConfirmPassword.Focus();
+                MessageBox.Show("Passwords do not match. Please verify and try again.",
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtFullName.Text))
+            if (txtPassword.Text.Length < 6)
             {
-                MessageBox.Show("Please enter full name", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtFullName.Focus();
+                MessageBox.Show("Password must be at least 6 characters long.",
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(txtEmail.Text))
-            {
-                MessageBox.Show("Please enter email address", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtEmail.Focus();
-                return;
-            }
-
-            // Create user data
-            var userData = new UserData
+            UserData newUser = new UserData
             {
                 Username = txtUsername.Text.Trim(),
-                Password = txtPassword.Text,
-                FullName = txtFullName.Text.Trim(),
+                Password = txtPassword.Text.Trim(),
+                Confirmpassword = txtConfirmPassword.Text.Trim(),
+                FirstName = txtFirstName.Text.Trim(),
+                LastName = txtLastName.Text.Trim(),
                 Email = txtEmail.Text.Trim(),
-                Phone = txtPhone.Text.Trim(),
-                Role = cmbRole.Text,
-                EmployeeId = txtEmployeeId.Text.Trim(),
-                Department = txtDepartment.Text.Trim(),
-                HireDate = dtpHireDate.Value,
-                IsActive = rbActive.Checked,
-                CanApproveLoan = chkApprove.Checked,
-                CanReleaseLoan = chkRelease.Checked,
-                CanGenerateReports = chkReports.Checked
+                Role = cmbRole.SelectedItem?.ToString().Trim(),
+                IsActive = rbActive.Checked
             };
 
-            UserCreated?.Invoke(userData);
-
-            MessageBox.Show($"User '{userData.Username}' created successfully!",
-                "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            DialogResult = DialogResult.OK;
-            Close();
+            UserRegisterLogic logic = new UserRegisterLogic();
+            if (logic.RegisterSuccess(newUser))
+            {
+                MessageBox.Show("User account has been created successfully!",
+                    "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
+                Close();
+            }
+            else
+            {
+                MessageBox.Show("Failed to create user account. The username may already exist.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
