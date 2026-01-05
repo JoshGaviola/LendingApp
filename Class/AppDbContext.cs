@@ -6,6 +6,7 @@ using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
 using LendingApp.Class.Models.Loans;
+using LendingApp.Class.Models.CashierModels;
 
 namespace LendingApp.Class
 {
@@ -19,6 +20,7 @@ namespace LendingApp.Class
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
         public DbSet<CollectionEntity> Collections { get; set; }
+        public DbSet<PaymentEntity> Payments { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -291,6 +293,71 @@ namespace LendingApp.Class
             modelBuilder.Entity<CollectionEntity>()
                 .Property(x => x.UpdatedDate)
                 .HasColumnName("updated_date")
+                .IsRequired();
+
+            modelBuilder.Entity<PaymentEntity>()
+                .ToTable("payments")
+                .HasKey(x => x.PaymentId);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.PaymentId)
+                .HasColumnName("payment_id");
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.LoanId)
+                .HasColumnName("loan_id")
+                .IsRequired();
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.CustomerId)
+                .HasColumnName("customer_id")
+                .IsRequired()
+                .HasMaxLength(32);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.PaymentDate)
+                .HasColumnName("payment_date")
+                .IsRequired();
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.AmountPaid)
+                .HasColumnName("amount_paid")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.PrincipalPaid)
+                .HasColumnName("principal_paid")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.InterestPaid)
+                .HasColumnName("interest_paid")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.PenaltyPaid)
+                .HasColumnName("penalty_paid")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.PaymentMethod)
+                .HasColumnName("payment_method")
+                .IsRequired()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.ReceiptNo)
+                .HasColumnName("receipt_no")
+                .IsRequired()
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.CreatedDate)
+                .HasColumnName("created_date")
                 .IsRequired();
         }
     }
