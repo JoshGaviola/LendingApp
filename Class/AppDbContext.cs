@@ -5,10 +5,11 @@ using LoanApplicationEntity = LendingApp.Class.Models.Loans.LoanApplicationEntit
 using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
+using LendingApp.Class.Models.Loans;
 
 namespace LendingApp.Class
 {
-    public class AppDbContext : DbContext
+    public partial class AppDbContext : DbContext
     {
         public AppDbContext() : base("name=LendingAppDb") { }
 
@@ -17,6 +18,7 @@ namespace LendingApp.Class
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
+        public DbSet<CollectionEntity> Collections { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -213,6 +215,83 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
 
+            modelBuilder.Entity<CollectionEntity>()
+                .ToTable("collections")
+                .HasKey(x => x.CollectionId);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.CollectionId)
+                .HasColumnName("collection_id");
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.LoanId)
+                .HasColumnName("loan_id")
+                .IsRequired();
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.CustomerId)
+                .HasColumnName("customer_id")
+                .IsRequired()
+                .HasMaxLength(32);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.DueDate)
+                .HasColumnName("due_date")
+                .IsRequired();
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.AmountDue)
+                .HasColumnName("amount_due")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.DaysOverdue)
+                .HasColumnName("days_overdue")
+                .IsRequired();
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.Priority)
+                .HasColumnName("priority")
+                .IsRequired()
+                .HasMaxLength(16);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.Status)
+                .HasColumnName("status")
+                .IsRequired()
+                .HasMaxLength(16);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.LastContactDate)
+                .HasColumnName("last_contact_date");
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.LastContactMethod)
+                .HasColumnName("last_contact_method")
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.Notes)
+                .HasColumnName("notes");
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.PromiseDate)
+                .HasColumnName("promise_date");
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.AssignedOfficerId)
+                .HasColumnName("assigned_officer_id");
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.CreatedDate)
+                .HasColumnName("created_date")
+                .IsRequired();
+
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.UpdatedDate)
+                .HasColumnName("updated_date")
+                .IsRequired();
         }
     }
 }

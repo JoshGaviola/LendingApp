@@ -56,6 +56,9 @@ namespace LendingApp.UI.CashierUI
         private LoanInfo _loanDetails;
         private AllocationInfo _allocation;
 
+        // NEW: keep selected loan entity id for DB update
+        private int? _selectedLoanId;
+
         // Layout constants
         private const int PagePadding = 16;
         private const int Gap = 12;
@@ -133,9 +136,6 @@ namespace LendingApp.UI.CashierUI
             RefreshState();
         }
 
-        // ==========================
-        // DB LOADING (LOANS)
-        // ==========================
         private void LoadLoansFromDb()
         {
             try
@@ -190,7 +190,7 @@ namespace LendingApp.UI.CashierUI
         }
 
         // ==========================
-        // UI BUILD
+        // UI BUILD (unchanged)
         // ==========================
         private void BuildUI()
         {
@@ -815,12 +815,15 @@ namespace LendingApp.UI.CashierUI
                     var loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanNumber == loanNumber);
                     if (loan == null)
                     {
+                        _selectedLoanId = null;
                         _loanDetails = null;
                         _allocation = null;
                         ShowToast("Loan not found", isError: true);
                         RefreshState();
                         return;
                     }
+
+                    _selectedLoanId = loan.LoanId;
 
                     var cust = db.Customers.AsNoTracking().FirstOrDefault(c => c.CustomerId == loan.CustomerId);
                     var custName = cust != null
@@ -849,6 +852,7 @@ namespace LendingApp.UI.CashierUI
             }
             catch (Exception ex)
             {
+                _selectedLoanId = null;
                 _loanDetails = null;
                 _allocation = null;
                 ShowToast("Failed to search loan: " + ex.Message, isError: true);
@@ -856,9 +860,6 @@ namespace LendingApp.UI.CashierUI
             }
         }
 
-        // ==========================
-        // EXISTING PAYMENT LOGIC (left as-is but compiles)
-        // ==========================
         private void CalculateAllocation()
         {
             if (_loanDetails == null) return;
@@ -891,41 +892,129 @@ namespace LendingApp.UI.CashierUI
             UpdateButtons();
         }
 
+        // ==========================
+        // UPDATED: ProcessPayment now updates the loan record in DB
+        // ==========================
         private void ProcessPayment()
         {
-            if (_loanDetails == null || _allocation == null)
+            if (_loanDetails == null || _allocation == null || !_selectedLoanId.HasValue)
             {
-                ShowToast("Please complete all fields and calculate allocation", isError: true);
+                ShowToast("Please select a loan and calculate allocation", isError: true);
                 return;
             }
 
-            string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
-            string timeNow = cashierProcessLogic.GetTimeNow();
-
-            // NOTE: your original code hard-coded PaidAmount. Keep it but now use entered amount if possible.
-            decimal entered;
-            var paid = TryParseAmount(txtPaymentAmount.Text, out entered) ? entered : 0m;
-
-            var tx = new TransactionModels
+            decimal paid;
+            if (!TryParseAmount(txtPaymentAmount.Text, out paid) || paid <= 0)
             {
-                Time = timeNow,
-                Borrower = _loanDetails.Customer,
-                PaidAmount = paid,
-                ReceiptNo = receiptNo,
-                LoanRef = (txtLoanNumber.Text ?? "").Trim()
-            };
+                ShowToast("Enter a valid payment amount", isError: true);
+                return;
+            }
 
-            _transactions.Insert(0, tx);
-            BindTransactions();
+            try
+            {
+                string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
+                string timeNow = cashierProcessLogic.GetTimeNow();
 
-            ShowToast("Payment processed! Receipt: " + receiptNo);
+                using (var db = new AppDbContext())
+                {
+                    // Load loan (tracked)
+                    var loan = db.Loans.FirstOrDefault(l => l.LoanId == _selectedLoanId.Value);
+                    if (loan == null)
+                    {
+                        ShowToast("Loan record not found (refresh and try again).", isError: true);
+                        return;
+                    }
 
-            txtLoanNumber.Text = "";
-            txtPaymentAmount.Text = "";
-            _loanDetails = null;
-            _allocation = null;
+                    // ===== 1) UPDATE LOAN TOTALS =====
+                    loan.TotalPaid = RoundMoney(loan.TotalPaid + _allocation.Principal);
+                    loan.TotalInterestPaid = RoundMoney(loan.TotalInterestPaid + _allocation.Interest);
+                    loan.TotalPenaltyPaid = RoundMoney(loan.TotalPenaltyPaid + _allocation.Penalty);
 
-            RefreshState();
+                    loan.OutstandingBalance = RoundMoney(Math.Max(0m, loan.OutstandingBalance - _allocation.Principal));
+                    loan.LastPaymentDate = DateTime.Now;
+                    loan.LastUpdated = DateTime.Now;
+
+                    if (loan.OutstandingBalance <= 0m)
+                    {
+                        loan.Status = "Paid";
+                        loan.NextDueDate = null;
+                    }
+
+                    // ===== 2) INSERT COLLECTION RECORD =====
+                    // We log one row per payment (simple + safe).
+                    // If you want "update existing due row instead", tell me your desired rule.
+                    var dueDate = (loan.NextDueDate ?? loan.FirstDueDate).Date;
+
+                    var collection = new CollectionEntity
+                    {
+                        LoanId = loan.LoanId,
+                        CustomerId = loan.CustomerId,
+
+                        DueDate = dueDate,
+                        AmountDue = RoundMoney(paid),
+
+                        DaysOverdue = Math.Max(0, loan.DaysOverdue),
+                        Priority = "Medium",
+                        Status = "Paid",
+
+                        LastContactDate = DateTime.Now.Date,
+                        LastContactMethod = GetSelectedPaymentMethodText(),
+                        Notes = "Payment received. Receipt: " + receiptNo,
+
+                        PromiseDate = null,
+                        AssignedOfficerId = null,
+
+                        CreatedDate = DateTime.Now,
+                        UpdatedDate = DateTime.Now
+                    };
+
+                    db.Collections.Add(collection);
+
+                    // Commit both loan update + collection insert together
+                    db.SaveChanges();
+
+                    // Sync UI in-memory snapshot
+                    _loanDetails.Balance = loan.OutstandingBalance;
+                }
+
+                // ===== 3) UI transactions list (unchanged) =====
+                var tx = new TransactionModels
+                {
+                    Time = timeNow,
+                    Borrower = _loanDetails.Customer,
+                    PaidAmount = paid,
+                    ReceiptNo = receiptNo,
+                    LoanRef = (txtLoanNumber.Text ?? "").Trim()
+                };
+
+                _transactions.Insert(0, tx);
+                BindTransactions();
+
+                LoadLoansFromDb();
+                BindLoans();
+
+                ShowToast("Payment processed! Receipt: " + receiptNo);
+
+                txtLoanNumber.Text = "";
+                txtPaymentAmount.Text = "";
+                _selectedLoanId = null;
+                _loanDetails = null;
+                _allocation = null;
+
+                RefreshState();
+            }
+            catch (Exception ex)
+            {
+                ShowToast("Failed to process payment: " + ex.Message, isError: true);
+            }
+        }
+
+        // NEW: helper to store method in `collections.last_contact_method`
+        private string GetSelectedPaymentMethodText()
+        {
+            if (rbGCash != null && rbGCash.Checked) return "GCash";
+            if (rbBank != null && rbBank.Checked) return "Bank";
+            return "Cash";
         }
 
         private void PrintReceipt()
@@ -989,10 +1078,12 @@ namespace LendingApp.UI.CashierUI
         }
 
         // ==========================
-        // TOAST (existing)
+        // TOAST (missing in your current file)
         // ==========================
         private void BuildToast()
         {
+            if (_toastPanel != null) return;
+
             _toastPanel = new Panel
             {
                 AutoSize = true,
@@ -1000,12 +1091,14 @@ namespace LendingApp.UI.CashierUI
                 Padding = new Padding(12, 8, 12, 8),
                 Visible = false
             };
+
             _toastLabel = new Label
             {
                 AutoSize = true,
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 9)
             };
+
             _toastPanel.Controls.Add(_toastLabel);
             Controls.Add(_toastPanel);
             _toastPanel.BringToFront();
@@ -1024,19 +1117,21 @@ namespace LendingApp.UI.CashierUI
         private void PositionToast()
         {
             if (_toastPanel == null) return;
+
             _toastPanel.Left = ClientSize.Width - _toastPanel.Width - 12;
             _toastPanel.Top = 12;
         }
 
         private void ShowToast(string message, bool isError = false)
         {
-            if (_toastPanel == null || _toastLabel == null) return;
+            // Safety: if some path calls ShowToast before BuildToast()
+            if (_toastPanel == null || _toastLabel == null) BuildToast();
 
             _toastPanel.BackColor = isError
                 ? ColorTranslator.FromHtml("#991B1B")
                 : ColorTranslator.FromHtml("#111827");
 
-            _toastLabel.Text = message;
+            _toastLabel.Text = message ?? "";
             _toastPanel.Visible = true;
             _toastPanel.BringToFront();
             _toastPanel.PerformLayout();
