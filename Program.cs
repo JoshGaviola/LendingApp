@@ -36,6 +36,7 @@ namespace LendingApp
            // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
            Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
 
+            Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
 
         }
     }

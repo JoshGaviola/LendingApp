@@ -1,10 +1,10 @@
-﻿using LendingApp.UI.AdminUI.Views;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+using LendingApp.UI.AdminUI.Views;
 using LendingSystem.Admin;
 using LendingSystem.Reports;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Forms;
 
 namespace LendingApp.UI.AdminUI
 {
@@ -39,6 +39,9 @@ namespace LendingApp.UI.AdminUI
 
         // User dropdown (simple WinForms equivalent)
         private ContextMenuStrip userMenu;
+
+        // Store references to nav buttons for easy updating
+        private Dictionary<string, Button> navButtons = new Dictionary<string, Button>();
 
         public AdminDashboard()
         {
@@ -192,6 +195,9 @@ namespace LendingApp.UI.AdminUI
                 Padding = new Padding(12)
             };
 
+            // Clear existing nav buttons
+            navButtons.Clear();
+
             int y = 10;
             foreach (var item in navItems)
             {
@@ -202,16 +208,25 @@ namespace LendingApp.UI.AdminUI
                     Size = new Size(sidebarPanel.Width - 44, 42),
                     TextAlign = ContentAlignment.MiddleLeft,
                     FlatStyle = FlatStyle.Flat,
+                    Tag = item, // Store the nav item name in Tag
                     BackColor = activeNav == item ? ColorTranslator.FromHtml("#EFF6FF") : Color.White,
                     ForeColor = activeNav == item ? ColorTranslator.FromHtml("#1D4ED8") : ColorTranslator.FromHtml("#374151")
                 };
                 btn.FlatAppearance.BorderSize = activeNav == item ? 1 : 0;
                 btn.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#BFDBFE");
 
+                // Store the button reference
+                navButtons[item] = btn;
+
                 btn.Click += (s, e) =>
                 {
+                    // Update activeNav first
                     activeNav = item;
-                    BuildSidebar(); // refresh highlight
+
+                    // Update all button styles
+                    UpdateNavButtonsStyle();
+
+                    // Show the active view
                     ShowActiveView();
                 };
 
@@ -235,6 +250,21 @@ namespace LendingApp.UI.AdminUI
             sidebarPanel.Controls.Clear();
             sidebarPanel.Controls.Add(btnLogoutSide);
             sidebarPanel.Controls.Add(navHost);
+        }
+
+        private void UpdateNavButtonsStyle()
+        {
+            foreach (var kvp in navButtons)
+            {
+                var item = kvp.Key;
+                var btn = kvp.Value;
+
+                bool isActive = (activeNav == item);
+                btn.BackColor = isActive ? ColorTranslator.FromHtml("#EFF6FF") : Color.White;
+                btn.ForeColor = isActive ? ColorTranslator.FromHtml("#1D4ED8") : ColorTranslator.FromHtml("#374151");
+                btn.FlatAppearance.BorderSize = isActive ? 1 : 0;
+                btn.FlatAppearance.BorderColor = isActive ? ColorTranslator.FromHtml("#BFDBFE") : Color.Empty;
+            }
         }
 
         private void BuildContent()
