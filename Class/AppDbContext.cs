@@ -17,10 +17,6 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 04bfb01181e42fa799471f0be64d6b314a61a610
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
         public DbSet<CollectionEntity> Collections { get; set; }
@@ -140,10 +136,6 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 04bfb01181e42fa799471f0be64d6b314a61a610
             // NEW: loan_application_evaluations
             modelBuilder.Entity<LoanApplicationEvaluationEntity>()
                 .ToTable("loan_application_evaluations")
@@ -225,8 +217,6 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
 
-<<<<<<< HEAD
-=======
             modelBuilder.Entity<CollectionEntity>()
                 .ToTable("collections")
                 .HasKey(x => x.CollectionId);
@@ -369,7 +359,6 @@ namespace LendingApp.Class
                 .Property(x => x.CreatedDate)
                 .HasColumnName("created_date")
                 .IsRequired();
->>>>>>> 04bfb01181e42fa799471f0be64d6b314a61a610
         }
     }
 }
