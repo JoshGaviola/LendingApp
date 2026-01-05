@@ -299,6 +299,7 @@ namespace LendingApp.Class
                 .ToTable("payments")
                 .HasKey(x => x.PaymentId);
 
+            // primary key / basic props
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentId)
                 .HasColumnName("payment_id");
@@ -314,35 +315,38 @@ namespace LendingApp.Class
                 .IsRequired()
                 .HasMaxLength(32);
 
+            // payment timestamp (SQL uses payment_date)
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentDate)
                 .HasColumnName("payment_date")
                 .IsRequired();
 
+            // map amounts to the SQL column names
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.AmountPaid)
-                .HasColumnName("amount_paid")
+                .HasColumnName("amount")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PrincipalPaid)
-                .HasColumnName("principal_paid")
+                .HasColumnName("principal_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.InterestPaid)
-                .HasColumnName("interest_paid")
+                .HasColumnName("interest_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PenaltyPaid)
-                .HasColumnName("penalty_paid")
+                .HasColumnName("penalty_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
+            // payment method / receipt
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentMethod)
                 .HasColumnName("payment_method")
@@ -351,14 +355,13 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.ReceiptNo)
-                .HasColumnName("receipt_no")
+                .HasColumnName("receipt_number")
                 .IsRequired()
                 .HasMaxLength(50);
 
+            // The DDL doesn't have a separate created_date; ignore the extra property
             modelBuilder.Entity<PaymentEntity>()
-                .Property(x => x.CreatedDate)
-                .HasColumnName("created_date")
-                .IsRequired();
+                .Ignore(x => x.CreatedDate);
         }
     }
 }

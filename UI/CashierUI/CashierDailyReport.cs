@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -58,16 +60,21 @@ namespace LendingApp.UI.CashierUI
 
         // Data
         private List<Transaction> transactions;
+
+        // TODO: move these to a proper table (e.g., cashier_sessions / cash_drawer)
         private decimal openingBalance = 15000m;
-        private decimal totalReleased = 50000m;
         private decimal variance = 0m;
+
+        // TODO: connect to authenticated user
         private string cashierName = "Maria Santos";
 
         public CashierDailyReport()
         {
             InitializeComponent();
             BuildUI();
-            LoadData();
+
+            // Load from DB for today's date
+            LoadDataFromDb(dtpReportDate.Value.Date);
         }
 
         private void BuildUI()
@@ -157,6 +164,7 @@ namespace LendingApp.UI.CashierUI
                 Format = DateTimePickerFormat.Short,
                 Value = DateTime.Today
             };
+            dtpReportDate.ValueChanged += (s, e) => LoadDataFromDb(dtpReportDate.Value.Date);
 
             var lblCashier = new Label
             {
@@ -279,7 +287,7 @@ namespace LendingApp.UI.CashierUI
             };
 
             btnRefresh = CreateButton("⟳ Refresh", ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
-            btnRefresh.Click += (s, e) => ShowToast("Report refreshed");
+            btnRefresh.Click += (s, e) => LoadDataFromDb(dtpReportDate.Value.Date);
 
             btnPrintReport = CreateButton("🖨️ Print Report", ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
             btnPrintReport.Click += (s, e) => ShowToast("Sending daily report to printer...");
@@ -315,7 +323,6 @@ namespace LendingApp.UI.CashierUI
             contentPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             contentPanel.Controls.Add(buttonsPanel, 0, 5);
 
-            // Add to mainCard (reverse order for Dock.Top)
             mainCard.Controls.Add(contentPanel);
             mainCard.Controls.Add(mainHeader);
 
@@ -543,28 +550,84 @@ namespace LendingApp.UI.CashierUI
             return btn;
         }
 
-        private void LoadData()
+        private void LoadDataFromDb(DateTime reportDate)
         {
-            transactions = new List<Transaction>
+            try
             {
-                new Transaction { Id = "1", Time = "9:30 AM", ReceiptNo = "OR-001", Customer = "Juan Dela Cruz", Amount = 4442.44m, Mode = "Cash", Principal = 4000m, Interest = 442.44m, Penalty = 0m, Charges = 0m },
-                new Transaction { Id = "2", Time = "10:15 AM", ReceiptNo = "OR-002", Customer = "Maria Santos", Amount = 2150m, Mode = "GCash", Principal = 2000m, Interest = 150m, Penalty = 0m, Charges = 0m },
-                new Transaction { Id = "3", Time = "11:00 AM", ReceiptNo = "OR-003", Customer = "Pedro Reyes", Amount = 1500m, Mode = "Cash", Principal = 1350m, Interest = 150m, Penalty = 0m, Charges = 0m },
-                new Transaction { Id = "4", Time = "1:30 PM", ReceiptNo = "OR-004", Customer = "Ana Garcia", Amount = 3000m, Mode = "Bank", Principal = 2700m, Interest = 250m, Penalty = 50m, Charges = 0m },
-                new Transaction { Id = "5", Time = "2:15 PM", ReceiptNo = "OR-005", Customer = "Carlos Mendoza", Amount = 2500m, Mode = "Cash", Principal = 2200m, Interest = 250m, Penalty = 50m, Charges = 0m },
-                new Transaction { Id = "6", Time = "2:45 PM", ReceiptNo = "OR-006", Customer = "Rosa Cruz", Amount = 1800m, Mode = "GCash", Principal = 1600m, Interest = 150m, Penalty = 50m, Charges = 0m },
-                new Transaction { Id = "7", Time = "3:00 PM", ReceiptNo = "OR-007", Customer = "David Santos", Amount = 3200m, Mode = "Cash", Principal = 2900m, Interest = 250m, Penalty = 50m, Charges = 0m },
-                new Transaction { Id = "8", Time = "3:15 PM", ReceiptNo = "OR-008", Customer = "Elena Ramos", Amount = 1500m, Mode = "GCash", Principal = 1350m, Interest = 150m, Penalty = 0m, Charges = 0m },
-                new Transaction { Id = "9", Time = "3:30 PM", ReceiptNo = "OR-009", Customer = "Fernando Lopez", Amount = 2000m, Mode = "Bank", Principal = 1800m, Interest = 150m, Penalty = 50m, Charges = 0m },
-                new Transaction { Id = "10", Time = "3:45 PM", ReceiptNo = "OR-010", Customer = "Gloria Tan", Amount = 1500m, Mode = "Cash", Principal = 1350m, Interest = 150m, Penalty = 0m, Charges = 0m },
-                new Transaction { Id = "11", Time = "4:00 PM", ReceiptNo = "OR-011", Customer = "Henry Bautista", Amount = 5000m, Mode = "Cash", Principal = 4500m, Interest = 400m, Penalty = 100m, Charges = 0m }
-            };
+                using (var db = new AppDbContext())
+                {
+                    var dayStart = reportDate.Date;
+                    var dayEnd = reportDate.Date.AddDays(1);
 
-            CalculateAndDisplayData();
+                    // ===== payments for the day =====
+                    var payments = (from p in db.Payments.AsNoTracking()
+                                    where p.PaymentDate >= dayStart && p.PaymentDate < dayEnd
+                                    select p).ToList();
+
+                    // ===== map to "Transaction" rows =====
+                    // join customers for display names
+                    var customerIds = payments.Select(p => p.CustomerId).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+
+                    var customerNames = db.Customers.AsNoTracking()
+                        .Where(c => customerIds.Contains(c.CustomerId))
+                        .Select(c => new
+                        {
+                            c.CustomerId,
+                            Name = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim()
+                        })
+                        .ToList()
+                        .ToDictionary(x => x.CustomerId, x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+                    transactions = payments
+                        .OrderBy(p => p.PaymentDate)
+                        .Select(p =>
+                        {
+                            string name;
+                            if (!customerNames.TryGetValue(p.CustomerId ?? "", out name))
+                                name = p.CustomerId ?? "";
+
+                            return new Transaction
+                            {
+                                Id = p.PaymentId.ToString(CultureInfo.InvariantCulture),
+                                Time = p.PaymentDate.ToString("h:mm tt", CultureInfo.InvariantCulture),
+                                ReceiptNo = p.ReceiptNo ?? "",
+                                Customer = name,
+                                Amount = p.AmountPaid,
+                                Mode = p.PaymentMethod ?? "Cash",
+                                Principal = p.PrincipalPaid,
+                                Interest = p.InterestPaid,
+                                Penalty = p.PenaltyPaid,
+                                Charges = 0m
+                            };
+                        })
+                        .ToList();
+
+                    // ===== totalReleased for the day =====
+                    var releasedTotal = db.Loans.AsNoTracking()
+                        .Where(l => l.ReleaseDate >= dayStart && l.ReleaseDate < dayEnd)
+                        .Select(l => (decimal?)l.PrincipalAmount)
+                        .DefaultIfEmpty(0m)
+                        .Sum() ?? 0m;
+
+                    // apply and render
+                    CalculateAndDisplayData(releasedTotal);
+                }
+            }
+            catch (Exception ex)
+            {
+                transactions = new List<Transaction>();
+                CalculateAndDisplayData(0m);
+
+                // shows the REAL database error (inner exception, SQL, etc.)
+                MessageBox.Show(ex.ToString(), "Failed to load daily report", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void CalculateAndDisplayData()
+        // UPDATED: accept totalReleased from DB
+        private void CalculateAndDisplayData(decimal totalReleasedFromDb)
         {
+            var totalReleased = totalReleasedFromDb;
+
             decimal totalCollections = transactions.Sum(t => t.Amount);
             decimal closingBalance = openingBalance + totalCollections - totalReleased;
 
@@ -593,7 +656,6 @@ namespace LendingApp.UI.CashierUI
             dgvCollectionBreakdown.Rows.Add("Bank", bankTransactions.Count, $"₱{bankTransactions.Sum(t => t.Amount):N2}");
             dgvCollectionBreakdown.Rows.Add("Total", transactions.Count, $"₱{totalCollections:N2}");
 
-            // Style total row
             if (dgvCollectionBreakdown.Rows.Count > 0)
             {
                 var totalRow = dgvCollectionBreakdown.Rows[dgvCollectionBreakdown.Rows.Count - 1];
@@ -621,7 +683,6 @@ namespace LendingApp.UI.CashierUI
             dgvPaymentAllocation.Rows.Add("Charges", $"₱{totalCharges:N2}", CalculatePercentage(totalCharges) + "%");
             dgvPaymentAllocation.Rows.Add("Total", $"₱{totalCollections:N2}", "100%");
 
-            // Style total row
             if (dgvPaymentAllocation.Rows.Count > 0)
             {
                 var totalRow = dgvPaymentAllocation.Rows[dgvPaymentAllocation.Rows.Count - 1];
@@ -647,7 +708,6 @@ namespace LendingApp.UI.CashierUI
                     transaction.Mode
                 );
 
-                // Style mode column with colors
                 var modeCell = dgvTransactionDetails.Rows[rowIndex].Cells["Mode"];
                 switch (transaction.Mode)
                 {
@@ -665,7 +725,6 @@ namespace LendingApp.UI.CashierUI
                         break;
                 }
 
-                // Make amount column right-aligned
                 dgvTransactionDetails.Rows[rowIndex].Cells["Amount"].Style.Alignment = DataGridViewContentAlignment.MiddleRight;
             }
         }
