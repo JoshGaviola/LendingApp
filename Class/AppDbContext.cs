@@ -15,10 +15,6 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 2ee4c5960f396ad025ca6026d0cea9101ecb5822
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
 
@@ -27,7 +23,6 @@ namespace LendingApp.Class
             base.OnModelCreating(modelBuilder);
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
             Database.SetInitializer<AppDbContext>(null);  // Disable migrations
-
 
             modelBuilder.Entity<Customer>()
                 .ToTable("customers")
@@ -137,10 +132,6 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 2ee4c5960f396ad025ca6026d0cea9101ecb5822
             // NEW: loan_application_evaluations
             modelBuilder.Entity<LoanApplicationEvaluationEntity>()
                 .ToTable("loan_application_evaluations")
@@ -221,10 +212,7 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
-<<<<<<< HEAD
-=======
 
->>>>>>> 2ee4c5960f396ad025ca6026d0cea9101ecb5822
         }
     }
 }

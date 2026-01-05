@@ -452,6 +452,7 @@
       <DependentUpon>OfficerSettings.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="Document\wg_personal-loan-agreement-template.pdf" />
     <None Include="Lending Program ERD.drawio" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
