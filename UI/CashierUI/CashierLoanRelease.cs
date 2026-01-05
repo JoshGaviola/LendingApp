@@ -9,6 +9,12 @@ using System.Windows.Forms;
 using LendingApp.Class.Interface;
 using LendingApp.Class.Repo;
 using LendingApp.Class;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Data.Entity;
+using LendingApp.Class.Models.LoanOfiicerModels;
+using LendingApp.UI.CustomerUI;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -16,6 +22,13 @@ namespace LendingApp.UI.CashierUI
     {
         private readonly ILoanRepository _loanRepo;
         private LoanReleaseModels _selected;
+
+        // NEW: customer repo for "View Documents"
+        private readonly ICustomerRepository _customerRepo = new CustomerRepository();
+
+        // NEW: contract template absolute path (per your note)
+        private const string PersonalLoanAgreementTemplatePath =
+            @"C:\Users\user\Source\Repos\LendingApp\Document\wg_personal-loan-agreement-template.pdf";
 
         // layout
         private Panel root;
@@ -44,8 +57,8 @@ namespace LendingApp.UI.CashierUI
         private Button btnConfirm;
         private Button btnReleasePrint;
         private Button btnCancel;
-        private Button btnPrintVoucher;
-        private Button btnViewContract;
+        private Button btnPrintContract;
+        private Button btnViewDocument;
 
         private DataGridView gridToday;
 
@@ -278,14 +291,14 @@ namespace LendingApp.UI.CashierUI
 
             // actions
             var row1 = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Margin = new Padding(0, 12, 0, 0) };
-            btnViewContract = Outline("View Contract", 130);
-            btnViewContract.Click += (s, e) => Toast("Viewing contract for " + _selected.LoanNumber);
+            btnViewDocument = Outline("View Documents", 130);
+            btnViewDocument.Click += (s, e) => OpenCustomerRegistrationForSelectedLoan();
 
-            btnPrintVoucher = Outline("Print Voucher", 130);
-            btnPrintVoucher.Click += (s, e) => Toast("Disbursement voucher sent to printer");
+            btnPrintContract = Outline("Print Contract", 130);
+            btnPrintContract.Click += (s, e) => OpenPersonalLoanAgreementTemplate();
 
-            row1.Controls.Add(btnViewContract);
-            row1.Controls.Add(btnPrintVoucher);
+            row1.Controls.Add(btnViewDocument);
+            row1.Controls.Add(btnPrintContract);
 
             var row2 = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Margin = new Padding(0, 8, 0, 0) };
             btnConfirm = Success("Confirm Release", 140);
@@ -342,6 +355,97 @@ namespace LendingApp.UI.CashierUI
             root.Controls.Add(todayCard);
 
             BuildToast();
+        }
+
+        private void OpenCustomerRegistrationForSelectedLoan()
+        {
+            if (_selected == null) return;
+
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // We need the loan row because it contains CustomerId
+                    var loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanNumber == _selected.LoanNumber);
+                    if (loan == null)
+                    {
+                        MessageBox.Show("Loan not found in database for Loan #: " + _selected.LoanNumber, "View Documents",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(loan.CustomerId))
+                    {
+                        MessageBox.Show("Selected loan has no CustomerId.", "View Documents",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    var customer = _customerRepo.GetById(loan.CustomerId);
+                    if (customer == null)
+                    {
+                        MessageBox.Show("Customer not found in database. CustomerId: " + loan.CustomerId, "View Documents",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    using (var frm = new CustomerRegistration(customer))
+                    {
+                        frm.StartPosition = FormStartPosition.CenterParent;
+                        frm.ShowDialog(this);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open customer documents.\n\n" + ex.Message, "View Documents",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OpenPersonalLoanAgreementTemplate()
+        {
+            if (_selected == null) return;
+
+            try
+            {
+                const string fileName = "wg_personal-loan-agreement-template.pdf";
+
+                // 1) Preferred: shipped with app (bin folder)
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var shippedPath = Path.Combine(baseDir, "Document", fileName);
+
+                // 2) Dev fallback: run from repo without copy settings
+                // baseDir is typically ...\bin\Debug\ so go up to project root then Document\
+                var devPath = Path.GetFullPath(Path.Combine(baseDir, @"..\..\Document\", fileName));
+
+                var pathToOpen =
+                    File.Exists(shippedPath) ? shippedPath :
+                    File.Exists(devPath) ? devPath :
+                    null;
+
+                if (pathToOpen == null)
+                {
+                    MessageBox.Show(
+                        "Contract template was not found.\n\n" +
+                        "Expected locations:\n" +
+                        shippedPath + "\n" +
+                        devPath + "\n\n" +
+                        "Fix: set the PDF file properties to Content + Copy to Output Directory.",
+                        "Print Contract",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                Process.Start(pathToOpen);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open contract template.\n\n" + ex.Message, "Print Contract",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         private void Search()
@@ -441,8 +545,8 @@ namespace LendingApp.UI.CashierUI
         {
             pnlDetails.Visible = (_selected != null);
 
-            btnViewContract.Enabled = (_selected != null);
-            btnPrintVoucher.Enabled = (_selected != null);
+            btnViewDocument.Enabled = (_selected != null);
+            btnPrintContract.Enabled = (_selected != null);
             btnCancel.Enabled = (_selected != null);
 
             btnConfirm.Enabled = (_selected != null) && AllDocs();

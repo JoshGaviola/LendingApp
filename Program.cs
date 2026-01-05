@@ -31,6 +31,7 @@ namespace LendingApp
             Application.SetCompatibleTextRenderingDefault(false);
 
             var data = new ApplicantsData();
+<<<<<<< HEAD
             // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
             Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
            // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
@@ -38,6 +39,11 @@ namespace LendingApp
 
           //  Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
 
+=======
+             Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
+            //  Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+            // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
+>>>>>>> 04bfb01181e42fa799471f0be64d6b314a61a610
         }
     }
 }

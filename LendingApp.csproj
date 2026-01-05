@@ -127,6 +127,8 @@
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerCustomersLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerDashboardLogic.cs" />
     <Compile Include="Class\LogicClass\Loans\LoanApplication.cs" />
+    <Compile Include="Class\Models\CashierModels\PaymentEntity.cs" />
+    <Compile Include="Class\Models\Loans\CollectionEntity.cs" />
     <Compile Include="Class\Models\User\User.cs" />
     <Compile Include="Class\Models\CashierModels\LoanReleaseModels.cs" />
     <Compile Include="Class\Models\CashierModels\TransactionModels.cs" />
@@ -454,6 +456,7 @@
       <DependentUpon>OfficerSettings.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="Document\wg_personal-loan-agreement-template.pdf" />
     <None Include="Lending Program ERD.drawio" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
@@ -470,7 +473,6 @@
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
     <Content Include="lendingapp.sql" />
-    <Content Include="LendingAppDatabase.sql" />
     <Content Include="obj\Debug\LendingApp.csproj.FileListAbsolute.txt" />
     <Content Include="obj\Debug\TempPE\UI.LoanOfficerUI.OfficerCustomers1.Designer.cs.dll" />
     <Content Include="UpgradeLog.htm" />

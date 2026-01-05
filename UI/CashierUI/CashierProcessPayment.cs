@@ -8,7 +8,11 @@ using System.Windows.Forms;
 using LendingApp.LogicClass.Cashier;
 using LendingApp.Class.Models.CashierModels;
 using LendingApp.Class.Service;
-
+using LendingApp.Class;
+using System.Data.Entity;
+using LendingApp.Class.Models.Loans;
+using LendingApp.Class.Repo;
+using LendingApp.Class.Interface;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -33,51 +37,27 @@ namespace LendingApp.UI.CashierUI
             public decimal NewBalance { get; set; }
         }
 
-        private readonly Dictionary<string, LoanInfo> _mockLoans = new Dictionary<string, LoanInfo>(StringComparer.OrdinalIgnoreCase)
+        private sealed class LoanRow
         {
-            {
-                "LN-2024-001",
-                new LoanInfo
-                {
-                    Customer = "Juan Dela Cruz",
-                    Balance = 35657m,
-                    MonthlyPayment = 4442.44m,
-                    Principal = 50000m,
-                    InterestRate = 12m,
-                    Term = 12,
-                    PaymentsDue = 8
-                }
-            },
-            {
-                "LN-2024-002",
-                new LoanInfo
-                {
-                    Customer = "Maria Santos",
-                    Balance = 12500m,
-                    MonthlyPayment = 2150m,
-                    Principal = 15000m,
-                    InterestRate = 10m,
-                    Term = 6,
-                    PaymentsDue = 6
-                }
-            },
-            {
-                "LN-2024-003",
-                new LoanInfo
-                {
-                    Customer = "Pedro Reyes",
-                    Balance = 8200m,
-                    MonthlyPayment = 1500m,
-                    Principal = 10000m,
-                    InterestRate = 8m,
-                    Term = 12,
-                    PaymentsDue = 6
-                }
-            }
-        };
+            public string LoanNumber { get; set; }
+            public string Customer { get; set; }
+            public decimal Balance { get; set; }
+            public decimal MonthlyDue { get; set; }
+            public decimal InterestRate { get; set; }
+            public int Term { get; set; }
+            public int PaymentsDue { get; set; }
+        }
+
+        private readonly ILoanRepository _loanRepo;
+        private readonly ICustomerRepository _customerRepo;
+
+        private List<LoanRow> _loanRows = new List<LoanRow>();
 
         private LoanInfo _loanDetails;
         private AllocationInfo _allocation;
+
+        // NEW: keep selected loan entity id for DB update
+        private int? _selectedLoanId;
 
         // Layout constants
         private const int PagePadding = 16;
@@ -97,6 +77,9 @@ namespace LendingApp.UI.CashierUI
         private Panel customerCard;
         private Label lblCustomerName;
         private Label lblCustomerBalance;
+
+        // Loans list table
+        private DataGridView gridLoans;
 
         // Payment details
         private TextBox txtPaymentAmount;
@@ -125,21 +108,90 @@ namespace LendingApp.UI.CashierUI
         private Timer _toastTimer;
         private BindingList<TransactionModels> _transactions;
         private CashierProcessLogic cashierProcessLogic;
+
         public CashierProcessPayment(BindingList<TransactionModels> transactions)
+            : this(transactions, new LoanRepository(), new CustomerRepository())
+        {
+        }
+
+        public CashierProcessPayment(
+            BindingList<TransactionModels> transactions,
+            ILoanRepository loanRepo,
+            ICustomerRepository customerRepo)
         {
             InitializeComponent();
-            _transactions = transactions;
+            _transactions = transactions ?? new BindingList<TransactionModels>();
             cashierProcessLogic = new CashierProcessLogic();
+
+            _loanRepo = loanRepo ?? new LoanRepository();
+            _customerRepo = customerRepo ?? new CustomerRepository();
 
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             FormBorderStyle = FormBorderStyle.None;
-            //TopLevel = false;
+
             BuildUI();
+            LoadLoansFromDb();
+            BindLoans();
             BindTransactions();
             RefreshState();
-
         }
 
+        private void LoadLoansFromDb()
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // Show active loans for payment processing
+                    var loans = db.Loans.AsNoTracking()
+                        .Where(l => l.Status == "Active")
+                        .OrderByDescending(l => l.CreatedDate)
+                        .ToList();
+
+                    var customerIds = loans.Select(l => l.CustomerId).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+
+                    var customerNames = db.Customers.AsNoTracking()
+                        .Where(c => customerIds.Contains(c.CustomerId))
+                        .Select(c => new
+                        {
+                            c.CustomerId,
+                            Name = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim()
+                        })
+                        .ToList()
+                        .ToDictionary(x => x.CustomerId, x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+                    _loanRows = loans.Select(l =>
+                    {
+                        string name;
+                        if (!customerNames.TryGetValue(l.CustomerId ?? "", out name))
+                            name = l.CustomerId ?? "";
+
+                        // PaymentsDue isn't in `loans`; keep simple / placeholder for now
+                        int paymentsDue = l.DaysOverdue > 0 ? 1 : 0;
+
+                        return new LoanRow
+                        {
+                            LoanNumber = l.LoanNumber,
+                            Customer = name,
+                            Balance = l.OutstandingBalance,
+                            MonthlyDue = l.MonthlyPayment,
+                            InterestRate = l.InterestRate,
+                            Term = l.TermMonths,
+                            PaymentsDue = paymentsDue
+                        };
+                    }).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                _loanRows = new List<LoanRow>();
+                ShowToast("Failed to load loans from database: " + ex.Message, isError: true);
+            }
+        }
+
+        // ==========================
+        // UI BUILD (unchanged)
+        // ==========================
         private void BuildUI()
         {
             Controls.Clear();
@@ -188,7 +240,7 @@ namespace LendingApp.UI.CashierUI
             searchGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
             searchCard.Controls.Add(searchGrid);
 
-            // Left: loan input
+            // Left: loan input (optional)
             var left = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
@@ -199,7 +251,7 @@ namespace LendingApp.UI.CashierUI
             left.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240));
             left.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 96));
 
-            var lblLoan = MakeFieldLabel("Loan Number");
+            var lblLoan = MakeFieldLabel("Loan Number (optional — select from table below)");
             txtLoanNumber = new TextBox { Dock = DockStyle.Fill };
             txtLoanNumber.KeyDown += (s, e) =>
             {
@@ -222,7 +274,7 @@ namespace LendingApp.UI.CashierUI
 
             var hint = new Label
             {
-                Text = "Try: LN-2024-001, LN-2024-002, or LN-2024-003",
+                Text = "Tip: double-click a row in the Loans table to load the loan automatically.",
                 AutoSize = true,
                 ForeColor = ColorTranslator.FromHtml("#6B7280"),
                 Font = new Font("Segoe UI", 8)
@@ -263,6 +315,75 @@ namespace LendingApp.UI.CashierUI
             searchGrid.Controls.Add(left, 0, 0);
             searchGrid.Controls.Add(customerCard, 1, 0);
 
+            // Loans table card
+            var loansCard = MakeCard();
+            loansCard.Padding = new Padding(0);
+
+            var loansHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                BackColor = ColorTranslator.FromHtml("#F3E8FF"),
+                Padding = new Padding(16, 12, 16, 12),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            var loansTitle = new Label
+            {
+                Text = "ALL LOANS (DOUBLE-CLICK TO SELECT)",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = ColorTranslator.FromHtml("#111827")
+            };
+            loansHeader.Controls.Add(loansTitle);
+
+            var loansBody = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 220,
+                BackColor = Color.White
+            };
+
+            gridLoans = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.None,
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing,
+                ColumnHeadersHeight = 36,
+                RowTemplate = { Height = 28 }
+            };
+
+            gridLoans.Columns.Clear();
+            gridLoans.Columns.Add("LoanNumber", "Loan #");
+            gridLoans.Columns.Add("Customer", "Customer");
+            gridLoans.Columns.Add("Balance", "Balance");
+            gridLoans.Columns.Add("MonthlyDue", "Monthly Due");
+            gridLoans.Columns.Add("PaymentsDue", "Payments Due");
+            gridLoans.Columns.Add("Rate", "Rate (%)");
+            gridLoans.Columns.Add("Term", "Term (mo)");
+
+            gridLoans.CellDoubleClick += GridLoans_CellDoubleClick;
+            gridLoans.KeyDown += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    SelectLoanFromGrid();
+                }
+            };
+
+            loansBody.Controls.Add(gridLoans);
+            loansCard.Controls.Add(loansBody);
+            loansCard.Controls.Add(loansHeader);
+
+            // Payment card
             var paymentCard = MakeCard();
             paymentCard.Padding = new Padding(16);
 
@@ -276,7 +397,6 @@ namespace LendingApp.UI.CashierUI
             paymentGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
             paymentCard.Controls.Add(paymentGrid);
 
-            // Amount section
             var amountPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Top,
@@ -302,7 +422,6 @@ namespace LendingApp.UI.CashierUI
             };
             amountPanel.Controls.Add(lblMonthlyDue);
 
-            // Method section
             var methodPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Top,
@@ -313,7 +432,7 @@ namespace LendingApp.UI.CashierUI
             methodPanel.Controls.Add(MakeFieldLabel("Payment Method"));
             var methodRow = new FlowLayoutPanel
             {
-                AutoSize = true,
+                AutoSize = true,    
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false
             };
@@ -354,7 +473,7 @@ namespace LendingApp.UI.CashierUI
             actions.Controls.Add(btnPrint);
             actionsCard.Controls.Add(actions);
 
-            // Allocation card (starts hidden)
+            // Allocation card
             allocationCard = MakeCard();
             allocationCard.Padding = new Padding(16);
             allocationCard.Visible = false;
@@ -393,14 +512,6 @@ namespace LendingApp.UI.CashierUI
             AddAllocRow(allocGrid, "Principal:", lblAllocPrincipal, 1);
             AddAllocRow(allocGrid, "Penalty:", lblAllocPenalty, 2);
 
-            var divider = new Panel
-            {
-                Height = 1,
-                Dock = DockStyle.Top,
-                BackColor = ColorTranslator.FromHtml("#D1D5DB"),
-                Margin = new Padding(0, 10, 0, 10)
-            };
-
             var nbLeft = new Label
             {
                 Text = "New Balance:",
@@ -415,7 +526,6 @@ namespace LendingApp.UI.CashierUI
             allocGrid.Controls.Add(lblAllocNewBalance, 1, 3);
 
             allocationCard.Controls.Add(allocGrid);
-            allocationCard.Controls.Add(divider);
             allocationCard.Controls.Add(allocTitle);
 
             // Transactions card
@@ -439,12 +549,10 @@ namespace LendingApp.UI.CashierUI
             };
             txHeader.Controls.Add(txTitle);
 
-            // NEW: grid host with fixed height so the grid is visible inside AutoSize card
             var txBody = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 260,
-                Padding = new Padding(0),
                 BackColor = Color.White
             };
 
@@ -459,7 +567,6 @@ namespace LendingApp.UI.CashierUI
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White,
                 BorderStyle = BorderStyle.None,
-
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing,
                 ColumnHeadersHeight = 36,
                 RowTemplate = { Height = 28 }
@@ -489,16 +596,19 @@ namespace LendingApp.UI.CashierUI
             // Add to main layout (top to bottom)
             AddRow(header);
             AddRow(searchCard);
+            AddRow(loansCard);
             AddRow(paymentCard);
             AddRow(actionsCard);
             AddRow(allocationCard);
             AddRow(txCard);
 
             BuildToast();
-
             allocationCard.Visible = false;
         }
 
+        // ==========================
+        // MISSING HELPERS (FIXES YOUR CS0103 ERRORS)
+        // ==========================
         private void AddRow(Control c)
         {
             c.Margin = new Padding(0, 0, 0, Gap);
@@ -618,8 +728,21 @@ namespace LendingApp.UI.CashierUI
             grid.Controls.Add(valueLabel, 1, row);
         }
 
+        private void GridTransactions_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (gridTransactions.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+            {
+                var tx = gridTransactions.Rows[e.RowIndex].Tag as TransactionModels;
+                if (tx == null) return;
+
+                ShowToast("Receipt " + tx.ReceiptNo + " sent to printer");
+            }
+        }
+
         private void BindTransactions()
-        {   
+        {
             if (gridTransactions == null) return;
 
             gridTransactions.Rows.Clear();
@@ -634,18 +757,46 @@ namespace LendingApp.UI.CashierUI
             }
         }
 
-        private void GridTransactions_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        // ==========================
+        // LOANS GRID + SEARCH
+        // ==========================
+        private void BindLoans()
+        {
+            if (gridLoans == null) return;
+
+            gridLoans.Rows.Clear();
+
+            foreach (var r in _loanRows)
+            {
+                int idx = gridLoans.Rows.Add(
+                    r.LoanNumber,
+                    r.Customer,
+                    "₱" + r.Balance.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
+                    "₱" + r.MonthlyDue.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
+                    r.PaymentsDue.ToString(CultureInfo.InvariantCulture),
+                    r.InterestRate.ToString("N2", CultureInfo.GetCultureInfo("en-US")),
+                    r.Term.ToString(CultureInfo.InvariantCulture));
+
+                // keep easy selection by loan number
+                gridLoans.Rows[idx].Tag = r.LoanNumber;
+            }
+        }
+
+        private void GridLoans_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
+            SelectLoanFromGrid();
+        }
 
-            // NEW: only handle clicks on the Actions button column
-            if (gridTransactions.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
-            {
-                var tx = gridTransactions.Rows[e.RowIndex].Tag as TransactionModels;
-                if (tx == null) return;
+        private void SelectLoanFromGrid()
+        {
+            if (gridLoans == null || gridLoans.CurrentRow == null) return;
 
-                ShowToast("Receipt " + tx.ReceiptNo + " sent to printer");
-            }
+            var loanNo = gridLoans.CurrentRow.Tag as string;
+            if (string.IsNullOrWhiteSpace(loanNo)) return;
+
+            txtLoanNumber.Text = loanNo;
+            SearchLoan();
         }
 
         private void SearchLoan()
@@ -657,22 +808,56 @@ namespace LendingApp.UI.CashierUI
                 return;
             }
 
-            LoanInfo loan;
-            if (_mockLoans.TryGetValue(loanNumber, out loan))
+            try
             {
-                _loanDetails = loan;
-                txtPaymentAmount.Text = loan.MonthlyPayment.ToString("0.00", CultureInfo.InvariantCulture);
-                _allocation = null;
-                ShowToast("Loan found!");
+                using (var db = new AppDbContext())
+                {
+                    var loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanNumber == loanNumber);
+                    if (loan == null)
+                    {
+                        _selectedLoanId = null;
+                        _loanDetails = null;
+                        _allocation = null;
+                        ShowToast("Loan not found", isError: true);
+                        RefreshState();
+                        return;
+                    }
+
+                    _selectedLoanId = loan.LoanId;
+
+                    var cust = db.Customers.AsNoTracking().FirstOrDefault(c => c.CustomerId == loan.CustomerId);
+                    var custName = cust != null
+                        ? ((cust.FirstName ?? "") + " " + (cust.LastName ?? "")).Trim()
+                        : (loan.CustomerId ?? "");
+
+                    int paymentsDue = loan.DaysOverdue > 0 ? 1 : 0;
+
+                    _loanDetails = new LoanInfo
+                    {
+                        Customer = custName,
+                        Balance = loan.OutstandingBalance,
+                        MonthlyPayment = loan.MonthlyPayment,
+                        Principal = loan.PrincipalAmount,
+                        InterestRate = loan.InterestRate,
+                        Term = loan.TermMonths,
+                        PaymentsDue = paymentsDue
+                    };
+
+                    txtPaymentAmount.Text = loan.MonthlyPayment.ToString("0.00", CultureInfo.InvariantCulture);
+                    _allocation = null;
+
+                    ShowToast("Loan found!");
+                    RefreshState();
+                }
             }
-            else
+            catch (Exception ex)
             {
+                _selectedLoanId = null;
                 _loanDetails = null;
                 _allocation = null;
-                ShowToast("Loan not found", isError: true);
+                ShowToast("Failed to search loan: " + ex.Message, isError: true);
+                RefreshState();
             }
-
-            RefreshState();
         }
 
         private void CalculateAllocation()
@@ -707,39 +892,129 @@ namespace LendingApp.UI.CashierUI
             UpdateButtons();
         }
 
+        // ==========================
+        // UPDATED: ProcessPayment now updates the loan record in DB
+        // ==========================
         private void ProcessPayment()
         {
-            if (_loanDetails == null || _allocation == null)
+            if (_loanDetails == null || _allocation == null || !_selectedLoanId.HasValue)
             {
-                ShowToast("Please complete all fields and calculate allocation", isError: true);
+                ShowToast("Please select a loan and calculate allocation", isError: true);
                 return;
             }
 
-            
-
-            string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
-            string timeNow = cashierProcessLogic.GetTimeNow();
-
-            var tx = new TransactionModels
+            decimal paid;
+            if (!TryParseAmount(txtPaymentAmount.Text, out paid) || paid <= 0)
             {
-                Time = timeNow,
-                Borrower = _loanDetails.Customer,
-                PaidAmount = 2222m,
-                ReceiptNo = receiptNo,
-                LoanRef = (txtLoanNumber.Text ?? "").Trim()
-            };
+                ShowToast("Enter a valid payment amount", isError: true);
+                return;
+            }
 
-            _transactions.Insert(0, tx);
-            BindTransactions();
+            try
+            {
+                string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
+                string timeNow = cashierProcessLogic.GetTimeNow();
 
-            ShowToast("Payment processed! Receipt: " + receiptNo);
+                using (var db = new AppDbContext())
+                {
+                    // Load loan (tracked)
+                    var loan = db.Loans.FirstOrDefault(l => l.LoanId == _selectedLoanId.Value);
+                    if (loan == null)
+                    {
+                        ShowToast("Loan record not found (refresh and try again).", isError: true);
+                        return;
+                    }
 
-            txtLoanNumber.Text = "";
-            txtPaymentAmount.Text = "";
-            _loanDetails = null;
-            _allocation = null;
+                    // ===== 1) UPDATE LOAN TOTALS =====
+                    loan.TotalPaid = RoundMoney(loan.TotalPaid + _allocation.Principal);
+                    loan.TotalInterestPaid = RoundMoney(loan.TotalInterestPaid + _allocation.Interest);
+                    loan.TotalPenaltyPaid = RoundMoney(loan.TotalPenaltyPaid + _allocation.Penalty);
 
-            RefreshState();
+                    loan.OutstandingBalance = RoundMoney(Math.Max(0m, loan.OutstandingBalance - _allocation.Principal));
+                    loan.LastPaymentDate = DateTime.Now;
+                    loan.LastUpdated = DateTime.Now;
+
+                    if (loan.OutstandingBalance <= 0m)
+                    {
+                        loan.Status = "Paid";
+                        loan.NextDueDate = null;
+                    }
+
+                    // ===== 2) INSERT COLLECTION RECORD =====
+                    // We log one row per payment (simple + safe).
+                    // If you want "update existing due row instead", tell me your desired rule.
+                    var dueDate = (loan.NextDueDate ?? loan.FirstDueDate).Date;
+
+                    var collection = new CollectionEntity
+                    {
+                        LoanId = loan.LoanId,
+                        CustomerId = loan.CustomerId,
+
+                        DueDate = dueDate,
+                        AmountDue = RoundMoney(paid),
+
+                        DaysOverdue = Math.Max(0, loan.DaysOverdue),
+                        Priority = "Medium",
+                        Status = "Paid",
+
+                        LastContactDate = DateTime.Now.Date,
+                        LastContactMethod = GetSelectedPaymentMethodText(),
+                        Notes = "Payment received. Receipt: " + receiptNo,
+
+                        PromiseDate = null,
+                        AssignedOfficerId = null,
+
+                        CreatedDate = DateTime.Now,
+                        UpdatedDate = DateTime.Now
+                    };
+
+                    db.Collections.Add(collection);
+
+                    // Commit both loan update + collection insert together
+                    db.SaveChanges();
+
+                    // Sync UI in-memory snapshot
+                    _loanDetails.Balance = loan.OutstandingBalance;
+                }
+
+                // ===== 3) UI transactions list (unchanged) =====
+                var tx = new TransactionModels
+                {
+                    Time = timeNow,
+                    Borrower = _loanDetails.Customer,
+                    PaidAmount = paid,
+                    ReceiptNo = receiptNo,
+                    LoanRef = (txtLoanNumber.Text ?? "").Trim()
+                };
+
+                _transactions.Insert(0, tx);
+                BindTransactions();
+
+                LoadLoansFromDb();
+                BindLoans();
+
+                ShowToast("Payment processed! Receipt: " + receiptNo);
+
+                txtLoanNumber.Text = "";
+                txtPaymentAmount.Text = "";
+                _selectedLoanId = null;
+                _loanDetails = null;
+                _allocation = null;
+
+                RefreshState();
+            }
+            catch (Exception ex)
+            {
+                ShowToast("Failed to process payment: " + ex.Message, isError: true);
+            }
+        }
+
+        // NEW: helper to store method in `collections.last_contact_method`
+        private string GetSelectedPaymentMethodText()
+        {
+            if (rbGCash != null && rbGCash.Checked) return "GCash";
+            if (rbBank != null && rbBank.Checked) return "Bank";
+            return "Cash";
         }
 
         private void PrintReceipt()
@@ -792,18 +1067,23 @@ namespace LendingApp.UI.CashierUI
         }
 
         private static bool TryParseAmount(string text, out decimal amount)
-            {
-                var cleaned = (text ?? "").Trim().Replace("₱", "").Replace(",", "");
-                return decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out amount);
-            }
+        {
+            var cleaned = (text ?? "").Trim().Replace("₱", "").Replace(",", "");
+            return decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out amount);
+        }
 
         private static decimal RoundMoney(decimal v)
-            {
-                return Math.Round(v, 2, MidpointRounding.AwayFromZero);
-            }
+        {
+            return Math.Round(v, 2, MidpointRounding.AwayFromZero);
+        }
 
+        // ==========================
+        // TOAST (missing in your current file)
+        // ==========================
         private void BuildToast()
         {
+            if (_toastPanel != null) return;
+
             _toastPanel = new Panel
             {
                 AutoSize = true,
@@ -811,12 +1091,14 @@ namespace LendingApp.UI.CashierUI
                 Padding = new Padding(12, 8, 12, 8),
                 Visible = false
             };
+
             _toastLabel = new Label
             {
                 AutoSize = true,
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 9)
             };
+
             _toastPanel.Controls.Add(_toastLabel);
             Controls.Add(_toastPanel);
             _toastPanel.BringToFront();
@@ -835,19 +1117,21 @@ namespace LendingApp.UI.CashierUI
         private void PositionToast()
         {
             if (_toastPanel == null) return;
+
             _toastPanel.Left = ClientSize.Width - _toastPanel.Width - 12;
             _toastPanel.Top = 12;
         }
 
         private void ShowToast(string message, bool isError = false)
         {
-            if (_toastPanel == null || _toastLabel == null) return;
+            // Safety: if some path calls ShowToast before BuildToast()
+            if (_toastPanel == null || _toastLabel == null) BuildToast();
 
             _toastPanel.BackColor = isError
                 ? ColorTranslator.FromHtml("#991B1B")
                 : ColorTranslator.FromHtml("#111827");
 
-            _toastLabel.Text = message;
+            _toastLabel.Text = message ?? "";
             _toastPanel.Visible = true;
             _toastPanel.BringToFront();
             _toastPanel.PerformLayout();
