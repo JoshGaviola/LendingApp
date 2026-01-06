@@ -575,7 +575,37 @@ namespace LendingApp.UI.CashierUI
             };
 
             btnReprint = CreateButton("🖨️ Reprint Receipt", 140, ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
-            btnReprint.Click += (s, e) => ShowToast($"Receipt {selectedReceipt?.ReceiptNo} sent to printer");
+            btnReprint.Click += (s, e) =>
+            {
+                if (selectedReceipt == null)
+                {
+                    ShowToast("No receipt selected");
+                    return;
+                }
+
+                try
+                {
+                    var path = ReceiptPdfGenerator.GeneratePdf(
+                        selectedReceipt.ReceiptNo,
+                        selectedReceipt.Date,
+                        selectedReceipt.Time,
+                        selectedReceipt.Customer,
+                        selectedReceipt.LoanAccount,
+                        selectedReceipt.Principal,
+                        selectedReceipt.Interest,
+                        selectedReceipt.Penalty,
+                        selectedReceipt.Amount,
+                        selectedReceipt.PaymentMode,
+                        selectedReceipt.Cashier
+                    );
+
+                    ShowToast("PDF opened: " + path);
+                }
+                catch (Exception ex)
+                {
+                    ShowToast("Failed to generate PDF: " + ex.Message);
+                }
+            };
 
             btnEmail = CreateButton("📧 Email Receipt", 130, ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
             btnEmail.Click += (s, e) => ShowToast($"Receipt {selectedReceipt?.ReceiptNo} emailed to customer");
