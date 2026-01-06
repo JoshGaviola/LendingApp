@@ -1,6 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using LendingApp.Class.Models.Loans;
+using MySql.Data.MySqlClient;
+using LendingApp.Class.Services.Admin;
 
 namespace LendingApp.UI.AdminUI
 {
@@ -35,7 +43,6 @@ namespace LendingApp.UI.AdminUI
         private Button btnSaveProduct;
         private Button btnClearForm;
 
-        // Plus icon label needs to be accessible at class level
         private Label lblPlusIcon;
 
         public AddNewLoanProductControl()
@@ -392,52 +399,18 @@ namespace LendingApp.UI.AdminUI
             };
 
             // Document checkboxes
-            chkValidId = new CheckBox
-            {
-                Text = "Valid ID",
-                Location = new Point(10, 20),
-                AutoSize = true
-            };
+            chkValidId = new CheckBox { Text = "Valid ID", Location = new Point(10, 20), AutoSize = true };
+            chkProofOfIncome = new CheckBox { Text = "Proof of Income", Location = new Point(100, 20), AutoSize = true };
+            chkPayslip = new CheckBox { Text = "Payslip", Location = new Point(220, 20), AutoSize = true };
+            chkBankStatement = new CheckBox { Text = "Bank Statement", Location = new Point(300, 20), AutoSize = true };
+            chkComakerForm = new CheckBox { Text = "Co-maker Form", Location = new Point(420, 20), AutoSize = true };
+            chkOthers = new CheckBox { Text = "Others:", Location = new Point(540, 20), AutoSize = true };
+
             panel5.Controls.Add(chkValidId);
-
-            chkProofOfIncome = new CheckBox
-            {
-                Text = "Proof of Income",
-                Location = new Point(100, 20),
-                AutoSize = true
-            };
             panel5.Controls.Add(chkProofOfIncome);
-
-            chkPayslip = new CheckBox
-            {
-                Text = "Payslip",
-                Location = new Point(220, 20),
-                AutoSize = true
-            };
             panel5.Controls.Add(chkPayslip);
-
-            chkBankStatement = new CheckBox
-            {
-                Text = "Bank Statement",
-                Location = new Point(300, 20),
-                AutoSize = true
-            };
             panel5.Controls.Add(chkBankStatement);
-
-            chkComakerForm = new CheckBox
-            {
-                Text = "Co-maker Form",
-                Location = new Point(420, 20),
-                AutoSize = true
-            };
             panel5.Controls.Add(chkComakerForm);
-
-            chkOthers = new CheckBox
-            {
-                Text = "Others:",
-                Location = new Point(540, 20),
-                AutoSize = true
-            };
             panel5.Controls.Add(chkOthers);
 
             txtOthersDescription = new TextBox
@@ -447,10 +420,7 @@ namespace LendingApp.UI.AdminUI
                 Text = "Specify other documents",
                 Enabled = false
             };
-            chkOthers.CheckedChanged += (s, e) =>
-            {
-                txtOthersDescription.Enabled = chkOthers.Checked;
-            };
+            chkOthers.CheckedChanged += (s, e) => { txtOthersDescription.Enabled = chkOthers.Checked; };
             panel5.Controls.Add(txtOthersDescription);
 
             contentPanel.Controls.Add(panel5);
@@ -475,21 +445,10 @@ namespace LendingApp.UI.AdminUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            rdoCollateralYes = new RadioButton
-            {
-                Text = "Yes",
-                Location = new Point(20, 15),
-                AutoSize = true
-            };
-            panel6.Controls.Add(rdoCollateralYes);
+            rdoCollateralYes = new RadioButton { Text = "Yes", Location = new Point(20, 15), AutoSize = true };
+            rdoCollateralNo = new RadioButton { Text = "No", Location = new Point(100, 15), AutoSize = true, Checked = true };
 
-            rdoCollateralNo = new RadioButton
-            {
-                Text = "No",
-                Location = new Point(100, 15),
-                AutoSize = true,
-                Checked = true
-            };
+            panel6.Controls.Add(rdoCollateralYes);
             panel6.Controls.Add(rdoCollateralNo);
 
             contentPanel.Controls.Add(panel6);
@@ -515,47 +474,14 @@ namespace LendingApp.UI.AdminUI
             };
 
             // Grace Period
-            var lblGracePeriod = new Label
-            {
-                Text = "Grace Period: (days)",
-                Location = new Point(10, 20),
-                AutoSize = true
-            };
-            panel7.Controls.Add(lblGracePeriod);
-
-            txtGracePeriod = new TextBox
-            {
-                Location = new Point(150, 17),
-                Size = new Size(100, 25),
-                Text = "0"
-            };
-            panel7.Controls.Add(txtGracePeriod);
+            var lblGracePeriod = new Label { Text = "Grace Period: (days)", Location = new Point(10, 20), AutoSize = true };
+            txtGracePeriod = new TextBox { Location = new Point(150, 17), Size = new Size(100, 25), Text = "0" };
 
             // Late Payment Penalty
-            var lblLatePenalty = new Label
-            {
-                Text = "Late Payment Penalty:",
-                Location = new Point(10, 60),
-                AutoSize = true
-            };
-            panel7.Controls.Add(lblLatePenalty);
+            var lblLatePenalty = new Label { Text = "Late Payment Penalty:", Location = new Point(10, 60), AutoSize = true };
+            txtLatePenalty = new TextBox { Location = new Point(150, 57), Size = new Size(80, 25), Text = "0.00" };
 
-            txtLatePenalty = new TextBox
-            {
-                Location = new Point(150, 57),
-                Size = new Size(80, 25),
-                Text = "0.00"
-            };
-            panel7.Controls.Add(txtLatePenalty);
-
-            var lblPer = new Label
-            {
-                Text = "% per",
-                Location = new Point(240, 60),
-                AutoSize = true
-            };
-            panel7.Controls.Add(lblPer);
-
+            var lblPer = new Label { Text = "% per", Location = new Point(240, 60), AutoSize = true };
             cmbLatePenaltyPeriod = new ComboBox
             {
                 Location = new Point(290, 57),
@@ -564,6 +490,12 @@ namespace LendingApp.UI.AdminUI
             };
             cmbLatePenaltyPeriod.Items.AddRange(new object[] { "Day", "Week", "Month" });
             cmbLatePenaltyPeriod.SelectedIndex = 0;
+
+            panel7.Controls.Add(lblGracePeriod);
+            panel7.Controls.Add(txtGracePeriod);
+            panel7.Controls.Add(lblLatePenalty);
+            panel7.Controls.Add(txtLatePenalty);
+            panel7.Controls.Add(lblPer);
             panel7.Controls.Add(cmbLatePenaltyPeriod);
 
             contentPanel.Controls.Add(panel7);
@@ -588,21 +520,10 @@ namespace LendingApp.UI.AdminUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            rdoStatusActive = new RadioButton
-            {
-                Text = "Active",
-                Location = new Point(20, 15),
-                AutoSize = true,
-                Checked = true
-            };
-            panel8.Controls.Add(rdoStatusActive);
+            rdoStatusActive = new RadioButton { Text = "Active", Location = new Point(20, 15), AutoSize = true, Checked = true };
+            rdoStatusInactive = new RadioButton { Text = "Inactive", Location = new Point(100, 15), AutoSize = true };
 
-            rdoStatusInactive = new RadioButton
-            {
-                Text = "Inactive",
-                Location = new Point(100, 15),
-                AutoSize = true
-            };
+            panel8.Controls.Add(rdoStatusActive);
             panel8.Controls.Add(rdoStatusInactive);
 
             contentPanel.Controls.Add(panel8);
@@ -683,14 +604,71 @@ namespace LendingApp.UI.AdminUI
 
         private void SaveProduct()
         {
-            // Add validation and save logic here
-            MessageBox.Show("Product saved successfully!", "Success",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                var req = new LoanProductCreateRequest
+                {
+                    ProductName = (txtLoanTypeName.Text ?? "").Trim(),
+                    Description = NormalizeDescription(txtDescription.Text),
+
+                    InterestType = rdoFixedInterest.Checked ? "Fixed" : "Variable",
+                    InterestPeriod = (cmbInterestPeriod.SelectedItem ?? "Year").ToString(),
+
+                    InterestRate = LoanProductAdminService.ParseDecimal(txtInterestRate.Text),
+
+                    ServiceFeePct = LoanProductAdminService.ParseDecimal(txtServiceFeePercentage.Text),
+                    ServiceFeeFixedAmount = NormalizeNullableMoney(txtServiceFeeFixed.Text),
+
+                    MinAmount = LoanProductAdminService.ParseMoney(txtMinLoanAmount.Text),
+                    MaxAmount = LoanProductAdminService.ParseMoney(txtMaxLoanAmount.Text),
+
+                    SelectedTerms = GetSelectedTerms(),
+
+                    GracePeriodDays = LoanProductAdminService.ParseInt(txtGracePeriod.Text),
+                    PenaltyRatePct = LoanProductAdminService.ParseDecimal(txtLatePenalty.Text),
+                    PenaltyPeriod = (cmbLatePenaltyPeriod.SelectedItem ?? "Month").ToString(),
+
+                    RequiresCollateral = rdoCollateralYes.Checked,
+                    IsActive = rdoStatusActive.Checked,
+
+                    Requirements = GetSelectedRequirements()
+                        .Select(x => new LoanProductRequirement { Key = x.key, Text = x.text })
+                        .ToList()
+                };
+
+                var svc = new LoanProductAdminService();
+                svc.CreateLoanProduct(req);
+
+                MessageBox.Show("Product saved successfully!", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                ClearForm();
+            }
+            catch (ValidationException vex)
+            {
+                MessageBox.Show(vex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to save product", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static string NormalizeDescription(string text)
+        {
+            var s = (text ?? "").Trim();
+            if (string.Equals(s, "Enter description", StringComparison.OrdinalIgnoreCase)) return null;
+            return string.IsNullOrWhiteSpace(s) ? null : s;
+        }
+
+        private static decimal? NormalizeNullableMoney(string text)
+        {
+            var v = LoanProductAdminService.ParseMoney(text);
+            return v <= 0m ? (decimal?)null : v;
         }
 
         private void ClearForm()
         {
-            // Clear all form fields
             txtLoanTypeName.Clear();
             txtDescription.Clear();
             rdoFixedInterest.Checked = true;
@@ -701,9 +679,12 @@ namespace LendingApp.UI.AdminUI
             txtMinLoanAmount.Clear();
             txtMaxLoanAmount.Clear();
 
-            foreach (var checkbox in termCheckboxes)
+            if (termCheckboxes != null)
             {
-                checkbox.Checked = false;
+                foreach (var checkbox in termCheckboxes)
+                {
+                    if (checkbox != null) checkbox.Checked = false;
+                }
             }
 
             chkValidId.Checked = false;
@@ -720,6 +701,47 @@ namespace LendingApp.UI.AdminUI
             txtLatePenalty.Clear();
             cmbLatePenaltyPeriod.SelectedIndex = 0;
             rdoStatusActive.Checked = true;
+        }
+
+        private List<int> GetSelectedTerms()
+        {
+            var list = new List<int>();
+            if (termCheckboxes == null) return list;
+
+            foreach (var cb in termCheckboxes)
+            {
+                if (cb == null || !cb.Checked) continue;
+
+                if (int.TryParse(cb.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var months))
+                    list.Add(months);
+            }
+
+            return list;
+        }
+
+        private List<(string key, string text)> GetSelectedRequirements()
+        {
+            var req = new List<(string key, string text)>();
+
+            if (chkValidId != null && chkValidId.Checked) req.Add(("ValidId", null));
+            if (chkProofOfIncome != null && chkProofOfIncome.Checked) req.Add(("ProofOfIncome", null));
+            if (chkPayslip != null && chkPayslip.Checked) req.Add(("Payslip", null));
+            if (chkBankStatement != null && chkBankStatement.Checked) req.Add(("BankStatement", null));
+            if (chkComakerForm != null && chkComakerForm.Checked) req.Add(("ComakerForm", null));
+
+            if (chkOthers != null && chkOthers.Checked)
+            {
+                var otherText = (txtOthersDescription?.Text ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(otherText) ||
+                    otherText.Equals("Specify other documents", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ValidationException("Please specify the 'Others' required document.");
+                }
+
+                req.Add(("Others", otherText));
+            }
+
+            return req;
         }
     }
 }

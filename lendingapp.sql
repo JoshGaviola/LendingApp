@@ -368,38 +368,31 @@ DROP TABLE IF EXISTS `loan_application_evaluations`;
 CREATE TABLE `loan_application_evaluations` (
   `evaluation_id` BIGINT NOT NULL AUTO_INCREMENT,
 
-  -- Link to application
   `application_id` INT NOT NULL,
 
-  -- Credit assessment UI inputs (0-100)
   `c1_input` DECIMAL(5,2) NOT NULL,
   `c2_input` DECIMAL(5,2) NOT NULL,
   `c3_input` DECIMAL(5,2) NOT NULL,
   `c4_input` DECIMAL(5,2) NOT NULL,
 
-  -- Runtime weights used (percent)
   `w1_pct` DECIMAL(5,2) NOT NULL,
   `w2_pct` DECIMAL(5,2) NOT NULL,
   `w3_pct` DECIMAL(5,2) NOT NULL,
   `w4_pct` DECIMAL(5,2) NOT NULL,
 
-  -- Computed weighted components and total (0-100)
   `c1_weighted` DECIMAL(6,2) NOT NULL,
   `c2_weighted` DECIMAL(6,2) NOT NULL,
   `c3_weighted` DECIMAL(6,2) NOT NULL,
   `c4_weighted` DECIMAL(6,2) NOT NULL,
   `total_score`  DECIMAL(6,2) NOT NULL,
 
-  -- Decision from UI
   `decision` ENUM('Approve','Approve with Conditions','Reject') NOT NULL,
 
-  -- Loan computation & terms (UI overrides)
   `interest_method` ENUM('Diminishing Balance','Flat Rate','Add-on Rate') DEFAULT NULL,
-  `interest_rate_pct` DECIMAL(6,3) DEFAULT NULL,   -- supports 0.1 increments
-  `service_fee_pct`   DECIMAL(6,3) DEFAULT NULL,   -- supports 0.1 increments
+  `interest_rate_pct` DECIMAL(6,3) DEFAULT NULL,
+  `service_fee_pct`   DECIMAL(6,3) DEFAULT NULL,
   `term_months`       INT DEFAULT NULL,
 
-  -- Approval workflow UI
   `approval_level` ENUM('Level 1','Level 2','Level 3') DEFAULT NULL,
 
   `require_comaker`        TINYINT(1) NOT NULL DEFAULT 0,
@@ -407,12 +400,10 @@ CREATE TABLE `loan_application_evaluations` (
   `shorten_term`           TINYINT(1) NOT NULL DEFAULT 0,
   `additional_collateral`  TINYINT(1) NOT NULL DEFAULT 0,
 
-  -- Rejection reason + remarks
   `rejection_reason` VARCHAR(150) DEFAULT NULL,
   `remarks` TEXT DEFAULT NULL,
 
-  -- Audit-ish fields
-  `evaluated_by` INT DEFAULT NULL, -- user_id of officer (if available in UI)
+  `evaluated_by` INT DEFAULT NULL,
   `status_after` ENUM('Pending','Review','Approved','Rejected','Released','Cancelled') DEFAULT NULL,
 
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -437,7 +428,101 @@ CREATE TABLE `loan_application_evaluations` (
     ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/*Data for the table `loan_application_evaluations` */
+/* ============================================================
+   Schema Expansion: Loan Product Config + Loan Rules
+   ============================================================ */
+
+ALTER TABLE `loan_products`
+  ADD COLUMN `interest_type` ENUM('Fixed','Variable')
+      COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Fixed' AFTER `interest_rate`,
+  ADD COLUMN `interest_period` ENUM('Month','Year')
+      COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Year' AFTER `interest_type`,
+  ADD COLUMN `service_fee_fixed_amount` DECIMAL(18,2) NULL DEFAULT NULL AFTER `processing_fee_pct`,
+  ADD COLUMN `penalty_period` ENUM('Day','Week','Month')
+      COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Month' AFTER `penalty_rate`,
+  ADD COLUMN `requires_collateral` TINYINT(1) NOT NULL DEFAULT 0 AFTER `grace_period_days`;
+
+DROP TABLE IF EXISTS `loan_product_terms`;
+CREATE TABLE `loan_product_terms` (
+  `product_id` INT NOT NULL,
+  `term_months` INT NOT NULL,
+  PRIMARY KEY (`product_id`, `term_months`),
+  KEY `idx_product_terms_term` (`term_months`),
+  CONSTRAINT `fk_product_terms_product`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `loan_products` (`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `loan_product_requirements`;
+CREATE TABLE `loan_product_requirements` (
+  `requirement_id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT NOT NULL,
+  `requirement_key` VARCHAR(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `requirement_text` VARCHAR(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_required` TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`requirement_id`),
+  UNIQUE KEY `uq_product_requirement` (`product_id`, `requirement_key`),
+  KEY `idx_req_product` (`product_id`),
+  CONSTRAINT `fk_product_requirements_product`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `loan_products` (`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `loan_rules`;
+CREATE TABLE `loan_rules` (
+  `rules_id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT NOT NULL,
+
+  `interest_method` ENUM('Diminishing Balance','Flat Rate','Add-On Rate','Compound Interest')
+      COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Diminishing Balance',
+
+  `payment_history_weight_pct` DECIMAL(5,2) NOT NULL DEFAULT 35.00,
+  `payment_history_min_score`  DECIMAL(5,2) NOT NULL DEFAULT 60.00,
+
+  `credit_util_weight_pct`     DECIMAL(5,2) NOT NULL DEFAULT 30.00,
+  `credit_util_min_score`      DECIMAL(5,2) NOT NULL DEFAULT 50.00,
+
+  `length_history_weight_pct`  DECIMAL(5,2) NOT NULL DEFAULT 15.00,
+  `length_history_min_score`   DECIMAL(5,2) NOT NULL DEFAULT 40.00,
+
+  `income_stability_weight_pct` DECIMAL(5,2) NOT NULL DEFAULT 20.00,
+  `income_stability_min_score`  DECIMAL(5,2) NOT NULL DEFAULT 55.00,
+
+  `min_approval_score` DECIMAL(5,2) NOT NULL DEFAULT 70.00,
+
+  `approval_workflow` ENUM('Loan Officer','Officer + Supervisor','Officer + Supervisor + Manager')
+      COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Loan Officer',
+
+  `penalty_rate_pct` DECIMAL(6,3) NOT NULL DEFAULT 0.500,
+  `apply_after_grace_period` TINYINT(1) NOT NULL DEFAULT 1,
+  `penalty_cap_pct_of_principal` DECIMAL(6,2) NOT NULL DEFAULT 10.00,
+
+  `max_restructures` INT NOT NULL DEFAULT 3,
+  `min_days_delayed_for_restructure` INT NOT NULL DEFAULT 30,
+
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`rules_id`),
+  UNIQUE KEY `uq_rules_product` (`product_id`),
+  KEY `idx_rules_product` (`product_id`),
+
+  CONSTRAINT `fk_rules_product`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `loan_products` (`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `loan_rules` (`product_id`)
+SELECT p.`product_id`
+FROM `loan_products` p
+LEFT JOIN `loan_rules` r ON r.`product_id` = p.`product_id`
+WHERE r.`product_id` IS NULL;
 
 SET FOREIGN_KEY_CHECKS = 1;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

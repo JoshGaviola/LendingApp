@@ -205,6 +205,8 @@
     <Compile Include="Class\Repo\LoanApplicationEvaluationRepository.cs" />
     <Compile Include="Class\Repo\LoanApplicationRepository.cs" />
     <Compile Include="Class\Repo\LoanRepository.cs" />
+    <Compile Include="Class\Services\Admin\LoanProductAdminService.cs" />
+    <Compile Include="Class\Services\Admin\LoanProductCreateRequest.cs" />
     <Compile Include="Class\Services\CreditScoringService.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />

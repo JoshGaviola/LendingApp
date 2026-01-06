@@ -56,6 +56,7 @@ namespace LendingApp.UI.CashierUI
         private LoanInfo _loanDetails;
         private AllocationInfo _allocation;
         private int? _selectedLoanId;
+        private string _lastReceiptNo;
 
         private const int PagePadding = 16;
         private const int Gap = 12;
@@ -688,25 +689,15 @@ namespace LendingApp.UI.CashierUI
                         Type = "Payment",
                         Status = "Printed"
                     };
-
-                    try
-                    {
-                        ReceiptPdfGenerator.GeneratePdf(
-                            receiptDto.ReceiptNo, receiptDto.Date, receiptDto.Time,
-                            receiptDto.Customer, receiptDto.LoanAccount,
-                            receiptDto.Principal, receiptDto.Interest, receiptDto.Penalty,
-                            receiptDto.Amount, receiptDto.PaymentMode, receiptDto.Cashier);
-                    }
-                    catch { /* ignore PDF errors */ }
                 }
 
-                // Raise event OUTSIDE the using block so receiptDto is available
+                // Keep last receipt so Print Receipt can reprint without searching
+                _lastReceiptNo = receiptDto?.ReceiptNo;
+
+                // Raise event so Receipts page refreshes (NO PDF printing here)
                 if (receiptDto != null)
-                {
                     ReceiptEvents.RaiseReceiptCreated(receiptDto);
-                }
 
-                // Update UI transactions list
                 var tx = new TransactionModels
                 {
                     Time = timeNow,
@@ -735,9 +726,91 @@ namespace LendingApp.UI.CashierUI
 
         private void PrintReceipt()
         {
-            ShowToast("Print receipt feature coming soon...");
-        }
+            if (_loanDetails == null || !_selectedLoanId.HasValue)
+            {
+                ShowToast("Please select a loan first", isError: true);
+                return;
+            }
 
+            try
+            {
+                string receiptNo = _lastReceiptNo;
+
+                // If we don't have a recent receipt in memory, fetch the latest receipt for this loan
+                if (string.IsNullOrWhiteSpace(receiptNo))
+                {
+                    using (var db = new AppDbContext())
+                    {
+                        receiptNo = db.Payments.AsNoTracking()
+                            .Where(p => p.LoanId == _selectedLoanId.Value)
+                            .OrderByDescending(p => p.PaymentDate)
+                            .Select(p => p.ReceiptNo)
+                            .FirstOrDefault();
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(receiptNo))
+                {
+                    ShowToast("No receipt found for this loan yet.", isError: true);
+                    return;
+                }
+
+                // Load the payment row for that receipt number so we can print the correct amounts
+                using (var db = new AppDbContext())
+                {
+                    var p = db.Payments.AsNoTracking()
+                        .FirstOrDefault(x => x.ReceiptNo == receiptNo);
+
+                    if (p == null)
+                    {
+                        ShowToast("Receipt not found in database.", isError: true);
+                        return;
+                    }
+
+                    // Join loan for loan number (safe)
+                    var loanNo = (txtLoanNumber.Text ?? "").Trim();
+                    if (string.IsNullOrWhiteSpace(loanNo))
+                    {
+                        loanNo = db.Loans.AsNoTracking()
+                            .Where(l => l.LoanId == p.LoanId)
+                            .Select(l => l.LoanNumber)
+                            .FirstOrDefault() ?? "";
+                    }
+
+                    var dto = new ReceiptDto
+                    {
+                        Id = p.PaymentId.ToString(CultureInfo.InvariantCulture),
+                        ReceiptNo = p.ReceiptNo,
+                        Date = p.PaymentDate.Date,
+                        Time = p.PaymentDate.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US")),
+                        Customer = _loanDetails.Customer,
+                        LoanAccount = loanNo,
+                        Amount = p.AmountPaid,
+                        Principal = p.PrincipalPaid,
+                        Interest = p.InterestPaid,
+                        Penalty = p.PenaltyPaid,
+                        Charges = 0m,
+                        PaymentMode = p.PaymentMethod,
+                        Cashier = "",
+                        Type = "Payment",
+                        Status = "Printed"
+                    };
+
+                    ReceiptPdfGenerator.GeneratePdf(
+                        dto.ReceiptNo, dto.Date, dto.Time,
+                        dto.Customer, dto.LoanAccount,
+                        dto.Principal, dto.Interest, dto.Penalty,
+                        dto.Amount, dto.PaymentMode, dto.Cashier);
+                }
+
+                ShowToast("Receipt sent to PDF viewer.");
+            }
+            catch (Exception ex)
+            {
+                ShowToast("Failed to print receipt: " + ex.Message, isError: true);
+            }
+        }
+        
         private void OpenSettleLoanDialog()
         {
             if (_loanDetails == null || !_selectedLoanId.HasValue)
@@ -745,7 +818,175 @@ namespace LendingApp.UI.CashierUI
                 ShowToast("Please select a loan first", isError: true);
                 return;
             }
-            ShowToast("Settle loan feature coming soon...");
+
+            try
+            {
+                // Load current loan info from DB (fresh copy)
+                using (var db = new AppDbContext())
+                {
+                    var loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanId == _selectedLoanId.Value);
+                    if (loan == null)
+                    {
+                        ShowToast("Loan record not found (refresh and try again).", isError: true);
+                        return;
+                    }
+
+                    // Prepare settlement payload for the dialog
+                    var settlement = new LoanApplicationUI.SettlementData
+                    {
+                        LoanNumber = loan.LoanNumber,
+                        Customer = _loanDetails.Customer,
+                        OriginalBalance = loan.PrincipalAmount,
+                        CurrentBalance = loan.OutstandingBalance,
+                        PaymentsRemaining = Math.Max(0, loan.TermMonths), // best-effort placeholder
+                        IsFinalPayment = true
+                    };
+
+                    using (var dlg = new LoanApplicationUI.CashierLoanSettlementForm())
+                    {
+                        dlg.SettlementData = settlement;
+
+                        var result = dlg.ShowDialog(FindForm());
+                        if (result != DialogResult.OK)
+                            return;
+
+                        // Get chosen values from dialog
+                        decimal settlementAmount = Math.Round(dlg.SelectedSettlementAmount, 2);
+                        string paymentMethod = dlg.SelectedPaymentMethod;
+                        string remarks = dlg.RemarksText ?? "";
+
+                        if (settlementAmount <= 0)
+                        {
+                            ShowToast("Please enter a valid settlement amount", isError: true);
+                            return;
+                        }
+
+                        // Persist settlement as final payment + collection record
+                        string receiptNo = "OR-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+                        string timeNow = cashierProcessLogic.GetTimeNow();
+
+                        using (var txDb = new AppDbContext())
+                        {
+                            var loanToUpdate = txDb.Loans.FirstOrDefault(l => l.LoanId == _selectedLoanId.Value);
+                            if (loanToUpdate == null)
+                            {
+                                ShowToast("Loan no longer available.", isError: true);
+                                return;
+                            }
+
+                            // Record collection entry (final settlement)
+                            var collection = new CollectionEntity
+                            {
+                                LoanId = loanToUpdate.LoanId,
+                                CustomerId = loanToUpdate.CustomerId,
+                                DueDate = (loanToUpdate.NextDueDate ?? loanToUpdate.FirstDueDate).Date,
+                                AmountDue = RoundMoney(settlementAmount),
+                                DaysOverdue = Math.Max(0, loanToUpdate.DaysOverdue),
+                                Priority = "High",
+                                Status = "Paid",
+                                LastContactDate = DateTime.Now.Date,
+                                LastContactMethod = paymentMethod,
+                                Notes = "Final settlement. " + remarks,
+                                PromiseDate = null,
+                                AssignedOfficerId = null,
+                                CreatedDate = DateTime.Now,
+                                UpdatedDate = DateTime.Now
+                            };
+                            txDb.Collections.Add(collection);
+
+                            // Create payment record representing settlement
+                            var payment = new PaymentEntity
+                            {
+                                LoanId = loanToUpdate.LoanId,
+                                CustomerId = loanToUpdate.CustomerId,
+                                PaymentDate = DateTime.Now,
+                                AmountPaid = RoundMoney(settlementAmount),
+                                // Treat settlement as paying remaining principal/amount
+                                PrincipalPaid = RoundMoney(loanToUpdate.OutstandingBalance),
+                                InterestPaid = 0m,
+                                PenaltyPaid = 0m,
+                                BalanceAfter = 0m,
+                                ProcessedBy = 1,
+                                PaymentMethod = paymentMethod,
+                                ReceiptNo = receiptNo
+                            };
+                            txDb.Payments.Add(payment);
+
+                            // Update loan as fully paid/closed
+                            loanToUpdate.TotalPaid = RoundMoney(loanToUpdate.TotalPaid + settlementAmount);
+                            loanToUpdate.OutstandingBalance = 0m;
+                            loanToUpdate.Status = "Paid";
+                            loanToUpdate.NextDueDate = null;
+                            loanToUpdate.LastPaymentDate = DateTime.Now;
+                            loanToUpdate.LastUpdated = DateTime.Now;
+
+                            txDb.SaveChanges();
+
+                            // Generate receipt PDF (best-effort)
+                            try
+                            {
+                                var receiptDto = new ReceiptDto
+                                {
+                                    Id = payment.PaymentId.ToString(CultureInfo.InvariantCulture),
+                                    ReceiptNo = receiptNo,
+                                    Date = payment.PaymentDate.Date,
+                                    Time = payment.PaymentDate.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US")),
+                                    Customer = _loanDetails.Customer,
+                                    LoanAccount = loanToUpdate.LoanNumber,
+                                    Amount = payment.AmountPaid,
+                                    Principal = payment.PrincipalPaid,
+                                    Interest = payment.InterestPaid,
+                                    Penalty = payment.PenaltyPaid,
+                                    Charges = 0m,
+                                    PaymentMode = payment.PaymentMethod,
+                                    Cashier = "",
+                                    Type = "Settlement",
+                                    Status = "Printed"
+                                };
+
+                                ReceiptPdfGenerator.GeneratePdf(
+                                    receiptDto.ReceiptNo, receiptDto.Date, receiptDto.Time,
+                                    receiptDto.Customer, receiptDto.LoanAccount,
+                                    receiptDto.Principal, receiptDto.Interest, receiptDto.Penalty,
+                                    receiptDto.Amount, receiptDto.PaymentMode, receiptDto.Cashier);
+
+                                ReceiptEvents.RaiseReceiptCreated(receiptDto);
+                            }
+                            catch
+                            {
+                                // ignore pdf errors
+                            }
+
+                            // Update UI transaction list
+                            var tx = new TransactionModels
+                            {
+                                Time = timeNow,
+                                Borrower = _loanDetails.Customer,
+                                PaidAmount = settlementAmount,
+                                ReceiptNo = receiptNo,
+                                LoanRef = loanToUpdate.LoanNumber
+                            };
+                            _transactions.Insert(0, tx);
+                            BindTransactions();
+
+                            // Refresh loan list and UI
+                            LoadLoansFromDb();
+                            BindLoans();
+
+                            _allocation = null;
+                            allocationCard.Visible = false;
+                            UpdateAllocationPanel();
+                            UpdateButtons();
+
+                            ShowToast("Loan settled successfully!");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowToast("Failed to settle loan: " + ex.Message, isError: true);
+            }
         }
 
         private string GetSelectedPaymentMethodText()

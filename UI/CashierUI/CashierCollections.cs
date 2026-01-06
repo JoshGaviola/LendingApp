@@ -439,13 +439,48 @@ namespace LendingApp.UI.CashierUI
                 var action = GetActionText(data.Status);
                 if (action == "Collect")
                 {
-                    // route back to CashierDashboard to open ProcessPayment
                     if (!string.IsNullOrWhiteSpace(data.LoanNumber))
                         CollectLoanRequested?.Invoke(data.LoanNumber);
                 }
                 else
                 {
-                    MessageBox.Show("View: " + data.LoanNumber, "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // If status is Collected, show the receipt for the latest payment for that loan.
+                    try
+                    {
+                        using (var db = new AppDbContext())
+                        {
+                            var payment = db.Payments.AsNoTracking()
+                                            .Where(p => p.LoanId == data.LoanId)
+                                            .OrderByDescending(p => p.PaymentDate)
+                                            .FirstOrDefault();
+
+                            if (payment == null || string.IsNullOrWhiteSpace(payment.ReceiptNo))
+                            {
+                                MessageBox.Show("No receipt found for that loan.", "Receipt", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                return;
+                            }
+
+                            // Create receipt viewer as a true top-level modal dialog.
+                            using (var receiptForm = new CashierReciept())
+                            {
+                                // The CashierReciept class is normally used as an embedded control (TopLevel = false).
+                                // For modal viewing we must make it a top-level form before calling ShowDialog.
+                                receiptForm.TopLevel = true;
+                                receiptForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                                receiptForm.StartPosition = FormStartPosition.CenterParent;
+                                receiptForm.LoadAndSelectReceipt(payment.ReceiptNo);
+
+                                // Show modal with this form as owner
+                                var owner = FindForm();
+                                if (owner != null) receiptForm.ShowDialog(owner);
+                                else receiptForm.ShowDialog();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Failed to open receipt: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }

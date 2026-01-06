@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using LendingApp.Class.Models.User;
+using LendingApp.Class.Services;
 
 namespace LendingApp.Class.Services
 {
@@ -35,6 +36,12 @@ namespace LendingApp.Class.Services
                        new MySql.Data.MySqlClient.MySqlParameter("@password_hash", password),
                        new MySql.Data.MySqlClient.MySqlParameter("@role", role))
                        .FirstOrDefault();
+
+                    // Persist current user for other UI components to reference
+                    if (acc != null)
+                    {
+                        DataGetter.SetCurrentUser(acc);
+                    }
 
                     return acc;
 
