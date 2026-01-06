@@ -38,12 +38,11 @@ namespace LendingApp
             // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
 
             //Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-            //Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
-           // Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
+            Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
             // Application.Run(new LendingApp.UI.LoginForm.Login());
 
             // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-             Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
+            // Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
 
             // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
 
