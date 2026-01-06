@@ -13,8 +13,8 @@ namespace LendingApp.UI.CashierUI
     public partial class CashierReport : Form
     {
         private string selectedReport = "Daily Collection Report";
-        private DateTime dateFrom = new DateTime(2024, 6, 1);
-        private DateTime dateTo = new DateTime(2024, 6, 10);
+        private DateTime dateFrom = DateTime.Today.AddDays(-7);
+        private DateTime dateTo = DateTime.Today;
 
         private Panel root;
         private ReportSelectionControl selectionControl;
@@ -133,9 +133,11 @@ namespace LendingApp.UI.CashierUI
 
                     // Optional filter: Payment Mode (if your parameters control provides it)
                     var payMode = (parametersControl.SelectedPaymentMode ?? "").Trim();
+
+                    // Treat empty / "All" as no filter
                     if (!string.IsNullOrWhiteSpace(payMode) && !string.Equals(payMode, "All", StringComparison.OrdinalIgnoreCase))
                     {
-                        q = q.Where(p => (p.PaymentMethod ?? "") == payMode);
+                        q = q.Where(p => (p.PaymentMethod ?? "").Trim().Equals(payMode, StringComparison.OrdinalIgnoreCase));
                     }
 
                     // NOTE:
