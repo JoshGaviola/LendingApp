@@ -351,6 +351,8 @@
     <Compile Include="UI\CashierUI\Controls\ReportSelectionControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\CashierUI\ReceiptDto.cs" />
+    <Compile Include="UI\CashierUI\ReceiptEvents.cs" />
     <Compile Include="UI\CashierUI\ReceiptPdfGenerator.cs" />
     <!-- UI\CustomerUI -->
     <Compile Include="UI\CustomerUI\CustomerApplyLoans.cs">

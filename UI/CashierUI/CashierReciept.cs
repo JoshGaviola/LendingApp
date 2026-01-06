@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -90,27 +92,89 @@ namespace LendingApp.UI.CashierUI
             FormBorderStyle = FormBorderStyle.None;
             TopLevel = false;
 
-            dateFrom = new DateTime(2024, 6, 1);
-            dateTo = new DateTime(2024, 6, 10);
+            // Default to recent week
+            dateFrom = DateTime.Today.AddDays(-7);
+            dateTo = DateTime.Today;
 
-            LoadMockData();
+            // IMPORTANT: keep your original UI builder
             BuildUI();
+
+            // Refresh when a new receipt is created by payment processing
+            ReceiptEvents.ReceiptCreated += OnReceiptCreated;
+
             ApplyFilters();
         }
 
-        private void LoadMockData()
+        protected override void Dispose(bool disposing)
         {
-            receipts = new List<ReceiptData>
+            if (disposing)
             {
-                new ReceiptData { Id = "1", ReceiptNo = "OR-001", Date = new DateTime(2024, 6, 10), Time = "9:30 AM", Customer = "Juan Dela Cruz", LoanAccount = "LN-2024-001", Amount = 4442.44m, Principal = 4000m, Interest = 442.44m, Penalty = 0m, Charges = 0m, PaymentMode = "Cash", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" },
-                new ReceiptData { Id = "2", ReceiptNo = "OR-002", Date = new DateTime(2024, 6, 10), Time = "10:15 AM", Customer = "Maria Santos", LoanAccount = "LN-2024-002", Amount = 2150m, Principal = 2000m, Interest = 150m, Penalty = 0m, Charges = 0m, PaymentMode = "GCash", Cashier = "Maria Santos", Type = "Payment", Status = "Emailed" },
-                new ReceiptData { Id = "3", ReceiptNo = "OR-003", Date = new DateTime(2024, 6, 9), Time = "11:00 AM", Customer = "Pedro Reyes", LoanAccount = "LN-2024-003", Amount = 1500m, Principal = 1350m, Interest = 150m, Penalty = 0m, Charges = 0m, PaymentMode = "Cash", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" },
-                new ReceiptData { Id = "4", ReceiptNo = "OR-004", Date = new DateTime(2024, 6, 9), Time = "1:30 PM", Customer = "Ana Garcia", LoanAccount = "LN-2024-004", Amount = 3000m, Principal = 2700m, Interest = 250m, Penalty = 50m, Charges = 0m, PaymentMode = "Bank", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" },
-                new ReceiptData { Id = "5", ReceiptNo = "OR-005", Date = new DateTime(2024, 6, 8), Time = "2:15 PM", Customer = "Luis Martinez", LoanAccount = "LN-2024-005", Amount = 5000m, Principal = 4500m, Interest = 400m, Penalty = 100m, Charges = 0m, PaymentMode = "Cash", Cashier = "Maria Santos", Type = "Payment", Status = "Emailed" },
-                new ReceiptData { Id = "6", ReceiptNo = "OR-006", Date = new DateTime(2024, 6, 10), Time = "3:00 PM", Customer = "Carlos Mendoza", LoanAccount = "LN-2024-006", Amount = 2500m, Principal = 2200m, Interest = 250m, Penalty = 50m, Charges = 0m, PaymentMode = "Cash", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" },
-                new ReceiptData { Id = "7", ReceiptNo = "OR-007", Date = new DateTime(2024, 6, 10), Time = "3:30 PM", Customer = "Rosa Cruz", LoanAccount = "LN-2024-007", Amount = 1800m, Principal = 1600m, Interest = 150m, Penalty = 50m, Charges = 0m, PaymentMode = "GCash", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" },
-                new ReceiptData { Id = "8", ReceiptNo = "OR-008", Date = new DateTime(2024, 6, 10), Time = "4:00 PM", Customer = "David Santos", LoanAccount = "LN-2024-008", Amount = 3200m, Principal = 2900m, Interest = 250m, Penalty = 50m, Charges = 0m, PaymentMode = "Cash", Cashier = "Maria Santos", Type = "Payment", Status = "Printed" }
-            };
+                ReceiptEvents.ReceiptCreated -= OnReceiptCreated;
+            }
+            base.Dispose(disposing);
+        }
+
+        private void OnReceiptCreated(ReceiptDto dto)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => OnReceiptCreated(dto)));
+                return;
+            }
+            // Re-query DB to stay consistent
+            ApplyFilters();
+        }
+
+        // Load receipts from DB (payments table)
+        private void LoadReceiptsFromDb()
+        {
+            receipts = new List<ReceiptData>();
+
+            var start = dateFrom.Date;
+            var endExclusive = dateTo.Date.AddDays(1);
+
+            using (var db = new AppDbContext())
+            {
+                var rows =
+                    (from p in db.Payments.AsNoTracking()
+                     join l in db.Loans.AsNoTracking() on p.LoanId equals l.LoanId
+                     join c in db.Customers.AsNoTracking() on p.CustomerId equals c.CustomerId
+                     where p.PaymentDate >= start && p.PaymentDate < endExclusive
+                     orderby p.PaymentDate descending
+                     select new
+                     {
+                         p.PaymentId,
+                         p.ReceiptNo,
+                         p.PaymentDate,
+                         Customer = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                         LoanNumber = l.LoanNumber,
+                         Amount = p.AmountPaid,
+                         Principal = p.PrincipalPaid,
+                         Interest = p.InterestPaid,
+                         Penalty = p.PenaltyPaid,
+                         Method = p.PaymentMethod
+                     })
+                    .ToList();
+
+                receipts = rows.Select(x => new ReceiptData
+                {
+                    Id = x.PaymentId.ToString(CultureInfo.InvariantCulture),
+                    ReceiptNo = x.ReceiptNo,
+                    Date = x.PaymentDate.Date,
+                    Time = x.PaymentDate.ToString("h:mm tt", CultureInfo.GetCultureInfo("en-US")),
+                    Customer = x.Customer,
+                    LoanAccount = x.LoanNumber,
+                    Amount = x.Amount,
+                    Principal = x.Principal,
+                    Interest = x.Interest,
+                    Penalty = x.Penalty,
+                    Charges = 0m,
+                    PaymentMode = x.Method,
+                    Cashier = "",      // Option A: not joining users yet
+                    Type = "Payment",
+                    Status = "Printed" // Option A: no status columns in DB
+                }).ToList();
+            }
         }
 
         private void BuildUI()
@@ -197,12 +261,12 @@ namespace LendingApp.UI.CashierUI
             mainCard.Controls.Add(content);
             mainCard.Controls.Add(header);
 
-            // Today's Summary Card - Create first but add after mainCard
+            // Today's Summary Card
             var summaryCard = CreateSummaryCard();
-            summaryCard.Dock = DockStyle.Bottom; // Change to Bottom
+            summaryCard.Dock = DockStyle.Bottom;
 
-            root.Controls.Add(summaryCard);  // Add summary first (will be at bottom)
-            root.Controls.Add(mainCard);     // Add mainCard second (will be above summary)
+            root.Controls.Add(summaryCard);
+            root.Controls.Add(mainCard);
         }
 
         private Panel CreateFilterPanel()
@@ -241,7 +305,6 @@ namespace LendingApp.UI.CashierUI
                 Width = 280,
                 Location = new Point(16, 60)
             };
-            // PlaceholderText is not available in .NET Framework's TextBox
             txtSearch.ForeColor = Color.Gray;
             txtSearch.Text = "Receipt #, Customer, or Loan #";
             txtSearch.GotFocus += (s, e) =>
@@ -432,7 +495,7 @@ namespace LendingApp.UI.CashierUI
             var panel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Height = 560,  // Increased from 420
+                Height = 560,
                 BackColor = ColorTranslator.FromHtml("#F9FAFB"),
                 BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(16),
@@ -458,7 +521,6 @@ namespace LendingApp.UI.CashierUI
             };
             panel.Controls.Add(detailsTitle);
 
-            // Receipt Preview Card
             var previewCard = new Panel
             {
                 Location = new Point(150, 70),
@@ -468,7 +530,6 @@ namespace LendingApp.UI.CashierUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // Inner border (double border effect)
             var innerBorder = new Panel
             {
                 Location = new Point(16, 16),
@@ -479,7 +540,6 @@ namespace LendingApp.UI.CashierUI
                 Padding = new Padding(16)
             };
 
-            // Header
             var receiptHeader = new Label
             {
                 Text = "OFFICIAL RECEIPT",
@@ -499,7 +559,6 @@ namespace LendingApp.UI.CashierUI
             };
             innerBorder.Controls.Add(companyName);
 
-            // Receipt Info
             int y = 75;
 
             AddPreviewRow(innerBorder, "Receipt No:", ref lblPreviewReceiptNo, ref y);
@@ -766,12 +825,23 @@ namespace LendingApp.UI.CashierUI
 
         private void ApplyFilters()
         {
+            try
+            {
+                // Load fresh data for the selected date range
+                LoadReceiptsFromDb();
+            }
+            catch (Exception ex)
+            {
+                receipts = new List<ReceiptData>();
+                ShowToast("Failed to load receipts: " + ex.Message);
+            }
+
             var filtered = receipts.Where(r =>
             {
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchQuery) ||
-                    r.ReceiptNo.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    r.Customer.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    r.LoanAccount.IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
+                    (r.ReceiptNo ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (r.Customer ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (r.LoanAccount ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
 
                 bool matchesType = typeFilter == "All" || r.Type == typeFilter;
                 bool matchesStatus = statusFilter == "All" || r.Status == statusFilter;
