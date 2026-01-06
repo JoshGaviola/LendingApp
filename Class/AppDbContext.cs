@@ -17,7 +17,10 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; } 
         public DbSet<CollectionEntity> Collections { get; set; }
@@ -137,7 +140,10 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
             // NEW: loan_application_evaluations
             modelBuilder.Entity<LoanApplicationEvaluationEntity>()
                 .ToTable("loan_application_evaluations")
@@ -219,7 +225,10 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
             modelBuilder.Entity<CollectionEntity>()
                 .ToTable("collections")
                 .HasKey(x => x.CollectionId);
@@ -302,6 +311,7 @@ namespace LendingApp.Class
                 .ToTable("payments")
                 .HasKey(x => x.PaymentId);
 
+            // primary key / basic props
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentId)
                 .HasColumnName("payment_id");
@@ -317,35 +327,38 @@ namespace LendingApp.Class
                 .IsRequired()
                 .HasMaxLength(32);
 
+            // payment timestamp (SQL uses payment_date)
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentDate)
                 .HasColumnName("payment_date")
                 .IsRequired();
 
+            // map amounts to the SQL column names
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.AmountPaid)
-                .HasColumnName("amount_paid")
+                .HasColumnName("amount")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PrincipalPaid)
-                .HasColumnName("principal_paid")
+                .HasColumnName("principal_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.InterestPaid)
-                .HasColumnName("interest_paid")
+                .HasColumnName("interest_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PenaltyPaid)
-                .HasColumnName("penalty_paid")
+                .HasColumnName("penalty_portion")
                 .IsRequired()
                 .HasPrecision(18, 2);
 
+            // payment method / receipt
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.PaymentMethod)
                 .HasColumnName("payment_method")
@@ -354,14 +367,19 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<PaymentEntity>()
                 .Property(x => x.ReceiptNo)
-                .HasColumnName("receipt_no")
+                .HasColumnName("receipt_number")
                 .IsRequired()
                 .HasMaxLength(50);
 
+            // The DDL doesn't have a separate created_date; ignore the extra property
             modelBuilder.Entity<PaymentEntity>()
+<<<<<<< HEAD
                 .Property(x => x.CreatedDate)
                 .HasColumnName("created_date")
                 .IsRequired();
+=======
+                .Ignore(x => x.CreatedDate);
+>>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
         }
     }
 }

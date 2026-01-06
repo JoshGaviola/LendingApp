@@ -236,6 +236,12 @@
     <Compile Include="UI\AdminUI\Controls\UserActionsControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\CashierUI\CashierCollections.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\CashierUI\CashierCollections.Designer.cs">
+      <DependentUpon>CashierCollections.cs</DependentUpon>
+    </Compile>
     <!-- UI\CashierUI -->
     <Compile Include="UI\CashierUI\CashierDailyReport.cs">
       <SubType>Form</SubType>
@@ -334,6 +340,12 @@
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\ApprovedLoanApplicationDialog.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CashierLoanSettlementForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CashierLoanSettlementForm.Designer.cs">
+      <DependentUpon>CashierLoanSettlementForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.cs">
       <SubType>Form</SubType>
@@ -467,6 +479,7 @@
     <None Include="obj\Debug\LendingApp.csproj.SuggestedBindingRedirects.cache" />
     <None Include="obj\Debug\LendingApp.exe.config" />
     <None Include="packages.config" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitattributes" />

@@ -13,6 +13,7 @@ using System.Data.Entity;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
 using LendingApp.Class.Interface;
+using LoanApplicationUI;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -98,6 +99,7 @@ namespace LendingApp.UI.CashierUI
         private Button btnCalc;
         private Button btnProcess;
         private Button btnPrint;
+        private Button btnSettleLoan; // NEW: settle loan button
 
         // Transactions
         private DataGridView gridTransactions;
@@ -468,9 +470,13 @@ namespace LendingApp.UI.CashierUI
             btnPrint = MakeOutlineButton("Print Receipt", 120);
             btnPrint.Click += (s, e) => PrintReceipt();
 
+            btnSettleLoan = MakeOutlineButton("Settle Loan", 120);
+            btnSettleLoan.Click += (s, e) => OpenSettleLoanDialog();
+
             actions.Controls.Add(btnCalc);
             actions.Controls.Add(btnProcess);
             actions.Controls.Add(btnPrint);
+            actions.Controls.Add(btnSettleLoan);
             actionsCard.Controls.Add(actions);
 
             // Allocation card
@@ -1064,6 +1070,7 @@ namespace LendingApp.UI.CashierUI
             bool canAct = (_allocation != null);
             btnProcess.Enabled = canAct;
             btnPrint.Enabled = canAct;
+            btnSettleLoan.Enabled = (_loanDetails != null);
         }
 
         private static bool TryParseAmount(string text, out decimal amount)
@@ -1139,6 +1146,34 @@ namespace LendingApp.UI.CashierUI
 
             _toastTimer.Stop();
             _toastTimer.Start();
+        }
+
+        private void OpenSettleLoanDialog()
+        {
+            if (_loanDetails == null)
+            {
+                ShowToast("Please select a loan first", isError: true);
+                return;
+            }
+
+            // Use the currently selected loan details to prefill the settlement form.
+            // (Values like OriginalBalance/PaymentsRemaining are not available in this form,
+            // so we provide safe defaults for now.)
+            using (var frm = new CashierLoanSettlementForm())
+            {
+                frm.SettlementData = new SettlementData
+                {
+                    LoanNumber = (txtLoanNumber.Text ?? "").Trim(),
+                    Customer = _loanDetails.Customer,
+                    OriginalBalance = _loanDetails.Principal,     // best available proxy here
+                    CurrentBalance = _loanDetails.Balance,
+                    PaymentsRemaining = Math.Max(0, _loanDetails.PaymentsDue),
+                    IsFinalPayment = (_loanDetails.Balance <= 0m)
+                };
+
+                frm.StartPosition = FormStartPosition.CenterParent;
+                frm.ShowDialog(this);
+            }
         }
     }
 }
