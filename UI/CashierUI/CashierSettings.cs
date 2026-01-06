@@ -2,6 +2,9 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using LendingApp.Class; // AppDbContext
+using LendingApp.Class.Services; // DataGetter
+using MySql.Data.MySqlClient;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -34,6 +37,7 @@ namespace LendingApp.UI.CashierUI
         // Personal Information controls
         private TextBox txtEmail;
         private TextBox txtPhone;
+        private Label lblName; // made class-level so we can update from DB
 
         // Password controls
         private TextBox txtCurrentPassword;
@@ -250,11 +254,11 @@ namespace LendingApp.UI.CashierUI
 
             int y = 40;
 
-            // Name (read-only)
+            // Name (read-only) - now class-level so we can update from DB
             var lblNameTitle = CreateLabel("Name", 0, y);
             section.Controls.Add(lblNameTitle);
 
-            var lblName = new Label
+            lblName = new Label
             {
                 Text = _name,
                 Location = new Point(0, y + 20),
@@ -316,14 +320,66 @@ namespace LendingApp.UI.CashierUI
 
             y += 70;
 
-            // Update Button
+            // Update Button - now persists email to DB for currently signed-in user (phone is ignored for DB per request)
             var btnUpdateContact = CreateButton("💾 Update Contact Info", 180, ColorTranslator.FromHtml("#2563EB"), Color.White);
             btnUpdateContact.Location = new Point(0, y);
             btnUpdateContact.Click += (s, e) =>
             {
-                _email = txtEmail.Text;
-                _phone = txtPhone.Text;
-                ShowToast("Contact information updated successfully!");
+                var newEmail = (txtEmail?.Text ?? "").Trim();
+                // keep phone in UI only per request
+                _phone = txtPhone?.Text ?? _phone;
+
+                if (string.IsNullOrWhiteSpace(newEmail))
+                {
+                    ShowToast("Please enter a valid email address", true);
+                    return;
+                }
+
+                // Find logged-in user
+                var current = DataGetter.CurrentUser;
+                if (current == null || string.IsNullOrWhiteSpace(current.UserName) && string.IsNullOrWhiteSpace(current.UserName))
+                {
+                    // If no current user is tracked, attempt best-effort: do not break UI; show message.
+                    ShowToast("No logged-in user found to update. Please re-login.", true);
+                    return;
+                }
+
+                try
+                {
+                    using (var db = new AppDbContext())
+                    {
+                        const string sql = @"UPDATE users SET email = @email WHERE username = @username;";
+                        var rows = db.Database.ExecuteSqlCommand(
+                            sql,
+                            new MySqlParameter("@email", newEmail),
+                            new MySqlParameter("@username", current.UserName ?? current.UserName /* defensive */)
+                        );
+
+                        if (rows > 0)
+                        {
+                            // Update local state and DataGetter.CurrentUser if present
+                            _email = newEmail;
+                            if (DataGetter.CurrentUser != null)
+                            {
+                                DataGetter.CurrentUser.Email = newEmail;
+                                // Also update name label from DB fields (if available)
+                                var full = ((DataGetter.CurrentUser.FirstName ?? "") + " " + (DataGetter.CurrentUser.LastName ?? "")).Trim();
+                                if (!string.IsNullOrWhiteSpace(full))
+                                    lblName.Text = full;
+                            }
+
+                            ShowToast("Contact information updated successfully!");
+                        }
+                        else
+                        {
+                            ShowToast("No user record was updated. Please contact your administrator.", true);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ShowToast("Failed to update contact info: " + ex.Message, true);
+                }
             };
             section.Controls.Add(btnUpdateContact);
 
@@ -953,9 +1009,22 @@ namespace LendingApp.UI.CashierUI
 
         private void LoadData()
         {
+            // If login set current user, load values from it
+            var current = DataGetter.CurrentUser;
+            if (current != null)
+            {
+                var full = ((current.FirstName ?? "") + " " + (current.LastName ?? "")).Trim();
+                if (!string.IsNullOrWhiteSpace(full))
+                    _name = full;
+
+                if (!string.IsNullOrWhiteSpace(current.Email))
+                    _email = current.Email;
+            }
+
             if (txtEmail != null) txtEmail.Text = _email;
             if (txtPhone != null) txtPhone.Text = _phone;
             if (lblCurrentSignature != null) lblCurrentSignature.Text = _currentSignature;
+            if (lblName != null) lblName.Text = _name;
 
             // Select default printer
             if (cmbDefaultPrinter != null) cmbDefaultPrinter.SelectedIndex = 0;

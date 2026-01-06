@@ -11,6 +11,13 @@ namespace LendingApp.Class.Services
     public static class DataGetter
     {
         public static ApplicantsData Data { get; } = new ApplicantsData();
-        public static User CurrentUser { get; }
+
+        // Allow reading current user; set via SetCurrentUser to keep control of assignment.
+        public static User CurrentUser { get; private set; }
+
+        public static void SetCurrentUser(User user)
+        {
+            CurrentUser = user;
+        }
     }
 }
