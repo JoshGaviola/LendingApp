@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using LendingApp.Class;
 using LendingApp.Class.Models.Admin;
+using MySql.Data.MySqlClient;
 using EditUserForm = LendingSystem.UI.EditUserForm;
 using EditFormUser = LendingSystem.UI.User;
 using ResetPasswordForm = LendingApp.UI.AdminUI.ResetPasswordForm;
@@ -852,12 +853,27 @@ namespace LendingApp.UI.AdminUI.Views
                     selectedUser.Role,
                     selectedUser.Email))
                 {
-                    form.ShowDialog(FindForm());
+                    // ResetPasswordForm currently does NOT expose the password chosen/generated.
+                    // So we implement the DB update here using a simple prompt AFTER DialogResult.OK.
+                    // This keeps your existing ResetPasswordForm UI intact.
+                    var result = form.ShowDialog(FindForm());
+                    if (result != DialogResult.OK)
+                        return;
                 }
+
+                // Minimal, safe follow-up prompt (does not change your existing UI forms).
+                // If you want, we can later extend ResetPasswordForm to expose the new password directly.
+                var newPassword = PromptForNewPassword(selectedUser.Username);
+                if (string.IsNullOrWhiteSpace(newPassword))
+                    return;
+
+                UpdateUserPasswordInDb(selectedUser.Username, newPassword);
+
+                ShowMessage("Password has been reset and saved to the database.");
             }
             catch (Exception ex)
             {
-                ShowMessage($"Error opening reset password dialog: {ex.Message}", true);
+                ShowMessage("Error resetting password: " + ex.Message, true);
             }
         }
 
@@ -869,14 +885,15 @@ namespace LendingApp.UI.AdminUI.Views
                 return;
             }
 
+            // Map selected row -> EditUserForm.User (LendingSystem.UI.User)
             var editUser = new EditFormUser
             {
                 Username = selectedUser.Username,
                 FullName = selectedUser.FullName,
                 Email = selectedUser.Email,
-                Phone = "",
+                Phone = "", // Not stored in users table currently
                 Role = MapRoleToEditFormDisplay(selectedUser.Role),
-                EmployeeId = "",
+                EmployeeId = selectedUser.UserId.ToString(CultureInfo.InvariantCulture),
                 Status = selectedUser.Status,
                 CreatedDate = selectedUser.CreatedDate,
                 LastLogin = selectedUser.LastLogin
@@ -884,6 +901,20 @@ namespace LendingApp.UI.AdminUI.Views
 
             using (var form = new EditUserForm(editUser))
             {
+                form.OnUserUpdated += updated =>
+                {
+                    try
+                    {
+                        SaveEditedUserToDb(updated);
+                        LoadUsersFromDb();
+                        SelectUserInGrid(updated.Username);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString(), "Failed to update user", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
                 form.ShowDialog(FindForm());
             }
         }
@@ -936,6 +967,147 @@ namespace LendingApp.UI.AdminUI.Views
             MessageBox.Show(message, "User Management",
                 MessageBoxButtons.OK,
                 isWarning ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+        }
+
+        private void SaveEditedUserToDb(EditFormUser updated)
+        {
+            if (updated == null) throw new ArgumentNullException(nameof(updated));
+            if (string.IsNullOrWhiteSpace(updated.Username)) throw new InvalidOperationException("Username is required.");
+
+            var newRoleDbValue = MapRoleToDbValue(updated.Role);
+            var isActive = string.Equals(updated.Status, "Active", StringComparison.OrdinalIgnoreCase);
+
+            // Split full name (best-effort)
+            var full = (updated.FullName ?? "").Trim();
+            var first = full;
+            var last = "";
+            var idx = full.LastIndexOf(' ');
+            if (idx > 0)
+            {
+                first = full.Substring(0, idx).Trim();
+                last = full.Substring(idx + 1).Trim();
+            }
+
+            using (var db = new AppDbContext())
+            {
+                var entity = db.Users.Single(u => u.Username == updated.Username);
+
+                entity.Email = updated.Email ?? "";
+                entity.FirstName = first;
+                entity.LastName = last;
+                entity.Role = newRoleDbValue;
+                entity.IsActive = isActive;
+
+                db.SaveChanges();
+            }
+        }
+
+        private static string MapRoleToDbValue(string roleDisplayOrDb)
+        {
+            // EditUserForm uses "Loan Officer" but DB uses "LoanOfficer"
+            if (string.Equals(roleDisplayOrDb, "Loan Officer", StringComparison.OrdinalIgnoreCase))
+                return "LoanOfficer";
+
+            // If already stored without space, keep it
+            if (string.Equals(roleDisplayOrDb, "LoanOfficer", StringComparison.OrdinalIgnoreCase))
+                return "LoanOfficer";
+
+            return roleDisplayOrDb ?? "";
+        }
+
+        private static string PromptForNewPassword(string username)
+        {
+            using (var f = new Form())
+            {
+                f.Text = "Set New Password";
+                f.StartPosition = FormStartPosition.CenterParent;
+                f.FormBorderStyle = FormBorderStyle.FixedDialog;
+                f.MaximizeBox = false;
+                f.MinimizeBox = false;
+                f.ClientSize = new Size(420, 170);
+
+                var lbl = new Label
+                {
+                    Text = "Enter new password for: " + username,
+                    AutoSize = true,
+                    Location = new Point(12, 12)
+                };
+
+                var txt1 = new TextBox
+                {
+                    UseSystemPasswordChar = true,
+                    Width = 380,
+                    Location = new Point(12, 40)
+                };
+
+                var txt2 = new TextBox
+                {
+                    UseSystemPasswordChar = true,
+                    Width = 380,
+                    Location = new Point(12, 70)
+                };
+
+                var hint = new Label
+                {
+                    Text = "Confirm password (min 6 chars).",
+                    AutoSize = true,
+                    ForeColor = Color.Gray,
+                    Location = new Point(12, 100)
+                };
+
+                var btnOk = new Button { Text = "OK", DialogResult = DialogResult.OK, Location = new Point(236, 125), Width = 75 };
+                var btnCancel = new Button { Text = "Cancel", DialogResult = DialogResult.Cancel, Location = new Point(317, 125), Width = 75 };
+
+                f.Controls.Add(lbl);
+                f.Controls.Add(txt1);
+                f.Controls.Add(txt2);
+                f.Controls.Add(hint);
+                f.Controls.Add(btnOk);
+                f.Controls.Add(btnCancel);
+                f.AcceptButton = btnOk;
+                f.CancelButton = btnCancel;
+
+                if (f.ShowDialog() != DialogResult.OK)
+                    return null;
+
+                var p1 = txt1.Text ?? "";
+                var p2 = txt2.Text ?? "";
+
+                if (p1.Length < 6)
+                {
+                    MessageBox.Show("Password must be at least 6 characters.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return null;
+                }
+
+                if (!string.Equals(p1, p2, StringComparison.Ordinal))
+                {
+                    MessageBox.Show("Passwords do not match.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return null;
+                }
+
+                return p1;
+            }
+        }
+
+        private void UpdateUserPasswordInDb(string username, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("username is required", nameof(username));
+            if (string.IsNullOrWhiteSpace(newPassword)) throw new ArgumentException("newPassword is required", nameof(newPassword));
+
+            // NOTE: This project currently stores raw password in password_hash (see UserRegisterLogic).
+            // This keeps behavior consistent with existing code. If you later hash, change here too.
+            const string sql = @"UPDATE users SET password_hash = @password_hash WHERE username = @username;";
+
+            using (var db = new AppDbContext())
+            {
+                var rows = db.Database.ExecuteSqlCommand(
+                    sql,
+                    new MySqlParameter("@password_hash", newPassword),
+                    new MySqlParameter("@username", username));
+
+                if (rows <= 0)
+                    throw new InvalidOperationException("No user was updated. Username may not exist.");
+            }
         }
     }
 }
