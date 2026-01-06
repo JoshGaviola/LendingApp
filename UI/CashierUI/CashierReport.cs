@@ -232,8 +232,99 @@ namespace LendingApp.UI.CashierUI
 
         private void ShowFullReport()
         {
-            // Leave as-is for now (you can wire this to a DB-backed FullReportDialog later)
-            ShowToast("Full report view not yet wired to database.");
+            // Guard
+            if (parametersControl == null)
+            {
+                ShowToast("Report parameters not initialized.");
+                return;
+            }
+
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var start = dateFrom.Date;
+                    var endExclusive = dateTo.Date.AddDays(1);
+
+                    // Base payments query
+                    var q = db.Payments.AsNoTracking()
+                        .Where(p => p.PaymentDate >= start && p.PaymentDate < endExclusive);
+
+                    // Optional payment mode filter (same logic as RefreshPreview)
+                    var payMode = (parametersControl.SelectedPaymentMode ?? "").Trim();
+                    if (!string.IsNullOrWhiteSpace(payMode) && !string.Equals(payMode, "All", StringComparison.OrdinalIgnoreCase))
+                    {
+                        q = q.Where(p => (p.PaymentMethod ?? "").Trim().Equals(payMode, StringComparison.OrdinalIgnoreCase));
+                    }
+
+                    var payments = q.ToList();
+
+                    // Join customers (names)
+                    var customerIds = payments
+                        .Select(p => p.CustomerId)
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Distinct()
+                        .ToList();
+
+                    var customerNames = db.Customers.AsNoTracking()
+                        .Where(c => customerIds.Contains(c.CustomerId))
+                        .Select(c => new
+                        {
+                            c.CustomerId,
+                            Name = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim()
+                        })
+                        .ToList()
+                        .ToDictionary(x => x.CustomerId, x => x.Name, StringComparer.OrdinalIgnoreCase);
+
+                    // Join loans (loan numbers)
+                    var loanIds = payments.Select(p => p.LoanId).Distinct().ToList();
+
+                    var loanNumbers = db.Loans.AsNoTracking()
+                        .Where(l => loanIds.Contains(l.LoanId))
+                        .Select(l => new { l.LoanId, l.LoanNumber })
+                        .ToList()
+                        .ToDictionary(x => x.LoanId, x => x.LoanNumber);
+
+                    // Map to FullReportDialog rows
+                    var items = payments
+                        .OrderByDescending(p => p.PaymentDate)
+                        .Select(p =>
+                        {
+                            string custName;
+                            if (!customerNames.TryGetValue(p.CustomerId ?? "", out custName))
+                                custName = p.CustomerId ?? "";
+
+                            string loanNo;
+                            if (!loanNumbers.TryGetValue(p.LoanId, out loanNo))
+                                loanNo = "";
+
+                            return new FullReportDialog.TransactionItem
+                            {
+                                Id = p.PaymentId.ToString(CultureInfo.InvariantCulture),
+                                Date = p.PaymentDate.ToString("MMM dd, yyyy h:mm tt", CultureInfo.InvariantCulture),
+                                ReceiptNo = p.ReceiptNo ?? "",
+                                Customer = custName,
+                                LoanNo = loanNo,
+                                Amount = p.AmountPaid,
+                                PaymentMode = p.PaymentMethod ?? "Cash",
+                                Principal = p.PrincipalPaid,
+                                Interest = p.InterestPaid,
+                                Penalty = p.PenaltyPaid
+                            };
+                        })
+                        .ToList();
+
+                    using (var dialog = new FullReportDialog())
+                    {
+                        dialog.SetReportData(selectedReport, dateFrom, dateTo, items);
+                        dialog.ShowDialog(this);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Failed to load full report", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void ShowToast(string msg)
