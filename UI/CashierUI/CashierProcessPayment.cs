@@ -918,7 +918,7 @@ namespace LendingApp.UI.CashierUI
 
             try
             {
-                string receiptNo = "OR-" + (_transactions.Count + 1).ToString("000", CultureInfo.InvariantCulture);
+                string receiptNo = "OR-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
                 string timeNow = cashierProcessLogic.GetTimeNow();
 
                 using (var db = new AppDbContext())
@@ -976,6 +976,28 @@ namespace LendingApp.UI.CashierUI
 
                     db.Collections.Add(collection);
 
+                    // NEW: INSERT PAYMENT RECORD
+                    var payment = new PaymentEntity
+                    {
+                        LoanId = loan.LoanId,
+                        CustomerId = loan.CustomerId,
+
+                        PaymentDate = DateTime.Now,
+
+                        AmountPaid = RoundMoney(paid),
+                        PrincipalPaid = RoundMoney(_allocation.Principal),
+                        InterestPaid = RoundMoney(_allocation.Interest),
+                        PenaltyPaid = RoundMoney(_allocation.Penalty),
+
+                        PaymentMethod = GetSelectedPaymentMethodText(),
+                        ReceiptNo = receiptNo,
+
+                        // safe; mapped/ignored depending on your context config
+                        CreatedDate = DateTime.Now
+                    };
+
+                    db.Payments.Add(payment);
+
                     // Commit both loan update + collection insert together
                     db.SaveChanges();
 
@@ -1011,7 +1033,7 @@ namespace LendingApp.UI.CashierUI
             }
             catch (Exception ex)
             {
-                ShowToast("Failed to process payment: " + ex.Message, isError: true);
+                ShowToast("Failed to process payment: " + ex.ToString(), isError: true);
             }
         }
 

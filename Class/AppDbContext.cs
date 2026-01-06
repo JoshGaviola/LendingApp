@@ -1,12 +1,12 @@
-﻿using System.Data.Entity;
+﻿using LendingApp.Class.Models.CashierModels;
+using LendingApp.Class.Models.Loans;
+using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
 using Customer = LendingApp.Class.Models.LoanOfiicerModels.CustomerRegistrationData;
 using LoanApplicationEntity = LendingApp.Class.Models.Loans.LoanApplicationEntity;
 using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
-using LendingApp.Class.Models.Loans;
-using LendingApp.Class.Models.CashierModels;
 
 namespace LendingApp.Class
 {
@@ -17,12 +17,11 @@ namespace LendingApp.Class
         public DbSet<Customer> Customers { get; set; }
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
-<<<<<<< HEAD
 
-=======
->>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
+
+
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
-        public DbSet<LoanEntity> Loans { get; set; } 
+        public DbSet<LoanEntity> Loans { get; set; }
         public DbSet<CollectionEntity> Collections { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
 
@@ -140,10 +139,6 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
             modelBuilder.Entity<LoanProductEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
             // NEW: loan_application_evaluations
             modelBuilder.Entity<LoanApplicationEvaluationEntity>()
                 .ToTable("loan_application_evaluations")
@@ -225,10 +220,6 @@ namespace LendingApp.Class
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
             modelBuilder.Entity<CollectionEntity>()
                 .ToTable("collections")
                 .HasKey(x => x.CollectionId);
@@ -302,11 +293,6 @@ namespace LendingApp.Class
                 .HasColumnName("created_date")
                 .IsRequired();
 
-            modelBuilder.Entity<CollectionEntity>()
-                .Property(x => x.UpdatedDate)
-                .HasColumnName("updated_date")
-                .IsRequired();
-
             modelBuilder.Entity<PaymentEntity>()
                 .ToTable("payments")
                 .HasKey(x => x.PaymentId);
@@ -371,15 +357,10 @@ namespace LendingApp.Class
                 .IsRequired()
                 .HasMaxLength(50);
 
-            // The DDL doesn't have a separate created_date; ignore the extra property
+            // The payments table DDL doesn't include a created_date column.
+            // Ignore the CLR property so EF doesn't try to read/write a non-existent column.
             modelBuilder.Entity<PaymentEntity>()
-<<<<<<< HEAD
-                .Property(x => x.CreatedDate)
-                .HasColumnName("created_date")
-                .IsRequired();
-=======
                 .Ignore(x => x.CreatedDate);
->>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
         }
     }
 }

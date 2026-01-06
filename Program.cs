@@ -32,21 +32,13 @@ namespace LendingApp
 
             var data = new ApplicantsData();
             // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
-<<<<<<< HEAD
-            Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
-           // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-          //  Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
-
-          //  Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-
-           //  Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
-            //  Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
             // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
-=======
-           // Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
-           Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
+            //  Application.Run(new LendingApp.UI.CashierUI.CashierDashboard(data));
+            // Application.Run(new LendingApp.UI.AdminUI.AdminDashboard());
 
->>>>>>> 5bb5bec6af4df907bddedb20b26b680718f29c30
+            Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
+            // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
+
         }
     }
 }

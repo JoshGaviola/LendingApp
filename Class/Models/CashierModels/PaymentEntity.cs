@@ -23,6 +23,6 @@ namespace LendingApp.Class.Models.CashierModels
         public string PaymentMethod { get; set; }   // Cash|GCash|Bank
         public string ReceiptNo { get; set; }
 
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 }
