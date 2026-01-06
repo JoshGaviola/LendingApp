@@ -952,5 +952,42 @@ namespace LendingApp.UI.CashierUI
         {
             MessageBox.Show(message, "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        // Add this public helper so other forms can load and select a specific receipt by receipt number.
+        public void LoadAndSelectReceipt(string receiptNo)
+        {
+            if (string.IsNullOrWhiteSpace(receiptNo)) return;
+
+            // Use a wide but safe date range so ApplyFilters() / DateTimePicker won't overflow.
+            // DateTimePicker and AddDays on DateTime.MaxValue can overflow; avoid MinValue/MaxValue.
+            dateFrom = DateTime.Today.AddYears(-50);
+            dateTo = DateTime.Today.AddYears(50);
+            searchQuery = receiptNo;
+
+            // Rebuild list and bind
+            ApplyFilters();
+
+            // Find and select the matching row
+            for (int i = 0; i < dgvReceipts.Rows.Count; i++)
+            {
+                var cellVal = dgvReceipts.Rows[i].Cells["ReceiptNo"].Value?.ToString();
+                if (string.Equals(cellVal, receiptNo, StringComparison.OrdinalIgnoreCase))
+                {
+                    dgvReceipts.ClearSelection();
+                    dgvReceipts.Rows[i].Selected = true;
+                    dgvReceipts.FirstDisplayedScrollingRowIndex = Math.Max(0, i - 2);
+                    // Ensure preview updates
+                    if (dgvReceipts.Rows[i].Tag is ReceiptData rd)
+                    {
+                        selectedReceipt = rd;
+                        UpdateReceiptPreview();
+                    }
+                    return;
+                }
+            }
+
+            // If not found, notify user
+            MessageBox.Show($"Receipt {receiptNo} not found.", "Receipt", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }
