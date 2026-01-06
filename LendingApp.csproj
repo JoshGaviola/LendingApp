@@ -166,7 +166,7 @@
     <Compile Include="Class\Interface\ILoanRepository.cs" />
     <Compile Include="Class\Interface\ILogin.cs" />
     <Compile Include="Class\Interface\IStatusProvider.cs" />
-    <Compile Include="Class\LogicClass\Admin\AdminLoginLogic.cs" />
+   
     <Compile Include="Class\LogicClass\Admin\UserRegisterLogic.cs" />
     <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
     <Compile Include="Class\LogicClass\Cashier\Cashier.cs" />
@@ -457,9 +457,6 @@
     <Compile Include="UI\LoanOfficerUI\OfficerLogin.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\LoanOfficerUI\OfficerLogin.Designer.cs">
-      <DependentUpon>OfficerLogin.cs</DependentUpon>
-    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerSettings.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -471,7 +468,6 @@
     <EmbeddedResource Include="obj\Debug\LendingApp.Properties.Resources.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.AdminUI.AdminDashboard.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CashierUI.CashierDashboard.resources" />
-    
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerApplyLoans.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerDashBoard2.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerManagement.resources" />
@@ -479,7 +475,7 @@
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerApplications.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerCustomers.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerDashboard.resources" />
-    <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerLogin.resources" />
+    
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.LoanOfficerUI.OfficerSettings.resources" />
     <EmbeddedResource Include="Properties\Resources.resx" />
     <EmbeddedResource Include="UI\AdminUI\AdminDashboard.resx">
@@ -511,9 +507,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerDashboard.resx">
       <DependentUpon>OfficerDashboard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\LoanOfficerUI\OfficerLogin.resx">
-      <DependentUpon>OfficerLogin.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\LoanOfficerUI\OfficerSettings.resx">
       <DependentUpon>OfficerSettings.cs</DependentUpon>

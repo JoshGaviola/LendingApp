@@ -99,7 +99,7 @@ namespace LendingApp.UI.AdminUI.Views
 
             // Role & Status Section
             y = AddSectionHeader(innerPanel, "Role & Status", y);
-            cmbRole = AddStyledComboBox(innerPanel, "User Role", new[] { "Admin", "Loan Officer", "Cashier" }, y);
+            cmbRole = AddStyledComboBox(innerPanel, "User Role", new[] { "Admin", "LoanOfficer", "Cashier" }, y);
             cmbRole.SelectedIndex = 1;
             y += 65;
 
