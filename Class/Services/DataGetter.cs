@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LendingApp.Data;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.Class.Services
 {
     public static class DataGetter
     {
         public static ApplicantsData Data { get; } = new ApplicantsData();
+        public static User CurrentUser { get; }
     }
 }

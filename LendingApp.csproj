@@ -164,13 +164,13 @@
     <Compile Include="Class\Interface\ILoanApplicationEvaluationRepository.cs" />
     <Compile Include="Class\Interface\ILoanApplicationRepository.cs" />
     <Compile Include="Class\Interface\ILoanRepository.cs" />
+    <Compile Include="Class\Interface\ILogin.cs" />
     <Compile Include="Class\Interface\IStatusProvider.cs" />
     <Compile Include="Class\LogicClass\Admin\AdminLoginLogic.cs" />
     <Compile Include="Class\LogicClass\Admin\UserRegisterLogic.cs" />
     <Compile Include="Class\LogicClass\Borrower\Borrower.cs" />
     <Compile Include="Class\LogicClass\Cashier\Cashier.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
-    <Compile Include="Class\LogicClass\Cashier\CashierLoginLogic.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierProcessLogic.cs" />
     <Compile Include="Class\LogicClass\Loan Product\LoanProduct.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
@@ -207,6 +207,7 @@
     <Compile Include="Class\Services\CreditScoringService.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
+    <Compile Include="Class\Services\DynamicLogin.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->
     <Compile Include="Program.cs" />
@@ -311,9 +312,6 @@
     </Compile>
     <Compile Include="UI\CashierUI\CashierLogin.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\CashierUI\CashierLogin.Designer.cs">
-      <DependentUpon>CashierLogin.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\CashierUI\CashierProcessPayment.cs">
       <SubType>Form</SubType>
@@ -472,7 +470,7 @@
     <EmbeddedResource Include="obj\Debug\LendingApp.Properties.Resources.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.AdminUI.AdminDashboard.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CashierUI.CashierDashboard.resources" />
-    <EmbeddedResource Include="obj\Debug\LendingApp.UI.CashierUI.CashierLogin.resources" />
+    
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerApplyLoans.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerDashBoard2.resources" />
     <EmbeddedResource Include="obj\Debug\LendingApp.UI.CustomerUI.CustomerManagement.resources" />
@@ -488,9 +486,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CashierUI\CashierDashboard.resx">
       <DependentUpon>CashierDashboard.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\CashierUI\CashierLogin.resx">
-      <DependentUpon>CashierLogin.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\CustomerUI\CustomerApplyLoans.resx">
       <DependentUpon>CustomerApplyLoans.cs</DependentUpon>

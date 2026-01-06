@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.UI.CashierUI
 {
@@ -60,7 +61,7 @@ namespace LendingApp.UI.CashierUI
         private BindingList<TransactionModels> _transactions;
         private BindingList<LoanReleaseModels> _pendingLoans;
 
-        public CashierDashboard(ApplicantsData data)
+        public CashierDashboard(ApplicantsData data, User user )
         {
             InitializeComponent();
 

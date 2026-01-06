@@ -5,6 +5,7 @@ using LendingApp.UI.AdminUI.Views;
 using LendingSystem.Admin;
 using LendingSystem.Reports;
 using System.Drawing;
+using LendingApp.Class.Models.User;
 
 namespace LendingApp.UI.AdminUI
 {
@@ -43,7 +44,7 @@ namespace LendingApp.UI.AdminUI
         // Store references to nav buttons for easy updating
         private Dictionary<string, Button> navButtons = new Dictionary<string, Button>();
 
-        public AdminDashboard()
+        public AdminDashboard(User user)
         {
             InitializeComponent();
             BuildUI();

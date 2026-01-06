@@ -274,22 +274,22 @@ namespace LendingApp.UI.AdminUI
 
             string username = txtUsername.Text;
             string password = txtPassword.Text;
+            string role = "Admin";
 
-            AdminLoginLogic logic = new AdminLoginLogic();
-            bool success = logic.LoginSuccessfully(username, password);
+            LendingApp.Class.Services.DynamicLogin loginService = new LendingApp.Class.Services.DynamicLogin();
+            
+            User user = loginService.Authenticate(username, password, role);
 
-            if (success)
+            if(user != null)
             {
+                AdminDashboard dashboard = new AdminDashboard(user);
+                dashboard.Show();
                 this.Hide();
-                AdminDashboard dashboard = new AdminDashboard();
-                dashboard.ShowDialog();
             }
             else
             {
-                MessageBox.Show("Invalid username or password. Please try again.", "Login Failed",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                txtPassword.Clear();
-                txtUsername.Focus();
+                MessageBox.Show("Invalid credentials or inactive account.", "Login Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
