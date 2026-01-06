@@ -144,7 +144,8 @@ namespace LendingApp.UI.CashierUI.Controls
                 Dock = DockStyle.Top,
                 AutoSize = true,
                 ColumnCount = 2,
-                Location = new Point(0, 20)
+                Location = new Point(0, 20),
+                Margin = new Padding(0, 12, 0, 0) // add top margin to push the entire summary block down
             };
             summaryGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60f));
             summaryGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
@@ -266,7 +267,7 @@ namespace LendingApp.UI.CashierUI.Controls
                 Text = label,
                 AutoSize = true,
                 ForeColor = ColorTranslator.FromHtml("#374151"),
-                Margin = new Padding(0, 4, 0, 4)
+                Margin = new Padding(0, 23, 0, 4) // increased top margin
             };
 
             valueLabel = new Label
@@ -277,7 +278,7 @@ namespace LendingApp.UI.CashierUI.Controls
                 ForeColor = ColorTranslator.FromHtml("#111827"),
                 TextAlign = ContentAlignment.MiddleRight,
                 Dock = DockStyle.Fill,
-                Margin = new Padding(0, 4, 0, 4)
+                Margin = new Padding(0, 8, 0, 4) // increased top margin
             };
 
             grid.Controls.Add(lbl, 0, row);
