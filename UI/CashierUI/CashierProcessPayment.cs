@@ -947,8 +947,6 @@ namespace LendingApp.UI.CashierUI
                     }
 
                     // ===== 2) INSERT COLLECTION RECORD =====
-                    // We log one row per payment (simple + safe).
-                    // If you want "update existing due row instead", tell me your desired rule.
                     var dueDate = (loan.NextDueDate ?? loan.FirstDueDate).Date;
 
                     var collection = new CollectionEntity
@@ -976,7 +974,7 @@ namespace LendingApp.UI.CashierUI
 
                     db.Collections.Add(collection);
 
-                    // NEW: INSERT PAYMENT RECORD
+                    // ===== 3) INSERT PAYMENT RECORD =====
                     var payment = new PaymentEntity
                     {
                         LoanId = loan.LoanId,
@@ -989,23 +987,23 @@ namespace LendingApp.UI.CashierUI
                         InterestPaid = RoundMoney(_allocation.Interest),
                         PenaltyPaid = RoundMoney(_allocation.Penalty),
 
-                        PaymentMethod = GetSelectedPaymentMethodText(),
-                        ReceiptNo = receiptNo,
+                        BalanceAfter = RoundMoney(loan.OutstandingBalance), // after principal deduction
+                        ProcessedBy = 1, // TODO: replace with logged-in cashier user_id
 
-                        // safe; mapped/ignored depending on your context config
-                        CreatedDate = DateTime.Now
+                        PaymentMethod = GetSelectedPaymentMethodText(),
+                        ReceiptNo = receiptNo
                     };
 
                     db.Payments.Add(payment);
 
-                    // Commit both loan update + collection insert together
+                    // Commit all changes together
                     db.SaveChanges();
 
                     // Sync UI in-memory snapshot
                     _loanDetails.Balance = loan.OutstandingBalance;
                 }
 
-                // ===== 3) UI transactions list (unchanged) =====
+                // ===== 4) UI transactions list =====
                 var tx = new TransactionModels
                 {
                     Time = timeNow,
@@ -1192,7 +1190,7 @@ namespace LendingApp.UI.CashierUI
                     PaymentsRemaining = Math.Max(0, _loanDetails.PaymentsDue),
                     IsFinalPayment = (_loanDetails.Balance <= 0m)
                 };
-
+                
                 frm.StartPosition = FormStartPosition.CenterParent;
                 frm.ShowDialog(this);
             }

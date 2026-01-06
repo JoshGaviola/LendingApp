@@ -293,6 +293,11 @@ namespace LendingApp.Class
                 .HasColumnName("created_date")
                 .IsRequired();
 
+            modelBuilder.Entity<CollectionEntity>()
+                .Property(x => x.UpdatedDate)
+                .HasColumnName("updated_date")
+                .IsRequired();
+
             modelBuilder.Entity<PaymentEntity>()
                 .ToTable("payments")
                 .HasKey(x => x.PaymentId);
@@ -355,7 +360,28 @@ namespace LendingApp.Class
                 .Property(x => x.ReceiptNo)
                 .HasColumnName("receipt_number")
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(20); // FIX: DB is varchar(20)
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.BalanceAfter)
+                .HasColumnName("balance_after")
+                .IsRequired()
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.ProcessedBy)
+                .HasColumnName("processed_by")
+                .IsRequired();
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.ReferenceNumber)
+                .HasColumnName("reference_number")
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<PaymentEntity>()
+                .Property(x => x.Remarks)
+                .HasColumnName("remarks")
+                .HasMaxLength(500);
 
             // The payments table DDL doesn't include a created_date column.
             // Ignore the CLR property so EF doesn't try to read/write a non-existent column.
