@@ -459,6 +459,24 @@ namespace LoanApplicationUI
             DialogResult = DialogResult.OK;
             Close();
         }
+
+        // Add these public accessors to expose chosen settlement values for callers.
+        public decimal SelectedSettlementAmount
+        {
+            get => numSettlementAmount?.Value ?? 0m;
+        }
+
+        public string SelectedPaymentMethod
+        {
+            get
+            {
+                if (radGCash != null && radGCash.Checked) return "GCash";
+                if (radBank != null && radBank.Checked) return "Bank";
+                return "Cash";
+            }
+        }
+
+        public string RemarksText => txtRemarks?.Text ?? "";
     }
 
     public class SettlementData
