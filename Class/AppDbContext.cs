@@ -7,6 +7,7 @@ using LoanApplicationEntity = LendingApp.Class.Models.Loans.LoanApplicationEntit
 using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
+using LendingApp.Class.Models.Admin;
 
 namespace LendingApp.Class
 {
@@ -24,6 +25,8 @@ namespace LendingApp.Class
         public DbSet<LoanEntity> Loans { get; set; }
         public DbSet<CollectionEntity> Collections { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
+
+        public DbSet<UserEntity> Users { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -387,6 +390,25 @@ namespace LendingApp.Class
             // Ignore the CLR property so EF doesn't try to read/write a non-existent column.
             modelBuilder.Entity<PaymentEntity>()
                 .Ignore(x => x.CreatedDate);
+
+            modelBuilder.Entity<UserEntity>()
+                .ToTable("users")
+                .HasKey(x => x.UserId);
+
+            modelBuilder.Entity<UserEntity>().Property(x => x.UserId).HasColumnName("user_id");
+            modelBuilder.Entity<UserEntity>().Property(x => x.Username).HasColumnName("username").HasMaxLength(50).IsRequired();
+            modelBuilder.Entity<UserEntity>().Property(x => x.PasswordHash).HasColumnName("password_hash").HasMaxLength(255).IsRequired();
+            modelBuilder.Entity<UserEntity>().Property(x => x.Email).HasColumnName("email").HasMaxLength(200);
+
+            modelBuilder.Entity<UserEntity>().Property(x => x.FirstName).HasColumnName("first_name").HasMaxLength(100).IsRequired();
+            modelBuilder.Entity<UserEntity>().Property(x => x.LastName).HasColumnName("last_name").HasMaxLength(100).IsRequired();
+
+            modelBuilder.Entity<UserEntity>().Property(x => x.Role).HasColumnName("role").HasMaxLength(20).IsRequired();
+
+            modelBuilder.Entity<UserEntity>().Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
+
+            modelBuilder.Entity<UserEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
+            modelBuilder.Entity<UserEntity>().Property(x => x.LastLogin).HasColumnName("last_login");
         }
     }
 }

@@ -371,6 +371,8 @@ namespace LendingApp.UI.AdminUI.Views
             UserRegisterLogic logic = new UserRegisterLogic();
             if (logic.RegisterSuccess(newUser))
             {
+                UserCreated?.Invoke(newUser);
+
                 MessageBox.Show("User account has been created successfully!",
                     "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
