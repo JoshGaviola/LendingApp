@@ -10,15 +10,25 @@ using System.Threading.Tasks;
 
 namespace LendingApp.LogicClass.Cashier
 {
-   public class CashierDashboardLogic
+    public class CashierDashboardLogic
     {
         private BindingList<TransactionModels> transaction;
         private BindingList<LoanReleaseModels> releaseLoan;
+
         public CashierDashboardLogic(ApplicantsData data)
         {
-            transaction = data.recentTransactions;
-            releaseLoan = data.releaseLoan;
+            if (data == null)
+            {
+                transaction = new BindingList<TransactionModels>();
+                releaseLoan = new BindingList<LoanReleaseModels>();
+            }
+            else
+            {
+                transaction = data.recentTransactions;
+                releaseLoan = data.releaseLoan;
+            }
         }
+
         public decimal CalculateTotalRecentTransaction()
         {
             return transaction.Sum(t => t.PaidAmount);
@@ -28,9 +38,8 @@ namespace LendingApp.LogicClass.Cashier
         {
             return releaseLoan.Sum(l => l.Amount);
         }
+
         public int TotalTransaction => transaction.Count;
         public int TotalLoansPending => releaseLoan.Count;
-
-
     }
 }

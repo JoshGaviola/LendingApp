@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LendingApp.Class.LogicClass.Cashier;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,8 +14,9 @@ namespace LendingApp.UI.CashierUI
 {
     public partial class CashierLogin : Form
     {
+        private ApplicantsData data;
         private CashierDashboard cashierDashboard;
-        private BindingList<Class.Models.CashierModels.TransactionModels> transactions;
+        
         public CashierLogin()
         {
             InitializeComponent();
@@ -32,14 +34,29 @@ namespace LendingApp.UI.CashierUI
                 e.Graphics.FillRectangle(brush, rect);
             }
         }
-    
 
-        /*
         private void SignInBtn_Click(object sender, EventArgs e)
         {
-            cashierDashboard = new CashierDashboard();
-            cashierDashboard.Show();
-        
-        */
+           string username = txtboxUserName.Text.Trim();
+           string password = txtboxPassword.Text.Trim();
+
+           CashierLoginLogic cashierLoginLogic = new CashierLoginLogic();
+            
+           bool success = cashierLoginLogic.LoginSuccessfully(username, password);
+
+            if (success)
+            {
+                cashierDashboard = new CashierDashboard(data);
+                cashierDashboard.Show();
+                this.Hide();
+            }
+            else
+            {
+                MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+        }
+
+       
     }
 }
