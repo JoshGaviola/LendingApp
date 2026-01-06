@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Data.Entity;
+using System.Globalization;
+using System.Linq;
+using LendingApp.Class;
 
 namespace LendingApp.UI.AdminUI
 {
@@ -187,7 +191,6 @@ namespace LendingApp.UI.AdminUI
             // Mark tab buttons as initialized
             tabButtonsInitialized = true;
 
-            // ... rest of the InitializeLoanTypesListView method remains the same ...
             // ===== SEPARATOR LINE =====
             var separator = new Panel
             {
@@ -583,13 +586,38 @@ namespace LendingApp.UI.AdminUI
 
         private void AddSampleData()
         {
-            // Add sample rows with simple status text
-            dgvLoanProducts.Rows.Add("1", "Personal Loan", "12%", "¥100,000", "Active");
-            dgvLoanProducts.Rows.Add("2", "Emergency Loan", "10%", "¥50,000", "Active");
-            dgvLoanProducts.Rows.Add("3", "Salary Loan", "8%", "¥200,000", "Active");
-            dgvLoanProducts.Rows.Add("4", "Business Loan", "15%", "¥500,000", "Active");
-            dgvLoanProducts.Rows.Add("5", "Educational Loan", "9%", "¥150,000", "Active");
-            dgvLoanProducts.Rows.Add("6", "Home Improvement", "11%", "¥300,000", "Inactive");
+            LoadLoanProductsFromDb();
+        }
+
+        private void LoadLoanProductsFromDb()
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var products = db.LoanProducts.AsNoTracking()
+                        .OrderBy(p => p.ProductId)
+                        .ToList();
+
+                    dgvLoanProducts.Rows.Clear();
+
+                    foreach (var p in products)
+                    {
+                        dgvLoanProducts.Rows.Add(
+                            p.ProductId.ToString(CultureInfo.InvariantCulture),
+                            p.ProductName ?? "",
+                            (p.InterestRate).ToString("0.##", CultureInfo.InvariantCulture) + "%",
+                            "₱" + p.MaxAmount.ToString("N0", CultureInfo.InvariantCulture),
+                            p.IsActive ? "Active" : "Inactive"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Failed to load loan products", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dgvLoanProducts.Rows.Clear();
+            }
         }
 
         private void UpdateProductStatus(string productId, bool newActiveStatus)

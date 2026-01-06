@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using LendingApp.Class.Models.Admin;
 using EditUserForm = LendingSystem.UI.EditUserForm;
 using EditFormUser = LendingSystem.UI.User;
 using ResetPasswordForm = LendingApp.UI.AdminUI.ResetPasswordForm;
@@ -12,16 +15,14 @@ namespace LendingApp.UI.AdminUI.Views
 {
     public partial class AdminUserManagementControl : UserControl
     {
-        // User class definition
-        public class User
+        // UI model (keeps UI independent from EF entity)
+        public class UserRow
         {
-            public string Id { get; set; }
+            public int UserId { get; set; }
             public string Username { get; set; }
             public string FullName { get; set; }
             public string Role { get; set; }
-            public string EmployeeId { get; set; }
             public string Email { get; set; }
-            public string Phone { get; set; }
             public string Status { get; set; }
             public string CreatedDate { get; set; }
             public string LastLogin { get; set; }
@@ -37,207 +38,10 @@ namespace LendingApp.UI.AdminUI.Views
         private const int itemsPerPage = 6;
 
         // Selected user
-        private User selectedUser = null;
+        private UserRow selectedUser = null;
 
-        // Mock users data
-        private readonly List<User> allUsers = new List<User>
-        {
-            new User
-            {
-                Id = "1",
-                Username = "admin",
-                FullName = "Administrator",
-                Role = "Admin",
-                EmployeeId = "ADMIN-001",
-                Email = "admin@company.com",
-                Phone = "+639171111111",
-                Status = "Active",
-                CreatedDate = "2024-01-01",
-                LastLogin = "2024-06-10 10:30 AM"
-            },
-            new User
-            {
-                Id = "2",
-                Username = "maria_s",
-                FullName = "Maria Santos",
-                Role = "Cashier",
-                EmployeeId = "CSH-001",
-                Email = "maria.santos@company.com",
-                Phone = "+639172222222",
-                Status = "Active",
-                CreatedDate = "2024-01-10",
-                LastLogin = "2024-06-10 08:45 AM"
-            },
-            new User
-            {
-                Id = "3",
-                Username = "juan_lo",
-                FullName = "Juan Dela Cruz",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-002",
-                Email = "juan.delacruz@company.com",
-                Phone = "+639171234567",
-                Status = "Active",
-                CreatedDate = "2024-01-15",
-                LastLogin = "2024-06-10 09:15 AM"
-            },
-            new User
-            {
-                Id = "4",
-                Username = "pedro_lo",
-                FullName = "Pedro Rodriguez",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-003",
-                Email = "pedro.rodriguez@company.com",
-                Phone = "+639173333333",
-                Status = "Inactive",
-                CreatedDate = "2024-02-01",
-                LastLogin = "2024-05-20 02:30 PM"
-            },
-            new User
-            {
-                Id = "5",
-                Username = "ana_c",
-                FullName = "Ana Garcia",
-                Role = "Cashier",
-                EmployeeId = "CSH-002",
-                Email = "ana.garcia@company.com",
-                Phone = "+639174444444",
-                Status = "Locked",
-                CreatedDate = "2024-02-15",
-                LastLogin = "2024-06-09 11:00 AM"
-            },
-            new User
-            {
-                Id = "6",
-                Username = "luis_lo",
-                FullName = "Luis Martinez",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-004",
-                Email = "luis.martinez@company.com",
-                Phone = "+639175555555",
-                Status = "Active",
-                CreatedDate = "2024-03-01",
-                LastLogin = "2024-06-10 07:20 AM"
-            },
-            new User
-            {
-                Id = "7",
-                Username = "rosa_c",
-                FullName = "Rosa Fernandez",
-                Role = "Cashier",
-                EmployeeId = "CSH-003",
-                Email = "rosa.fernandez@company.com",
-                Phone = "+639176666666",
-                Status = "Active",
-                CreatedDate = "2024-03-10",
-                LastLogin = "2024-06-10 08:00 AM"
-            },
-            new User
-            {
-                Id = "8",
-                Username = "carlos_lo",
-                FullName = "Carlos Reyes",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-005",
-                Email = "carlos.reyes@company.com",
-                Phone = "+639177777777",
-                Status = "Active",
-                CreatedDate = "2024-03-20",
-                LastLogin = "2024-06-09 04:15 PM"
-            },
-            new User
-            {
-                Id = "9",
-                Username = "elena_c",
-                FullName = "Elena Torres",
-                Role = "Cashier",
-                EmployeeId = "CSH-004",
-                Email = "elena.torres@company.com",
-                Phone = "+639178888888",
-                Status = "Active",
-                CreatedDate = "2024-04-01",
-                LastLogin = "2024-06-10 09:30 AM"
-            },
-            new User
-            {
-                Id = "10",
-                Username = "miguel_lo",
-                FullName = "Miguel Ramos",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-006",
-                Email = "miguel.ramos@company.com",
-                Phone = "+639179999999",
-                Status = "Active",
-                CreatedDate = "2024-04-15",
-                LastLogin = "2024-06-10 10:00 AM"
-            },
-            new User
-            {
-                Id = "11",
-                Username = "sofia_c",
-                FullName = "Sofia Morales",
-                Role = "Cashier",
-                EmployeeId = "CSH-005",
-                Email = "sofia.morales@company.com",
-                Phone = "+639170000000",
-                Status = "Active",
-                CreatedDate = "2024-05-01",
-                LastLogin = "2024-06-10 08:30 AM"
-            },
-            new User
-            {
-                Id = "12",
-                Username = "diego_lo",
-                FullName = "Diego Castillo",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-007",
-                Email = "diego.castillo@company.com",
-                Phone = "+639171111112",
-                Status = "Active",
-                CreatedDate = "2024-05-10",
-                LastLogin = "2024-06-09 03:45 PM"
-            },
-            new User
-            {
-                Id = "13",
-                Username = "carmen_c",
-                FullName = "Carmen Flores",
-                Role = "Cashier",
-                EmployeeId = "CSH-006",
-                Email = "carmen.flores@company.com",
-                Phone = "+639172222223",
-                Status = "Active",
-                CreatedDate = "2024-05-15",
-                LastLogin = "2024-06-10 07:50 AM"
-            },
-            new User
-            {
-                Id = "14",
-                Username = "ricardo_lo",
-                FullName = "Ricardo Navarro",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-008",
-                Email = "ricardo.navarro@company.com",
-                Phone = "+639173333334",
-                Status = "Active",
-                CreatedDate = "2024-06-01",
-                LastLogin = "2024-06-10 09:45 AM"
-            },
-            new User
-            {
-                Id = "15",
-                Username = "isabel_lo",
-                FullName = "Isabel Romero",
-                Role = "LoanOfficer",
-                EmployeeId = "LO-009",
-                Email = "isabel.romero@company.com",
-                Phone = "+639174444445",
-                Status = "Active",
-                CreatedDate = "2024-06-05",
-                LastLogin = "2024-06-10 08:15 AM"
-            }
-        };
+        // Backing store (loaded from DB)
+        private List<UserRow> allUsers = new List<UserRow>();
 
         // UI Controls
         private TextBox txtSearch;
@@ -263,13 +67,50 @@ namespace LendingApp.UI.AdminUI.Views
             BackColor = ColorTranslator.FromHtml("#F9FAFB");
 
             BuildUI();
+            LoadUsersFromDb();
+        }
+
+        private void LoadUsersFromDb()
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var users = db.Users.AsNoTracking().ToList();
+
+                    allUsers = users.Select(u => new UserRow
+                    {
+                        UserId = u.UserId,
+                        Username = u.Username,
+                        FullName = ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim(),
+                        Role = u.Role ?? "",
+                        Email = u.Email ?? "",
+                        Status = u.IsActive ? "Active" : "Inactive",
+                        CreatedDate = u.CreatedDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        LastLogin = u.LastLogin.HasValue
+                            ? u.LastLogin.Value.ToString("yyyy-MM-dd hh:mm tt", CultureInfo.InvariantCulture)
+                            : "Never"
+                    }).ToList();
+                }
+
+                selectedUser = null;
+                UpdateStatisticsCard();
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Failed to load users", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                allUsers = new List<UserRow>();
+                selectedUser = null;
+                UpdateStatisticsCard();
+                ApplyFilters();
+            }
         }
 
         private void BuildUI()
         {
             Controls.Clear();
 
-            // Main container with auto-scroll
             var scrollPanel = new Panel
             {
                 Dock = DockStyle.Fill,
@@ -285,11 +126,9 @@ namespace LendingApp.UI.AdminUI.Views
                 BackColor = ColorTranslator.FromHtml("#F9FAFB")
             };
 
-            // ===== Main Card =====
             mainCard = CreateMainCard();
             mainContainer.Controls.Add(mainCard);
 
-            // ===== Statistics Card =====
             statisticsCard = CreateStatisticsCard();
             statisticsCard.Margin = new Padding(0, 0, 0, 16);
             mainContainer.Controls.Add(statisticsCard);
@@ -297,7 +136,6 @@ namespace LendingApp.UI.AdminUI.Views
             scrollPanel.Controls.Add(mainContainer);
             Controls.Add(scrollPanel);
 
-            // Initial load of user list (after all controls are created)
             UpdateUserList();
         }
 
@@ -312,7 +150,6 @@ namespace LendingApp.UI.AdminUI.Views
                 Margin = new Padding(0, 0, 0, 16)
             };
 
-            // Add blue border
             card.Paint += (s, e) =>
             {
                 using (var pen = new Pen(ColorTranslator.FromHtml("#93C5FD"), 2))
@@ -324,10 +161,8 @@ namespace LendingApp.UI.AdminUI.Views
                 }
             };
 
-            // Header
             var header = CreateCardHeader("USER MANAGEMENT", "#DBEAFE", "👥", "#2563EB");
 
-            // Body
             var body = new Panel
             {
                 Dock = DockStyle.Top,
@@ -336,16 +171,13 @@ namespace LendingApp.UI.AdminUI.Views
                 Padding = new Padding(24, 16, 24, 16)
             };
 
-            // Add sections to body
             body.Controls.Add(CreateSearchFilterSection());
             body.Controls.Add(CreateUserListSection());
             body.Controls.Add(CreateUserDetailsSection());
             body.Controls.Add(CreateActionButtons());
 
-            // Add in correct docking order
             card.Controls.Add(body);
             card.Controls.Add(header);
-
             return card;
         }
 
@@ -395,56 +227,14 @@ namespace LendingApp.UI.AdminUI.Views
                 Margin = new Padding(0, 0, 0, 16)
             };
 
-            // Title
-            var titlePanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 24,
-                Margin = new Padding(0, 0, 0, 12)
-            };
+            var titlePanel = new Panel { Dock = DockStyle.Top, Height = 24, Margin = new Padding(0, 0, 0, 12) };
+            titlePanel.Controls.Add(new Label { Text = "🔍", AutoSize = true, Font = new Font("Segoe UI", 9), Location = new Point(0, 4) });
+            titlePanel.Controls.Add(new Label { Text = "SEARCH & FILTER", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), Location = new Point(20, 4) });
 
-            var titleIcon = new Label
-            {
-                Text = "🔍",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                Location = new Point(0, 4)
-            };
+            var searchPanel = new Panel { Dock = DockStyle.Top, Height = 56, Margin = new Padding(0, 0, 0, 12) };
+            searchPanel.Controls.Add(new Label { Text = "Search", AutoSize = true, Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#374151"), Location = new Point(0, 0) });
 
-            var titleLabel = new Label
-            {
-                Text = "SEARCH & FILTER",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(20, 4)
-            };
-
-            titlePanel.Controls.Add(titleIcon);
-            titlePanel.Controls.Add(titleLabel);
-
-            // Search
-            var searchPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 56,
-                Margin = new Padding(0, 0, 0, 12)
-            };
-
-            var lblSearch = new Label
-            {
-                Text = "Search",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, 0)
-            };
-
-            var searchContainer = new Panel
-            {
-                Height = 32,
-                Top = 20
-            };
+            var searchContainer = new Panel { Height = 32, Top = 20 };
 
             txtSearch = new TextBox
             {
@@ -456,7 +246,6 @@ namespace LendingApp.UI.AdminUI.Views
                 ForeColor = ColorTranslator.FromHtml("#6B7280")
             };
 
-            // Create placeholder label
             lblSearchPlaceholder = new Label
             {
                 Text = "Search by username, name, or email...",
@@ -468,7 +257,6 @@ namespace LendingApp.UI.AdminUI.Views
                 Cursor = Cursors.IBeam
             };
 
-            // Handle placeholder visibility
             txtSearch.GotFocus += (s, e) =>
             {
                 lblSearchPlaceholder.Visible = false;
@@ -486,10 +274,9 @@ namespace LendingApp.UI.AdminUI.Views
 
             txtSearch.TextChanged += (s, e) =>
             {
-                searchQuery = txtSearch.Text;
+                searchQuery = txtSearch.Text ?? "";
                 ApplyFilters();
 
-                // Update placeholder visibility
                 if (!string.IsNullOrWhiteSpace(txtSearch.Text))
                 {
                     lblSearchPlaceholder.Visible = false;
@@ -497,11 +284,7 @@ namespace LendingApp.UI.AdminUI.Views
                 }
             };
 
-            // Click placeholder to focus textbox
-            lblSearchPlaceholder.Click += (s, e) =>
-            {
-                txtSearch.Focus();
-            };
+            lblSearchPlaceholder.Click += (s, e) => txtSearch.Focus();
 
             var btnSearch = new Button
             {
@@ -519,101 +302,42 @@ namespace LendingApp.UI.AdminUI.Views
             searchContainer.Controls.Add(txtSearch);
             searchContainer.Controls.Add(lblSearchPlaceholder);
             searchContainer.Controls.Add(btnSearch);
-            searchPanel.Controls.Add(lblSearch);
             searchPanel.Controls.Add(searchContainer);
 
-            // Filters
-            var filtersPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 80,
-                Margin = new Padding(0, 0, 0, 12)
-            };
+            var filtersPanel = new Panel { Dock = DockStyle.Top, Height = 80, Margin = new Padding(0, 0, 0, 12) };
 
-            var rolePanel = new Panel
-            {
-                Width = 200,
-                Height = 56,
-                Location = new Point(0, 0)
-            };
+            var rolePanel = new Panel { Width = 200, Height = 56, Location = new Point(0, 0) };
+            rolePanel.Controls.Add(new Label { Text = "Role", AutoSize = true, Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#374151"), Location = new Point(0, 0) });
 
-            var lblRole = new Label
-            {
-                Text = "Role",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, 0)
-            };
-
-            cmbRoleFilter = new ComboBox
-            {
-                Width = 200,
-                Height = 32,
-                Top = 20,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 9)
-            };
-            cmbRoleFilter.Items.AddRange(new object[] { "All Roles", "Admin", "Loan Officer", "Cashier" });
+            cmbRoleFilter = new ComboBox { Width = 200, Height = 32, Top = 20, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9) };
+            cmbRoleFilter.Items.AddRange(new object[] { "All Roles", "Admin", "LoanOfficer", "Cashier" });
             cmbRoleFilter.SelectedIndex = 0;
             cmbRoleFilter.SelectedIndexChanged += (s, e) =>
             {
-                roleFilter = cmbRoleFilter.SelectedItem.ToString() == "All Roles" ? "all" :
-                           cmbRoleFilter.SelectedItem.ToString() == "Loan Officer" ? "LoanOfficer" :
-                           cmbRoleFilter.SelectedItem.ToString();
+                var val = cmbRoleFilter.SelectedItem?.ToString() ?? "All Roles";
+                roleFilter = val == "All Roles" ? "all" : val;
                 ApplyFilters();
             };
-
-            rolePanel.Controls.Add(lblRole);
             rolePanel.Controls.Add(cmbRoleFilter);
 
-            var statusPanel = new Panel
-            {
-                Width = 200,
-                Height = 56,
-                Location = new Point(220, 0)
-            };
+            var statusPanel = new Panel { Width = 200, Height = 56, Location = new Point(220, 0) };
+            statusPanel.Controls.Add(new Label { Text = "Status", AutoSize = true, Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#374151"), Location = new Point(0, 0) });
 
-            var lblStatus = new Label
-            {
-                Text = "Status",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, 0)
-            };
-
-            cmbStatusFilter = new ComboBox
-            {
-                Width = 200,
-                Height = 32,
-                Top = 20,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 9)
-            };
-            cmbStatusFilter.Items.AddRange(new object[] { "All Statuses", "Active", "Inactive", "Locked" });
+            cmbStatusFilter = new ComboBox { Width = 200, Height = 32, Top = 20, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9) };
+            cmbStatusFilter.Items.AddRange(new object[] { "All Statuses", "Active", "Inactive" });
             cmbStatusFilter.SelectedIndex = 0;
             cmbStatusFilter.SelectedIndexChanged += (s, e) =>
             {
-                statusFilter = cmbStatusFilter.SelectedItem.ToString() == "All Statuses" ? "all" :
-                               cmbStatusFilter.SelectedItem.ToString();
+                var val = cmbStatusFilter.SelectedItem?.ToString() ?? "All Statuses";
+                statusFilter = val == "All Statuses" ? "all" : val;
                 ApplyFilters();
             };
-
-            statusPanel.Controls.Add(lblStatus);
             statusPanel.Controls.Add(cmbStatusFilter);
 
             filtersPanel.Controls.Add(rolePanel);
             filtersPanel.Controls.Add(statusPanel);
 
-            // Filter buttons
-            var buttonsPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 40,
-                Margin = new Padding(0, 0, 0, 8)
-            };
-
+            var buttonsPanel = new Panel { Dock = DockStyle.Top, Height = 40, Margin = new Padding(0, 0, 0, 8) };
             var btnApplyFilters = CreateButton("Apply Filters", "#2563EB", Color.White);
             btnApplyFilters.Click += (s, e) => ApplyFilters();
 
@@ -623,25 +347,25 @@ namespace LendingApp.UI.AdminUI.Views
                 txtSearch.Text = "";
                 cmbRoleFilter.SelectedIndex = 0;
                 cmbStatusFilter.SelectedIndex = 0;
+
                 searchQuery = "";
                 roleFilter = "all";
                 statusFilter = "all";
+
                 lblSearchPlaceholder.Visible = true;
                 txtSearch.ForeColor = ColorTranslator.FromHtml("#6B7280");
+
                 ApplyFilters();
             };
 
             buttonsPanel.Controls.Add(btnApplyFilters);
             buttonsPanel.Controls.Add(btnClearFilters);
-
-            // Layout buttons
             buttonsPanel.Layout += (s, e) =>
             {
                 btnApplyFilters.Left = 0;
                 btnClearFilters.Left = btnApplyFilters.Right + 8;
             };
 
-            // Add all to card
             searchFilterCard.Controls.Add(buttonsPanel);
             searchFilterCard.Controls.Add(filtersPanel);
             searchFilterCard.Controls.Add(searchPanel);
@@ -662,35 +386,10 @@ namespace LendingApp.UI.AdminUI.Views
                 Margin = new Padding(0, 0, 0, 16)
             };
 
-            // Title
-            var titlePanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 24,
-                Margin = new Padding(0, 0, 0, 12)
-            };
+            var titlePanel = new Panel { Dock = DockStyle.Top, Height = 24, Margin = new Padding(0, 0, 0, 12) };
+            titlePanel.Controls.Add(new Label { Text = "👥", AutoSize = true, Font = new Font("Segoe UI", 9), Location = new Point(0, 4) });
+            titlePanel.Controls.Add(new Label { Text = "USER LIST", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), Location = new Point(20, 4) });
 
-            var titleIcon = new Label
-            {
-                Text = "👥",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                Location = new Point(0, 4)
-            };
-
-            var titleLabel = new Label
-            {
-                Text = "USER LIST",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(20, 4)
-            };
-
-            titlePanel.Controls.Add(titleIcon);
-            titlePanel.Controls.Add(titleLabel);
-
-            // DataGridView for users
             dgvUsers = new DataGridView
             {
                 Dock = DockStyle.Top,
@@ -716,36 +415,23 @@ namespace LendingApp.UI.AdminUI.Views
             dgvUsers.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             dgvUsers.EnableHeadersVisualStyles = false;
 
-            // Style for selected row
             dgvUsers.DefaultCellStyle.SelectionBackColor = ColorTranslator.FromHtml("#EFF6FF");
             dgvUsers.DefaultCellStyle.SelectionForeColor = ColorTranslator.FromHtml("#111827");
 
-            // Create columns
             dgvUsers.Columns.Add("Username", "Username");
             dgvUsers.Columns.Add("Role", "Role");
             dgvUsers.Columns.Add("Status", "Status");
 
             dgvUsers.SelectionChanged += (s, e) =>
             {
-                if (dgvUsers.SelectedRows.Count > 0)
-                {
-                    var selectedUsername = dgvUsers.SelectedRows[0].Cells["Username"].Value?.ToString();
-                    if (!string.IsNullOrEmpty(selectedUsername))
-                    {
-                        selectedUser = allUsers.FirstOrDefault(u => u.Username == selectedUsername);
-                        UpdateUserDetails();
-                    }
-                }
+                if (dgvUsers.SelectedRows.Count <= 0) return;
+
+                var selectedUsername = dgvUsers.SelectedRows[0].Cells["Username"].Value?.ToString();
+                selectedUser = allUsers.FirstOrDefault(u => string.Equals(u.Username, selectedUsername, StringComparison.OrdinalIgnoreCase));
+                UpdateUserDetails();
             };
 
-            // Pagination
-            var paginationPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 48,
-                Padding = new Padding(0, 12, 0, 0)
-            };
-
+            var paginationPanel = new Panel { Dock = DockStyle.Top, Height = 48, Padding = new Padding(0, 12, 0, 0) };
             btnPrevious = CreateOutlineButton("◀ Previous");
             btnPrevious.Click += (s, e) =>
             {
@@ -762,7 +448,7 @@ namespace LendingApp.UI.AdminUI.Views
                 Font = new Font("Segoe UI", 9),
                 ForeColor = ColorTranslator.FromHtml("#374151"),
                 TextAlign = ContentAlignment.MiddleCenter,
-                Text = "1-6 of 15" // Default text
+                Text = "0-0 of 0"
             };
 
             btnNext = CreateOutlineButton("Next ▶");
@@ -770,7 +456,6 @@ namespace LendingApp.UI.AdminUI.Views
             {
                 var filteredUsers = GetFilteredUsers();
                 var totalPages = (int)Math.Ceiling(filteredUsers.Count / (double)itemsPerPage);
-
                 if (currentPage < totalPages)
                 {
                     currentPage++;
@@ -782,7 +467,6 @@ namespace LendingApp.UI.AdminUI.Views
             paginationPanel.Controls.Add(lblPagination);
             paginationPanel.Controls.Add(btnNext);
 
-            // Layout pagination
             paginationPanel.Layout += (s, e) =>
             {
                 btnPrevious.Left = 0;
@@ -794,7 +478,6 @@ namespace LendingApp.UI.AdminUI.Views
                 btnNext.Top = 8;
             };
 
-            // Add all to card
             userListCard.Controls.Add(paginationPanel);
             userListCard.Controls.Add(dgvUsers);
             userListCard.Controls.Add(titlePanel);
@@ -815,48 +498,14 @@ namespace LendingApp.UI.AdminUI.Views
                 Visible = false
             };
 
-            // Title
-            var titlePanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 24,
-                Margin = new Padding(0, 0, 0, 12)
-            };
+            var titlePanel = new Panel { Dock = DockStyle.Top, Height = 24, Margin = new Padding(0, 0, 0, 12) };
+            titlePanel.Controls.Add(new Label { Text = "👤", AutoSize = true, Font = new Font("Segoe UI", 9), Location = new Point(0, 4) });
+            titlePanel.Controls.Add(new Label { Text = "SELECTED USER DETAILS", AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), Location = new Point(20, 4) });
 
-            var titleIcon = new Label
-            {
-                Text = "👤",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                Location = new Point(0, 4)
-            };
+            pnlUserDetails = new Panel { Dock = DockStyle.Top, AutoSize = true };
 
-            var titleLabel = new Label
-            {
-                Text = "SELECTED USER DETAILS",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = ColorTranslator.FromHtml("#111827"),
-                Location = new Point(20, 4)
-            };
-
-            titlePanel.Controls.Add(titleIcon);
-            titlePanel.Controls.Add(titleLabel);
-
-            // User details container
-            pnlUserDetails = new Panel
-            {
-                Dock = DockStyle.Top,
-                AutoSize = true
-            };
-
-            // Action buttons
-            var actionButtonsPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 40,
-                Margin = new Padding(0, 12, 0, 0)
-            };
+            // Action buttons (left as UI only; needs real write ops later)
+            var actionButtonsPanel = new Panel { Dock = DockStyle.Top, Height = 40, Margin = new Padding(0, 12, 0, 0) };
 
             var btnEdit = CreateOutlineButton("✏ Edit User");
             btnEdit.Click += (s, e) => CreateAndShowEditUserForm();
@@ -864,28 +513,19 @@ namespace LendingApp.UI.AdminUI.Views
             var btnResetPassword = CreateOutlineButton("🔑 Reset Password");
             btnResetPassword.Click += (s, e) => ResetPassword();
 
-            var btnDeactivate = CreateOutlineButton("👤 Deactivate");
+            var btnDeactivate = CreateOutlineButton("👤 Toggle Active");
             btnDeactivate.ForeColor = ColorTranslator.FromHtml("#EA580C");
-            btnDeactivate.Click += (s, e) =>
-            {
-                if (selectedUser != null)
-                    ShowMessage($"User {selectedUser.Username} deactivated", true);
-            };
+            btnDeactivate.Click += (s, e) => ShowMessage("Toggle Active not yet implemented.", true);
 
             var btnDelete = CreateOutlineButton("🗑 Delete");
             btnDelete.ForeColor = ColorTranslator.FromHtml("#DC2626");
-            btnDelete.Click += (s, e) =>
-            {
-                if (selectedUser != null)
-                    ShowMessage($"User {selectedUser.Username} deleted", true);
-            };
+            btnDelete.Click += (s, e) => ShowMessage("Delete not yet implemented.", true);
 
             actionButtonsPanel.Controls.Add(btnEdit);
             actionButtonsPanel.Controls.Add(btnResetPassword);
             actionButtonsPanel.Controls.Add(btnDeactivate);
             actionButtonsPanel.Controls.Add(btnDelete);
 
-            // Layout action buttons
             actionButtonsPanel.Layout += (s, e) =>
             {
                 int x = 0;
@@ -906,97 +546,29 @@ namespace LendingApp.UI.AdminUI.Views
 
         private Panel CreateActionButtons()
         {
-            var panel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 48,
-                Padding = new Padding(0, 8, 0, 0)
-            };
+            var panel = new Panel { Dock = DockStyle.Top, Height = 48, Padding = new Padding(0, 8, 0, 0) };
 
             var btnAddUser = CreateButton("➕ Add New User", "#16A34A", Color.White);
-            btnAddUser.Click += (s, e) => ShowAddUserDialog();
+            btnAddUser.Click += (s, e) => ShowMessage("Add user UI is present, but DB insert is not wired here.");
 
-            var btnExportUsers = CreateOutlineButton("📥 Export Users");
-            btnExportUsers.Click += (s, e) => ShowMessage("Exporting user list...");
+            var btnRefresh = CreateOutlineButton("⟳ Refresh");
+            btnRefresh.Click += (s, e) => LoadUsersFromDb();
 
             panel.Controls.Add(btnAddUser);
-            panel.Controls.Add(btnExportUsers);
+            panel.Controls.Add(btnRefresh);
 
             panel.Layout += (s, e) =>
             {
                 btnAddUser.Left = 0;
-                btnExportUsers.Left = btnAddUser.Right + 8;
+                btnRefresh.Left = btnAddUser.Right + 8;
             };
 
             return panel;
         }
 
-        private void ShowAddUserDialog()
-        {
-            var addUserDialog = new AddUserDialog();
-            addUserDialog.UserCreated += (userData) =>
-            {
-                // Map role from dialog format to our format using traditional switch
-                string mappedRole;
-                switch (userData.Role)
-                {
-                    case "Loan Officer":
-                        mappedRole = "LoanOfficer";
-                        break;
-                    default:
-                        mappedRole = userData.Role; // Admin or Cashier stay the same
-                        break;
-                }
-
-                // Add the new user to the list
-                var newUser = new User
-                {
-                    Id = (allUsers.Count + 1).ToString(),
-                    Username = userData.Username,
-                    FullName = userData.FullName,
-                    Role = mappedRole,
-                    Email = userData.Email,
-                    Phone = userData.Phone,
-                    LastLogin = "Never"
-                };
-
-                allUsers.Add(newUser);
-
-                // Refresh the user list
-                UpdateUserList();
-
-                // Show success message
-                ShowMessage($"User '{userData.Username}' added successfully!");
-
-                // Auto-select the new user in the grid
-                SelectNewUserInGrid(newUser.Username);
-            };
-
-            addUserDialog.ShowDialog();
-        }
-
-        private void SelectNewUserInGrid(string username)
-        {
-            if (dgvUsers == null) return;
-
-            // Find and select the new user in the DataGridView
-            foreach (DataGridViewRow row in dgvUsers.Rows)
-            {
-                if (row.Cells["Username"].Value?.ToString() == username)
-                {
-                    row.Selected = true;
-                    dgvUsers.CurrentCell = row.Cells[0];
-
-                    // Ensure the row is visible
-                    dgvUsers.FirstDisplayedScrollingRowIndex = row.Index;
-                    break;
-                }
-            }
-        }
-
         private Panel CreateStatisticsCard()
         {
-            statisticsCard = new Panel
+            var card = new Panel
             {
                 Dock = DockStyle.Top,
                 AutoSize = true,
@@ -1004,7 +576,6 @@ namespace LendingApp.UI.AdminUI.Views
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // Header with gradient-like background
             var header = new Panel
             {
                 Dock = DockStyle.Top,
@@ -1014,53 +585,55 @@ namespace LendingApp.UI.AdminUI.Views
                 Padding = new Padding(16, 0, 16, 0)
             };
 
-            var icon = new Label
+            header.Controls.Add(new Label
             {
                 Text = "📊",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#2563EB"),
                 Location = new Point(16, 14)
-            };
+            });
 
-            var lblTitle = new Label
+            header.Controls.Add(new Label
             {
                 Text = "USER STATISTICS",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#111827"),
                 Location = new Point(50, 18)
-            };
+            });
 
-            header.Controls.Add(icon);
-            header.Controls.Add(lblTitle);
-
-            // Body
             var body = new Panel
             {
                 Dock = DockStyle.Top,
                 AutoSize = true,
                 BackColor = Color.White,
-                Padding = new Padding(24, 16, 24, 16)
+                Padding = new Padding(24, 16, 24, 16),
+                Name = "statsBody"
             };
 
-            // Calculate statistics
-            var totalUsers = allUsers.Count;
-            var adminCount = allUsers.Count(u => u.Role == "Admin");
-            var loanOfficerCount = allUsers.Count(u => u.Role == "LoanOfficer");
-            var cashierCount = allUsers.Count(u => u.Role == "Cashier");
-            var activeCount = allUsers.Count(u => u.Status == "Active");
-            var inactiveCount = allUsers.Count(u => u.Status == "Inactive");
-            var lockedCount = allUsers.Count(u => u.Status == "Locked");
+            card.Controls.Add(body);
+            card.Controls.Add(header);
+            return card;
+        }
 
-            // Create statistics content
-            var statsContainer = new Panel
-            {
-                Dock = DockStyle.Top,
-                AutoSize = true
-            };
+        private void UpdateStatisticsCard()
+        {
+            if (statisticsCard == null) return;
 
-            var lblTotalUsers = new Label
+            var body = statisticsCard.Controls.OfType<Panel>().FirstOrDefault(p => p.Name == "statsBody");
+            if (body == null) return;
+
+            body.Controls.Clear();
+
+            int totalUsers = allUsers.Count;
+            int adminCount = allUsers.Count(u => string.Equals(u.Role, "Admin", StringComparison.OrdinalIgnoreCase));
+            int loanOfficerCount = allUsers.Count(u => string.Equals(u.Role, "LoanOfficer", StringComparison.OrdinalIgnoreCase));
+            int cashierCount = allUsers.Count(u => string.Equals(u.Role, "Cashier", StringComparison.OrdinalIgnoreCase));
+            int activeCount = allUsers.Count(u => string.Equals(u.Status, "Active", StringComparison.OrdinalIgnoreCase));
+            int inactiveCount = allUsers.Count(u => string.Equals(u.Status, "Inactive", StringComparison.OrdinalIgnoreCase));
+
+            var lblTotal = new Label
             {
                 Text = $"Total Users: {totalUsers}",
                 AutoSize = true,
@@ -1069,64 +642,46 @@ namespace LendingApp.UI.AdminUI.Views
                 Location = new Point(0, 0)
             };
 
-            var lblRoleStats = new Label
+            var lblRoles = new Label
             {
-                Text = $"• Admin: {adminCount} ({((double)adminCount / totalUsers * 100):F1}%)\n" +
-                       $"• Loan Officers: {loanOfficerCount} ({((double)loanOfficerCount / totalUsers * 100):F1}%)\n" +
-                       $"• Cashiers: {cashierCount} ({((double)cashierCount / totalUsers * 100):F1}%)",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9),
                 ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(16, 28)
+                Location = new Point(16, 28),
+                Text =
+                    $"• Admin: {adminCount}\n" +
+                    $"• LoanOfficer: {loanOfficerCount}\n" +
+                    $"• Cashier: {cashierCount}"
             };
 
-            var lblStatusStats = new Label
+            var lblStatuses = new Label
             {
-                Text = $"\nActive: {activeCount} ({((double)activeCount / totalUsers * 100):F1}%)\n" +
-                       $"Inactive: {inactiveCount} ({((double)inactiveCount / totalUsers * 100):F1}%)\n" +
-                       $"Locked: {lockedCount} ({((double)lockedCount / totalUsers * 100):F1}%)",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9),
                 ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, lblRoleStats.Bottom + 20)
+                Location = new Point(0, lblRoles.Bottom + 16),
+                Text =
+                    $"Active: {activeCount}\n" +
+                    $"Inactive: {inactiveCount}"
             };
 
-            var lblRecentStats = new Label
-            {
-                Text = "Last 7 Days:\n" +
-                       "• New Users: 2\n" +
-                       "• Password Resets: 3\n" +
-                       "• Failed Logins: 12",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, lblStatusStats.Bottom + 20)
-            };
-
-            statsContainer.Controls.Add(lblTotalUsers);
-            statsContainer.Controls.Add(lblRoleStats);
-            statsContainer.Controls.Add(lblStatusStats);
-            statsContainer.Controls.Add(lblRecentStats);
-
-            body.Controls.Add(statsContainer);
-
-            statisticsCard.Controls.Add(body);
-            statisticsCard.Controls.Add(header);
-
-            return statisticsCard;
+            body.Controls.Add(lblTotal);
+            body.Controls.Add(lblRoles);
+            body.Controls.Add(lblStatuses);
         }
 
-        private List<User> GetFilteredUsers()
+        private List<UserRow> GetFilteredUsers()
         {
             return allUsers.Where(user =>
             {
-                var matchesSearch = string.IsNullOrEmpty(searchQuery) ||
-                                   user.Username.ToLower().Contains(searchQuery.ToLower()) ||
-                                   user.FullName.ToLower().Contains(searchQuery.ToLower()) ||
-                                   user.Email.ToLower().Contains(searchQuery.ToLower());
+                bool matchesSearch =
+                    string.IsNullOrWhiteSpace(searchQuery) ||
+                    (user.Username ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (user.FullName ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (user.Email ?? "").IndexOf(searchQuery, StringComparison.OrdinalIgnoreCase) >= 0;
 
-                var matchesRole = roleFilter == "all" || user.Role == roleFilter;
-                var matchesStatus = statusFilter == "all" || user.Status == statusFilter;
+                bool matchesRole = roleFilter == "all" || string.Equals(user.Role, roleFilter, StringComparison.OrdinalIgnoreCase);
+                bool matchesStatus = statusFilter == "all" || string.Equals(user.Status, statusFilter, StringComparison.OrdinalIgnoreCase);
 
                 return matchesSearch && matchesRole && matchesStatus;
             }).ToList();
@@ -1136,7 +691,7 @@ namespace LendingApp.UI.AdminUI.Views
         {
             currentPage = 1;
             UpdateUserList();
-            ShowMessage("Filters applied");
+            UpdateStatisticsCard();
         }
 
         private void UpdateUserList()
@@ -1146,24 +701,20 @@ namespace LendingApp.UI.AdminUI.Views
             dgvUsers.Rows.Clear();
 
             var filteredUsers = GetFilteredUsers();
-            var totalPages = (int)Math.Ceiling(filteredUsers.Count / (double)itemsPerPage);
-            var startIndex = (currentPage - 1) * itemsPerPage;
-            var endIndex = Math.Min(startIndex + itemsPerPage, filteredUsers.Count);
+            int totalPages = (int)Math.Ceiling(filteredUsers.Count / (double)itemsPerPage);
 
-            // Add users for current page
+            int startIndex = (currentPage - 1) * itemsPerPage;
+            int endIndex = Math.Min(startIndex + itemsPerPage, filteredUsers.Count);
+
             for (int i = startIndex; i < endIndex; i++)
             {
                 var user = filteredUsers[i];
                 dgvUsers.Rows.Add(user.Username, user.Role, user.Status);
             }
 
-            // Update pagination label if it exists
             if (lblPagination != null)
-            {
-                lblPagination.Text = $"{startIndex + 1}-{endIndex} of {filteredUsers.Count}";
-            }
+                lblPagination.Text = filteredUsers.Count == 0 ? "0-0 of 0" : $"{startIndex + 1}-{endIndex} of {filteredUsers.Count}";
 
-            // Update button states if they exist
             if (btnPrevious != null)
                 btnPrevious.Enabled = currentPage > 1;
 
@@ -1175,15 +726,13 @@ namespace LendingApp.UI.AdminUI.Views
         {
             if (selectedUser == null || pnlUserDetails == null)
             {
-                if (userDetailsCard != null)
-                    userDetailsCard.Visible = false;
+                if (userDetailsCard != null) userDetailsCard.Visible = false;
                 return;
             }
 
             userDetailsCard.Visible = true;
             pnlUserDetails.Controls.Clear();
 
-            // Create details grid
             var detailsGrid = new TableLayoutPanel
             {
                 AutoSize = true,
@@ -1194,7 +743,6 @@ namespace LendingApp.UI.AdminUI.Views
             detailsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
             detailsGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
 
-            // Helper to add detail row
             void AddDetailRow(string label, string value, int row)
             {
                 var lblField = new Label
@@ -1219,16 +767,14 @@ namespace LendingApp.UI.AdminUI.Views
                 detailsGrid.Controls.Add(lblValue, 1, row);
             }
 
-            // Add all user details
-            AddDetailRow("Username:", selectedUser.Username, 0);
-            AddDetailRow("Full Name:", selectedUser.FullName, 1);
-            AddDetailRow("Role:", selectedUser.Role, 2);
-            AddDetailRow("Employee ID:", selectedUser.EmployeeId, 3);
+            AddDetailRow("User ID:", selectedUser.UserId.ToString(CultureInfo.InvariantCulture), 0);
+            AddDetailRow("Username:", selectedUser.Username, 1);
+            AddDetailRow("Full Name:", selectedUser.FullName, 2);
+            AddDetailRow("Role:", selectedUser.Role, 3);
             AddDetailRow("Email:", selectedUser.Email, 4);
-            AddDetailRow("Phone:", selectedUser.Phone, 5);
-            AddDetailRow("Created:", selectedUser.CreatedDate, 6);
-            AddDetailRow("Last Login:", selectedUser.LastLogin, 7);
-            AddDetailRow("Status:", selectedUser.Status, 8);
+            AddDetailRow("Created:", selectedUser.CreatedDate, 5);
+            AddDetailRow("Last Login:", selectedUser.LastLogin, 6);
+            AddDetailRow("Status:", selectedUser.Status, 7);
 
             pnlUserDetails.Controls.Add(detailsGrid);
         }
@@ -1249,15 +795,7 @@ namespace LendingApp.UI.AdminUI.Views
                     selectedUser.Role,
                     selectedUser.Email))
                 {
-                    if (form.ShowDialog(FindForm()) == DialogResult.OK)
-                    {
-                        ShowMessage($"Password for {selectedUser.Username} has been reset successfully!");
-
-                        // Update the user's last login
-                        selectedUser.LastLogin = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                        UpdateUserList();
-                        UpdateUserDetails();
-                    }
+                    form.ShowDialog(FindForm());
                 }
             }
             catch (Exception ex)
@@ -1274,15 +812,14 @@ namespace LendingApp.UI.AdminUI.Views
                 return;
             }
 
-            // Map our internal user model to the form's user model
             var editUser = new EditFormUser
             {
                 Username = selectedUser.Username,
                 FullName = selectedUser.FullName,
                 Email = selectedUser.Email,
-                Phone = selectedUser.Phone,
+                Phone = "",
                 Role = MapRoleToEditFormDisplay(selectedUser.Role),
-                EmployeeId = selectedUser.EmployeeId,
+                EmployeeId = "",
                 Status = selectedUser.Status,
                 CreatedDate = selectedUser.CreatedDate,
                 LastLogin = selectedUser.LastLogin
@@ -1290,38 +827,14 @@ namespace LendingApp.UI.AdminUI.Views
 
             using (var form = new EditUserForm(editUser))
             {
-                form.OnUserUpdated += updated =>
-                {
-                    // Copy edits back into our internal user model
-                    selectedUser.FullName = updated.FullName;
-                    selectedUser.Email = updated.Email;
-                    selectedUser.Phone = updated.Phone;
-                    selectedUser.Role = MapRoleFromEditFormDisplay(updated.Role);
-                    selectedUser.Status = updated.Status;
-
-                    // Refresh UI
-                    UpdateUserList();
-                    SelectNewUserInGrid(selectedUser.Username);
-                    UpdateUserDetails();
-                };
-
                 form.ShowDialog(FindForm());
             }
         }
 
         private static string MapRoleToEditFormDisplay(string role)
         {
-            // Our list uses "LoanOfficer" while the edit form dropdown uses "Loan Officer".
             if (string.Equals(role, "LoanOfficer", StringComparison.OrdinalIgnoreCase))
                 return "Loan Officer";
-
-            return role ?? string.Empty;
-        }
-
-        private static string MapRoleFromEditFormDisplay(string role)
-        {
-            if (string.Equals(role, "Loan Officer", StringComparison.OrdinalIgnoreCase))
-                return "LoanOfficer";
 
             return role ?? string.Empty;
         }
