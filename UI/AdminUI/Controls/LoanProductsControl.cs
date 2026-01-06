@@ -606,7 +606,7 @@ namespace LendingApp.UI.AdminUI
                         dgvLoanProducts.Rows.Add(
                             p.ProductId.ToString(CultureInfo.InvariantCulture),
                             p.ProductName ?? "",
-                            (p.InterestRate).ToString("0.##", CultureInfo.InvariantCulture) + "%",
+                            p.InterestRate.ToString("0.##", CultureInfo.InvariantCulture) + "%",
                             "₱" + p.MaxAmount.ToString("N0", CultureInfo.InvariantCulture),
                             p.IsActive ? "Active" : "Inactive"
                         );
@@ -653,19 +653,41 @@ namespace LendingApp.UI.AdminUI
 
         private void SearchLoanProducts(string searchTerm)
         {
-            foreach (DataGridViewRow row in dgvLoanProducts.Rows)
+            try
             {
-                bool found = false;
-                foreach (DataGridViewCell cell in row.Cells)
+                var s = (searchTerm ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(s) || s == "Search loan products...")
                 {
-                    if (cell.Value != null &&
-                        cell.Value.ToString().IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                    LoadLoanProductsFromDb();
+                    return;
+                }
+
+                using (var db = new AppDbContext())
+                {
+                    var products = db.LoanProducts.AsNoTracking()
+                        .Where(p =>
+                            (p.ProductName ?? "").Contains(s) ||
+                            (p.Description ?? "").Contains(s))
+                        .OrderBy(p => p.ProductId)
+                        .ToList();
+
+                    dgvLoanProducts.Rows.Clear();
+
+                    foreach (var p in products)
                     {
-                        found = true;
-                        break;
+                        dgvLoanProducts.Rows.Add(
+                            p.ProductId.ToString(CultureInfo.InvariantCulture),
+                            p.ProductName ?? "",
+                            p.InterestRate.ToString("0.##", CultureInfo.InvariantCulture) + "%",
+                            "₱" + p.MaxAmount.ToString("N0", CultureInfo.InvariantCulture),
+                            p.IsActive ? "Active" : "Inactive"
+                        );
                     }
                 }
-                row.Visible = found;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Search failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
