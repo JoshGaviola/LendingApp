@@ -549,7 +549,7 @@ namespace LendingApp.UI.AdminUI.Views
             var panel = new Panel { Dock = DockStyle.Top, Height = 48, Padding = new Padding(0, 8, 0, 0) };
 
             var btnAddUser = CreateButton("➕ Add New User", "#16A34A", Color.White);
-            btnAddUser.Click += (s, e) => ShowMessage("Add user UI is present, but DB insert is not wired here.");
+            btnAddUser.Click += (s, e) => ShowAddUserDialog();
 
             var btnRefresh = CreateOutlineButton("⟳ Refresh");
             btnRefresh.Click += (s, e) => LoadUsersFromDb();
@@ -564,6 +564,63 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             return panel;
+        }
+
+        private void ShowAddUserDialog()
+        {
+            try
+            {
+                string createdUsername = null;
+
+                using (var dlg = new AddUserDialog())
+                {
+                    dlg.UserCreated += (userData) =>
+                    {
+                        if (userData != null)
+                            createdUsername = userData.Username;
+                    };
+
+                    var result = dlg.ShowDialog(FindForm());
+                    if (result == DialogResult.OK)
+                    {
+                        LoadUsersFromDb();
+
+                        if (!string.IsNullOrWhiteSpace(createdUsername))
+                            SelectUserInGrid(createdUsername);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Failed to add user", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SelectUserInGrid(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username) || dgvUsers == null) return;
+
+            // Jump to correct page based on filtered list
+            var filtered = GetFilteredUsers();
+            var index = filtered.FindIndex(u => string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                currentPage = index / itemsPerPage + 1;
+                UpdateUserList();
+            }
+
+            for (int i = 0; i < dgvUsers.Rows.Count; i++)
+            {
+                var cellVal = dgvUsers.Rows[i].Cells["Username"].Value?.ToString();
+                if (string.Equals(cellVal, username, StringComparison.OrdinalIgnoreCase))
+                {
+                    dgvUsers.ClearSelection();
+                    dgvUsers.Rows[i].Selected = true;
+                    dgvUsers.CurrentCell = dgvUsers.Rows[i].Cells[0];
+                    UpdateUserDetails();
+                    break;
+                }
+            }
         }
 
         private Panel CreateStatisticsCard()
