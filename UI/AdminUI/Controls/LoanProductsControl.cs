@@ -239,10 +239,34 @@ namespace LendingApp.UI.AdminUI
             btnEditSelected.FlatAppearance.BorderSize = 1;
             btnEditSelected.Click += (s, e) =>
             {
-                if (!string.IsNullOrEmpty(selectedProductId))
+                if (string.IsNullOrWhiteSpace(selectedProductId))
+                    return;
+
+                int pid;
+                if (!int.TryParse(selectedProductId, NumberStyles.Integer, CultureInfo.InvariantCulture, out pid))
                 {
-                    MessageBox.Show($"Edit loan product ID: {selectedProductId}", "Edit Product",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Invalid product id.", "Edit Product", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Ensure control exists
+                if (addNewProductControl == null)
+                    InitializeAddNewProductView();
+
+                try
+                {
+                    // Switch to AddNewProduct view and load selected product into edit mode
+                    ShowView(ViewMode.AddNewProduct);
+
+                    addNewProductControl.LoadProductForEdit(pid);
+
+                    // Refresh list when save completes, then go back to list
+                    addNewProductControl.ProductSaved -= OnProductSavedFromEditor;
+                    addNewProductControl.ProductSaved += OnProductSavedFromEditor;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to load product for edit", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };
             actionButtonsPanel.Controls.Add(btnEditSelected);
@@ -688,6 +712,34 @@ namespace LendingApp.UI.AdminUI
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "Search failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnProductSavedFromEditor(int productId)
+        {
+            // Go back to list and refresh grid
+            ShowView(ViewMode.LoanTypesList);
+            LoadLoanProductsFromDb();
+
+            // Optionally reselect edited product
+            SelectProductRow(productId);
+        }
+
+        private void SelectProductRow(int productId)
+        {
+            if (dgvLoanProducts == null) return;
+
+            var idText = productId.ToString(CultureInfo.InvariantCulture);
+
+            foreach (DataGridViewRow row in dgvLoanProducts.Rows)
+            {
+                if (row.Cells["ID"].Value != null && string.Equals(row.Cells["ID"].Value.ToString(), idText, StringComparison.OrdinalIgnoreCase))
+                {
+                    dgvLoanProducts.ClearSelection();
+                    row.Selected = true;
+                    dgvLoanProducts.CurrentCell = row.Cells[0];
+                    break;
+                }
             }
         }
     }
