@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using LendingApp.Class;
+using LendingApp.UI.AdminUI; // for AddNewLoanProductControl
+using LendingApp.UI.AdminUI.Views; // for AddUserDialog
 
 namespace LendingApp.UI.AdminUI.Views
 {
@@ -429,7 +431,8 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             var btnAdd = ButtonFilled("Add New User", "#16A34A", Color.White);
-            btnAdd.Click += (s, e) => Toast("Opening user creation form...");
+            // open the real AddUserDialog and refresh overview after successful creation
+            btnAdd.Click += (s, e) => ShowAddUserDialog();
 
             var btnDeactivate = ButtonOutline("Deactivate");
             btnDeactivate.Click += (s, e) => Toast("User deactivation dialog...");
@@ -486,7 +489,8 @@ namespace LendingApp.UI.AdminUI.Views
             };
 
             var btnAdd = ButtonOutline("Add New Product");
-            btnAdd.Click += (s, e) => Toast("Opening product creation form...");
+            // open AddNewLoanProductControl in a modal host and refresh overview after save
+            btnAdd.Click += (s, e) => ShowAddProductDialog();
 
             var btnEdit = ButtonOutline("Edit Product");
             btnEdit.Click += (s, e) => Toast("Opening product edit form...");
@@ -496,6 +500,106 @@ namespace LendingApp.UI.AdminUI.Views
 
             body.Controls.Add(btnRow);
             return section;
+        }
+
+        private void ShowAddUserDialog()
+        {
+            try
+            {
+                string createdUsername = null;
+
+                using (var dlg = new AddUserDialog())
+                {
+                    dlg.UserCreated += (userData) =>
+                    {
+                        if (userData != null)
+                            createdUsername = userData.Username;
+                    };
+
+                    var result = dlg.ShowDialog(FindForm());
+                    if (result == DialogResult.OK)
+                    {
+                        // refresh overview grid and statistics (small, quick)
+                        LoadUsersOverview();
+
+                        if (!string.IsNullOrWhiteSpace(createdUsername))
+                        {
+                            Toast($"User '{createdUsername}' created.", false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Toast("Failed to add user: " + ex.Message, true);
+            }
+        }
+
+        private void ShowAddProductDialog()
+        {
+            try
+            {
+                using (var host = new Form())
+                {
+                    host.Text = "Add New Product";
+                    host.StartPosition = FormStartPosition.CenterParent;
+                    host.FormBorderStyle = FormBorderStyle.FixedDialog;
+                    host.MaximizeBox = false;
+                    host.MinimizeBox = false;
+                    host.ClientSize = new Size(920, 760);
+
+                    var addCtrl = new AddNewLoanProductControl();
+                    addCtrl.Dock = DockStyle.Fill;
+                    host.Controls.Add(addCtrl);
+
+                    // Try to locate the Save button inside the control and attach a handler that refreshes overview AFTER the control's own handler runs.
+                    var saveBtn = FindButtonByText(addCtrl, "Save Product");
+                    if (saveBtn != null)
+                    {
+                        // Attach after a short delay to ensure existing handlers are already wired (handler order matters).
+                        saveBtn.Click += (s, e) =>
+                        {
+                            // Slight delay to let the control complete its MessageBox / save logic.
+                            var t = new Timer { Interval = 300 };
+                            t.Tick += (ts, te) =>
+                            {
+                                t.Stop();
+                                t.Dispose();
+                                try
+                                {
+                                    LoadLoanProductsOverview();
+                                    Toast("Loan products refreshed.", false);
+                                }
+                                catch
+                                {
+                                    // swallow; toast already shows on errors
+                                }
+                            };
+                            t.Start();
+                        };
+                    }
+
+                    host.ShowDialog(FindForm());
+                }
+            }
+            catch (Exception ex)
+            {
+                Toast("Failed to open Add Product: " + ex.Message, true);
+            }
+        }
+
+        private static Button FindButtonByText(Control parent, string text)
+        {
+            if (parent == null) return null;
+            foreach (Control c in parent.Controls)
+            {
+                if (c is Button b && string.Equals(b.Text, text, StringComparison.OrdinalIgnoreCase))
+                    return b;
+
+                var childSearch = FindButtonByText(c, text);
+                if (childSearch != null) return childSearch;
+            }
+            return null;
         }
 
         private Panel CreateSystemConfigSection()
