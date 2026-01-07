@@ -55,6 +55,9 @@ namespace LendingApp.UI.AdminUI.Views
         private Label lblPagination;
         private Panel pnlUserDetails;
 
+        // Toggle Active button (moved to field so other methods can update it)
+        private Button btnToggleActive;
+
         // Main containers
         private Panel mainCard;
         private Panel searchFilterCard;
@@ -514,9 +517,10 @@ namespace LendingApp.UI.AdminUI.Views
             var btnResetPassword = CreateOutlineButton("🔑 Reset Password");
             btnResetPassword.Click += (s, e) => ResetPassword();
 
-            var btnDeactivate = CreateOutlineButton("👤 Toggle Active");
-            btnDeactivate.ForeColor = ColorTranslator.FromHtml("#EA580C");
-            btnDeactivate.Click += (s, e) => ShowMessage("Toggle Active not yet implemented.", true);
+            btnToggleActive = CreateOutlineButton("👤 Toggle Active");
+            btnToggleActive.ForeColor = ColorTranslator.FromHtml("#EA580C");
+            // Wire to toggle implementation
+            btnToggleActive.Click += (s, e) => ToggleActiveSelectedUser();
 
             var btnDelete = CreateOutlineButton("🗑 Delete");
             btnDelete.ForeColor = ColorTranslator.FromHtml("#DC2626");
@@ -525,7 +529,7 @@ namespace LendingApp.UI.AdminUI.Views
 
             actionButtonsPanel.Controls.Add(btnEdit);
             actionButtonsPanel.Controls.Add(btnResetPassword);
-            actionButtonsPanel.Controls.Add(btnDeactivate);
+            actionButtonsPanel.Controls.Add(btnToggleActive);
             actionButtonsPanel.Controls.Add(btnDelete);
 
             actionButtonsPanel.Layout += (s, e) =>
@@ -586,6 +590,66 @@ namespace LendingApp.UI.AdminUI.Views
             {
                 // Provide detailed error in a dialog (keeps behavior consistent with other DB error handling in the control)
                 MessageBox.Show(ex.ToString(), "Failed to delete user", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ToggleActiveSelectedUser()
+        {
+            if (selectedUser == null)
+            {
+                ShowMessage("Please select a user first.", true);
+                return;
+            }
+
+            // Determine desired new status
+            var currentlyActive = string.Equals(selectedUser.Status, "Active", StringComparison.OrdinalIgnoreCase);
+            var action = currentlyActive ? "deactivate" : "activate";
+
+            var confirm = MessageBox.Show(
+                $"Are you sure you want to {action} user '{selectedUser.Username}'?",
+                $"Confirm {action}",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes)
+                return;
+
+            try
+            {
+                bool newIsActive;
+                using (var db = new AppDbContext())
+                {
+                    var entity = db.Users.SingleOrDefault(u => u.UserId == selectedUser.UserId);
+                    if (entity == null)
+                    {
+                        ShowMessage("User not found in database. It may have been removed already.", true);
+                        LoadUsersFromDb();
+                        return;
+                    }
+
+                    // Toggle
+                    entity.IsActive = !entity.IsActive;
+                    newIsActive = entity.IsActive;
+
+                    db.SaveChanges();
+                }
+
+                // Update backing store & UI
+                var foundUser = allUsers.FirstOrDefault(x => x.UserId == selectedUser.UserId);
+                if (foundUser != null)
+                    foundUser.Status = newIsActive ? "Active" : "Inactive";
+
+                selectedUser.Status = newIsActive ? "Active" : "Inactive";
+
+                UpdateUserDetails();
+                UpdateUserList();
+                UpdateStatisticsCard();
+
+                ShowMessage($"User '{selectedUser.Username}' has been {(newIsActive ? "activated" : "deactivated")}.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Failed to update user status", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -879,6 +943,14 @@ namespace LendingApp.UI.AdminUI.Views
             AddDetailRow("Status:", selectedUser.Status, 7);
 
             pnlUserDetails.Controls.Add(detailsGrid);
+
+            // Update toggle button text/color to reflect current status
+            if (btnToggleActive != null)
+            {
+                var isActive = string.Equals(selectedUser.Status, "Active", StringComparison.OrdinalIgnoreCase);
+                btnToggleActive.Text = isActive ? "✗ Deactivate User" : "✓ Activate User";
+                btnToggleActive.ForeColor = isActive ? ColorTranslator.FromHtml("#DC2626") : ColorTranslator.FromHtml("#16A34A");
+            }
         }
 
         private void ResetPassword()

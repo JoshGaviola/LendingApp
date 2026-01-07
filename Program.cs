@@ -34,7 +34,7 @@ namespace LendingApp
             Application.SetCompatibleTextRenderingDefault(false);
        
             Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
-            // Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
+           // Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
             // Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
 
         }
