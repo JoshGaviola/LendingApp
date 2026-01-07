@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
 
 namespace LendingSystem.Admin
 {
@@ -168,7 +172,7 @@ namespace LendingSystem.Admin
             };
 
             // Add columns
-            DataGridViewTextBoxColumn idColumn = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", Width = 80 };
+            DataGridViewTextBoxColumn idColumn = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", Width = 120 };
             DataGridViewTextBoxColumn customerColumn = new DataGridViewTextBoxColumn { Name = "Customer", HeaderText = "Customer", Width = 200 };
             DataGridViewTextBoxColumn amountColumn = new DataGridViewTextBoxColumn { Name = "Amount", HeaderText = "Amount", Width = 150 };
             DataGridViewTextBoxColumn statusColumn = new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", Width = 150 };
@@ -186,7 +190,9 @@ namespace LendingSystem.Admin
             loansDataGrid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             loansDataGrid.EnableHeadersVisualStyles = false;
 
-            AddSampleLoanData();
+            // Try load from DB; fallback to sample rows if DB unavailable or empty
+            if (LoadLoanApplicationsFromDb() == 0)
+                AddSampleLoanData();
 
             loansDataGrid.CellClick += LoansDataGrid_CellClick;
             yPos += 210;
@@ -248,6 +254,71 @@ namespace LendingSystem.Admin
             loanOverridesTab.Controls.Add(mainContainer);
 
             loanOverridesTab.ResumeLayout(true);
+        }
+
+        private int LoadLoanApplicationsFromDb(string filter = null)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // Basic query: newest first
+                    var query = db.LoanApplications.AsNoTracking().OrderByDescending(a => a.ApplicationDate);
+
+                    var apps = query.ToList();
+
+                    // If a filter is provided, apply it in-memory to allow searching across customer name and numeric fields
+                    if (!string.IsNullOrWhiteSpace(filter))
+                    {
+                        var f = filter.Trim().ToLowerInvariant();
+
+                        // Preload customers used by the applications to avoid N+1
+                        var customerIds = apps.Where(a => !string.IsNullOrEmpty(a.CustomerId)).Select(a => a.CustomerId).Distinct().ToList();
+                        var customers = db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.CustomerId)).ToList();
+                        var custMap = customers.ToDictionary(c => c.CustomerId, c => ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(), StringComparer.OrdinalIgnoreCase);
+
+                        apps = apps.Where(a =>
+                        {
+                            var appNumber = (a.ApplicationNumber ?? "").ToLowerInvariant();
+                            if (appNumber.Contains(f)) return true;
+
+                            var amt = a.RequestedAmount.ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
+                            if (amt.Contains(f)) return true;
+
+                            var cid = a.CustomerId;
+                            if (!string.IsNullOrEmpty(cid) && custMap.TryGetValue(cid, out var nm) && nm.ToLowerInvariant().Contains(f)) return true;
+
+                            return false;
+                        }).ToList();
+                    }
+
+                    // Preload customers for display
+                    var custIds = apps.Where(a => !string.IsNullOrEmpty(a.CustomerId)).Select(a => a.CustomerId).Distinct().ToList();
+                    var custList = db.Customers.AsNoTracking().Where(c => custIds.Contains(c.CustomerId)).ToList();
+                    var customerLookup = custList.ToDictionary(c => c.CustomerId, c => ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(), StringComparer.OrdinalIgnoreCase);
+
+                    loansDataGrid.Rows.Clear();
+
+                    foreach (var app in apps)
+                    {
+                        string appNumber = !string.IsNullOrWhiteSpace(app.ApplicationNumber) ? app.ApplicationNumber : (app.ApplicationId.ToString());
+                        string customerName = "";
+                        if (!string.IsNullOrWhiteSpace(app.CustomerId) && customerLookup.TryGetValue(app.CustomerId, out var name))
+                            customerName = name;
+
+                        var amountText = app.RequestedAmount.ToString("C0", CultureInfo.GetCultureInfo("en-US"));
+
+                        loansDataGrid.Rows.Add(appNumber, customerName, amountText, app.Status ?? "");
+                    }
+
+                    return apps.Count;
+                }
+            }
+            catch
+            {
+                // Keep UI stable — caller will fallback to sample data
+                return 0;
+            }
         }
 
         private void InitializeSelectedLoanPanel()
@@ -599,7 +670,7 @@ namespace LendingSystem.Admin
             string status = row.Cells["Status"].Value.ToString();
 
             string loanType = "Personal Loan";
-            string term = "12 months";      
+            string term = "12 months";
             string officer = "John Smith";
 
             foreach (Control control in loanDetailsGroup.Controls)
@@ -616,25 +687,19 @@ namespace LendingSystem.Admin
 
         private void SearchButton_Click(object sender, EventArgs e)
         {
-            string searchTerm = searchTextBox.Text.ToLower();
-
-            if (searchTerm == "loan id or customer name")
+            var placeholder = "loan id or customer name";
+            var query = (searchTextBox?.Text ?? "").Trim();
+            if (string.Equals(query, placeholder, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(query))
             {
-                foreach (DataGridViewRow row in loansDataGrid.Rows)
-                {
-                    row.Visible = true;
-                }
+                // load all
+                if (LoadLoanApplicationsFromDb() == 0)
+                    AddSampleLoanData();
                 return;
             }
 
-            foreach (DataGridViewRow row in loansDataGrid.Rows)
-            {
-                bool visible = string.IsNullOrEmpty(searchTerm) ||
-                              row.Cells["ID"].Value.ToString().ToLower().Contains(searchTerm) ||
-                              row.Cells["Customer"].Value.ToString().ToLower().Contains(searchTerm);
-
-                row.Visible = visible;
-            }
+            // try DB-backed search
+            if (LoadLoanApplicationsFromDb(query) == 0)
+                AddSampleLoanData();
         }
 
         private void ExecuteButton_Click(object sender, EventArgs e)
