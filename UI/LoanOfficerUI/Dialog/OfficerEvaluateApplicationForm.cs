@@ -234,7 +234,6 @@ namespace LoanApplicationUI
             totalInterestLabel = CreateResultLabel("₱0.00");
             totalPayableLabel = CreateResultLabel("₱0.00");
             aprLabel = CreateResultLabel("0%");
-
             loanTermComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
@@ -1134,62 +1133,43 @@ namespace LoanApplicationUI
             return (from.Date <= fifteenth) ? fifteenth : baseDate.AddMonths(1).AddDays(14);
         }
 
-        private void CreateLoanRecordIfMissing(LoanApplicationEntity app)
+        private decimal GetEffectivePrincipal()
         {
-            var existing = _loanReleaseRepo.GetByApplicationId(app.ApplicationId);
-            if (existing != null) return;
+            // If checkbox says reduce, we compute using reduced amount immediately (best UX)
+            if (reduceAmountCheckBox != null && reduceAmountCheckBox.Checked) return ReducedAmountValue;
 
-            var principal = app.RequestedAmount;
-            var termMonths = app.PreferredTerm > 0 ? app.PreferredTerm : ParseSelectedTermMonths(loanTermComboBox);
+            decimal principal;
+            if (TryParseMoney(currentApplication != null ? currentApplication.Amount : null, out principal))
+                return principal;
 
-            var interestRatePct = (decimal)interestRateInput.Value;
-            var serviceFeePct = (decimal)serviceFeeInput.Value;
-            var method = MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString());
+            return 0m;
+        }
 
-            var calc = LoanComputationService.Calculate(principal, interestRatePct, termMonths, serviceFeePct, method);
+        private static bool TryParseMoney(string text, out decimal amount)
+        {
+            amount = 0m;
+            if (string.IsNullOrWhiteSpace(text)) return false;
 
-            var releaseDate = DateTime.Today;
-            var firstDue = GetNext15th(releaseDate);
-            var maturity = firstDue.AddMonths(termMonths);
+            var cleaned = text.Replace("₱", "").Replace(",", "").Trim();
+            return decimal.TryParse(
+                cleaned,
+                NumberStyles.Number | NumberStyles.AllowDecimalPoint,
+                CultureInfo.GetCultureInfo("en-US"),
+                out amount);
+        }
 
-            var loan = new LoanEntity
-            {
-                LoanNumber = GenerateLoanNumber(app.ApplicationNumber),
+        private static int ParseSelectedTermMonths(ComboBox cbo)
+        {
+            var t = (cbo != null ? (cbo.SelectedItem ?? "") : "").ToString();
+            if (string.IsNullOrWhiteSpace(t)) return 12;
 
-                ApplicationId = app.ApplicationId,
-                CustomerId = app.CustomerId,
-                ProductId = app.ProductId,
+            var cleaned = t.ToLowerInvariant()
+                .Replace("months", "")
+                .Replace("month", "")
+                .Trim();
 
-                PrincipalAmount = Math.Round(principal, 2, MidpointRounding.AwayFromZero),
-                InterestRate = Math.Round(interestRatePct, 2, MidpointRounding.AwayFromZero),
-                TermMonths = termMonths,
-                MonthlyPayment = calc.MonthlyPayment,
-
-                ProcessingFee = calc.ServiceFeeAmount,
-                TotalPayable = calc.TotalPayable,
-                OutstandingBalance = calc.TotalPayable,
-
-                TotalPaid = 0m,
-                TotalInterestPaid = 0m,
-                TotalPenaltyPaid = 0m,
-
-                Status = "Active",
-                DaysOverdue = 0,
-
-                ReleaseDate = releaseDate,
-                FirstDueDate = firstDue,
-                NextDueDate = firstDue,
-                MaturityDate = maturity,
-                LastPaymentDate = null,
-
-                ReleaseMode = null,
-                ReleasedBy = null,
-
-                CreatedDate = DateTime.Now,
-                LastUpdated = DateTime.Now
-            };
-
-            _loanReleaseRepo.Add(loan);
+            int months;
+            return int.TryParse(cleaned, out months) ? months : 12;
         }
     }
 }
