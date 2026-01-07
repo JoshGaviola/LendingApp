@@ -435,7 +435,8 @@ namespace LendingApp.UI.AdminUI.Views
             btnAdd.Click += (s, e) => ShowAddUserDialog();
 
             var btnDeactivate = ButtonOutline("Deactivate");
-            btnDeactivate.Click += (s, e) => Toast("User deactivation dialog...");
+            // implement deactivation for selected overview user
+            btnDeactivate.Click += (s, e) => ToggleActiveUserFromOverview();
 
             btnRow.Controls.Add(btnAdd);
             btnRow.Controls.Add(btnDeactivate);
@@ -447,6 +448,10 @@ namespace LendingApp.UI.AdminUI.Views
             _usersGrid.Columns.Add("Username", "Username");
             _usersGrid.Columns.Add("Role", "Role");
             _usersGrid.Columns.Add("Status", "Status");
+
+            // Allow user selection; keep visual feedback
+            _usersGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            _usersGrid.MultiSelect = false;
 
             body.Controls.Add(_usersGrid);
 
@@ -600,6 +605,71 @@ namespace LendingApp.UI.AdminUI.Views
                 if (childSearch != null) return childSearch;
             }
             return null;
+        }
+
+        // New: toggle active on user selected in the overview grid
+        private void ToggleActiveUserFromOverview()
+        {
+            if (_usersGrid == null)
+            {
+                Toast("Users grid not initialized.", true);
+                return;
+            }
+
+            if (_usersGrid.SelectedRows.Count == 0)
+            {
+                Toast("Please select a user in the overview list first.", true);
+                return;
+            }
+
+            var selectedRow = _usersGrid.SelectedRows[0];
+            var username = selectedRow.Cells["Username"].Value?.ToString();
+            var statusVal = selectedRow.Cells["Status"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                Toast("Selected row does not contain a valid username.", true);
+                return;
+            }
+
+            var currentlyActive = string.Equals(statusVal, "Active", StringComparison.OrdinalIgnoreCase);
+            var action = currentlyActive ? "deactivate" : "activate";
+
+            var confirm = MessageBox.Show(
+                $"Are you sure you want to {action} user '{username}'?",
+                $"Confirm {action}",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes)
+                return;
+
+            try
+            {
+                bool newIsActive;
+                using (var db = new AppDbContext())
+                {
+                    var entity = db.Users.SingleOrDefault(x => x.Username == username);
+                    if (entity == null)
+                    {
+                        Toast("User not found in database. It may have been removed.", true);
+                        LoadUsersOverview();
+                        return;
+                    }
+
+                    entity.IsActive = !entity.IsActive;
+                    newIsActive = entity.IsActive;
+                    db.SaveChanges();
+                }
+
+                // Refresh the small overview grid
+                LoadUsersOverview();
+
+                Toast($"User '{username}' has been {(newIsActive ? "activated" : "deactivated")}.", false);
+            }
+            catch (Exception ex)
+            {
+                Toast("Failed to update user status: " + ex.Message, true);
+            }
         }
 
         private Panel CreateSystemConfigSection()
