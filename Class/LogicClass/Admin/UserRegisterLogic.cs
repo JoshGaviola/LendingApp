@@ -28,6 +28,9 @@ namespace LendingApp.Class.LogicClass.Admin
                 return false;
             }
 
+            string passwordHash = Services.PasswordHashing.GeneratePassowordHash(user.Password);
+            user.hashedPassoword = passwordHash;
+
             try
             {
                 // Map UI role values to DB enum values
@@ -42,7 +45,7 @@ namespace LendingApp.Class.LogicClass.Admin
                     int rows = db.Database.ExecuteSqlCommand(
                         sql,
                         new MySqlParameter("@username", user.Username),
-                        new MySqlParameter("@password_hash", user.Password),
+                        new MySqlParameter("@password_hash", user.hashedPassoword),
                         new MySqlParameter("@email", user.Email ?? (object)DBNull.Value),
                         new MySqlParameter("@first_name", user.FirstName),
                         new MySqlParameter("@last_name", user.LastName),
@@ -50,6 +53,7 @@ namespace LendingApp.Class.LogicClass.Admin
                         new MySqlParameter("@is_active", user.IsActive ? 1 : 0),
                         new MySqlParameter("@created_date", DateTime.Now)
                     );
+
 
                     return rows > 0;
                 }

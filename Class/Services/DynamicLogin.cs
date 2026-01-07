@@ -10,6 +10,7 @@ using LendingApp.Class.Services;
 
 namespace LendingApp.Class.Services
 {
+
     public class DynamicLogin : ILogin
     {
         public User Authenticate(string username, string password, string role)
@@ -24,26 +25,36 @@ namespace LendingApp.Class.Services
             {
                 using (var db = new AppDbContext())
                 {
-                    string sql = @"SELECT * FROM users 
+                    string sql = @"SELECT 
+                        username as UserName,
+                        password_hash as PasswordHash,
+                        role as Role,
+                        is_active as IsActive
+                    FROM users 
                     WHERE BINARY username = @username
-                      AND BINARY password_hash = @password_hash
                       AND role = @role
                       AND is_active = 1";
 
                     var acc = db.Database.SqlQuery<User>(
                        sql,
                        new MySql.Data.MySqlClient.MySqlParameter("@username", username),
-                       new MySql.Data.MySqlClient.MySqlParameter("@password_hash", password),
                        new MySql.Data.MySqlClient.MySqlParameter("@role", role))
                        .FirstOrDefault();
 
-                    // Persist current user for other UI components to reference
-                    if (acc != null)
-                    {
-                        DataGetter.SetCurrentUser(acc);
-                    }
 
-                    return acc;
+                    bool isPasswordValid = acc != null
+                      && !string.IsNullOrEmpty(password)
+                      && !string.IsNullOrEmpty(acc.PasswordHash)
+                      && PasswordHashing.VerifyPassword(password, acc.PasswordHash); ;
+
+                    if (isPasswordValid)
+                    {
+                        return acc;
+                    }
+                    else
+                    {
+                        return null;
+                    }
 
                 }
             }

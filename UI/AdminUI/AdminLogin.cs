@@ -288,7 +288,7 @@ namespace LendingApp.UI.AdminUI
             }
             else
             {
-                MessageBox.Show("Invalid credentials or inactive account.", "Login Failed",
+                MessageBox.Show("Invalid credentials or yawaaccount.", "Login Failed",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
