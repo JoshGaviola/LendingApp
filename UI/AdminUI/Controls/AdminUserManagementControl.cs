@@ -825,7 +825,7 @@ namespace LendingApp.UI.AdminUI.Views
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9),
                 ForeColor = ColorTranslator.FromHtml("#374151"),
-                Location = new Point(0, lblRoles.Bottom + 16),
+                Location = new Point(0, lblRoles.Bottom + 23),
                 Text =
                     $"Active: {activeCount}\n" +
                     $"Inactive: {inactiveCount}"
