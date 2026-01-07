@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
 
 namespace LendingSystem.Admin
 {
@@ -50,7 +54,7 @@ namespace LendingSystem.Admin
             this.Dock = DockStyle.Fill;
             this.Padding = new Padding(10);
 
-            // Main tab control
+            // Main tab control (only Loan Overrides + Audit Log now)
             tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
@@ -59,21 +63,15 @@ namespace LendingSystem.Admin
                 Padding = new Point(12, 8)
             };
 
-            // Create all 4 tabs
+            // Create tabs: Loan Overrides and Audit Log
             loanOverridesTab = new TabPage("Loan Overrides");
-            TabPage userActionsTab = new TabPage("User Actions");
-            TabPage systemOverridesTab = new TabPage("System Overrides");
             TabPage auditLogTab = new TabPage("Audit Log");
 
-            // Initialize tabs with actual controls (not placeholders)
+            // Initialize tabs with actual controls (User Actions and System Overrides removed)
             InitializeLoanOverridesTab();
-            InitializeUserActionsTab(userActionsTab);  // This will now add UserActionsControl
-            InitializeSystemOverridesTab(systemOverridesTab);
             InitializeAuditLogTab(auditLogTab);
 
             tabControl.TabPages.Add(loanOverridesTab);
-            tabControl.TabPages.Add(userActionsTab);
-            tabControl.TabPages.Add(systemOverridesTab);
             tabControl.TabPages.Add(auditLogTab);
 
             this.Controls.Add(tabControl);
@@ -173,43 +171,12 @@ namespace LendingSystem.Admin
                 GridColor = Color.FromArgb(229, 231, 235)
             };
 
-            // Add columns with better styling
-            DataGridViewTextBoxColumn idColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "ID",
-                HeaderText = "ID",
-                Width = 80
-            };
-
-            DataGridViewTextBoxColumn customerColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "Customer",
-                HeaderText = "Customer",
-                Width = 200
-            };
-
-            DataGridViewTextBoxColumn amountColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "Amount",
-                HeaderText = "Amount",
-                Width = 150
-            };
-
-            DataGridViewTextBoxColumn statusColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "Status",
-                HeaderText = "Status",
-                Width = 150
-            };
-
-            DataGridViewButtonColumn actionColumn = new DataGridViewButtonColumn
-            {
-                Name = "Actions",
-                HeaderText = "Actions",
-                Text = "Select",
-                UseColumnTextForButtonValue = true,
-                Width = 100
-            };
+            // Add columns
+            DataGridViewTextBoxColumn idColumn = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", Width = 120 };
+            DataGridViewTextBoxColumn customerColumn = new DataGridViewTextBoxColumn { Name = "Customer", HeaderText = "Customer", Width = 200 };
+            DataGridViewTextBoxColumn amountColumn = new DataGridViewTextBoxColumn { Name = "Amount", HeaderText = "Amount", Width = 150 };
+            DataGridViewTextBoxColumn statusColumn = new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Status", Width = 150 };
+            DataGridViewButtonColumn actionColumn = new DataGridViewButtonColumn { Name = "Actions", HeaderText = "Actions", Text = "Select", UseColumnTextForButtonValue = true, Width = 100 };
 
             loansDataGrid.Columns.Add(idColumn);
             loansDataGrid.Columns.Add(customerColumn);
@@ -217,20 +184,20 @@ namespace LendingSystem.Admin
             loansDataGrid.Columns.Add(statusColumn);
             loansDataGrid.Columns.Add(actionColumn);
 
-            // Style the grid
             loansDataGrid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(243, 244, 246);
             loansDataGrid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             loansDataGrid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
             loansDataGrid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             loansDataGrid.EnableHeadersVisualStyles = false;
 
-            // Sample data
-            AddSampleLoanData();
+            // Try load from DB; fallback to sample rows if DB unavailable or empty
+            if (LoadLoanApplicationsFromDb() == 0)
+                AddSampleLoanData();
 
             loansDataGrid.CellClick += LoansDataGrid_CellClick;
             yPos += 210;
 
-            // "No loan selected" message (initially visible)
+            // "No loan selected" message
             noLoanPanel = new Panel
             {
                 Location = new Point(0, yPos),
@@ -252,15 +219,15 @@ namespace LendingSystem.Admin
 
             noLoanPanel.Controls.Add(noLoanLabel);
 
-            // Selected Loan Panel (initially hidden) - INCREASED HEIGHT HERE
+            // Selected Loan Panel (initially hidden)
             selectedLoanPanel = new Panel
             {
                 Location = new Point(0, yPos),
-                Size = new Size(mainContainer.Width - 20, 550), // Increased from 450 to 550
+                Size = new Size(mainContainer.Width - 20, 550),
                 BackColor = Color.FromArgb(255, 250, 240),
                 BorderStyle = BorderStyle.FixedSingle,
                 Visible = false,
-                AutoScroll = true // Enable scrolling
+                AutoScroll = true
             };
 
             // Handle resize
@@ -288,6 +255,72 @@ namespace LendingSystem.Admin
 
             loanOverridesTab.ResumeLayout(true);
         }
+
+        private int LoadLoanApplicationsFromDb(string filter = null)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // Basic query: newest first
+                    var query = db.LoanApplications.AsNoTracking().OrderByDescending(a => a.ApplicationDate);
+
+                    var apps = query.ToList();
+
+                    // If a filter is provided, apply it in-memory to allow searching across customer name and numeric fields
+                    if (!string.IsNullOrWhiteSpace(filter))
+                    {
+                        var f = filter.Trim().ToLowerInvariant();
+
+                        // Preload customers used by the applications to avoid N+1
+                        var customerIds = apps.Where(a => !string.IsNullOrEmpty(a.CustomerId)).Select(a => a.CustomerId).Distinct().ToList();
+                        var customers = db.Customers.AsNoTracking().Where(c => customerIds.Contains(c.CustomerId)).ToList();
+                        var custMap = customers.ToDictionary(c => c.CustomerId, c => ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(), StringComparer.OrdinalIgnoreCase);
+
+                        apps = apps.Where(a =>
+                        {
+                            var appNumber = (a.ApplicationNumber ?? "").ToLowerInvariant();
+                            if (appNumber.Contains(f)) return true;
+
+                            var amt = a.RequestedAmount.ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
+                            if (amt.Contains(f)) return true;
+
+                            var cid = a.CustomerId;
+                            if (!string.IsNullOrEmpty(cid) && custMap.TryGetValue(cid, out var nm) && nm.ToLowerInvariant().Contains(f)) return true;
+
+                            return false;
+                        }).ToList();
+                    }
+
+                    // Preload customers for display
+                    var custIds = apps.Where(a => !string.IsNullOrEmpty(a.CustomerId)).Select(a => a.CustomerId).Distinct().ToList();
+                    var custList = db.Customers.AsNoTracking().Where(c => custIds.Contains(c.CustomerId)).ToList();
+                    var customerLookup = custList.ToDictionary(c => c.CustomerId, c => ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(), StringComparer.OrdinalIgnoreCase);
+
+                    loansDataGrid.Rows.Clear();
+
+                    foreach (var app in apps)
+                    {
+                        string appNumber = !string.IsNullOrWhiteSpace(app.ApplicationNumber) ? app.ApplicationNumber : (app.ApplicationId.ToString());
+                        string customerName = "";
+                        if (!string.IsNullOrWhiteSpace(app.CustomerId) && customerLookup.TryGetValue(app.CustomerId, out var name))
+                            customerName = name;
+
+                        var amountText = app.RequestedAmount.ToString("C0", CultureInfo.GetCultureInfo("en-US"));
+
+                        loansDataGrid.Rows.Add(appNumber, customerName, amountText, app.Status ?? "");
+                    }
+
+                    return apps.Count;
+                }
+            }
+            catch
+            {
+                // Keep UI stable — caller will fallback to sample data
+                return 0;
+            }
+        }
+
         private void InitializeSelectedLoanPanel()
         {
             if (selectedLoanPanel == null) return;
@@ -298,7 +331,7 @@ namespace LendingSystem.Admin
             selectedLoanPanel.Controls.Clear();
 
             int padding = 20;
-            int groupWidth = Math.Max(300, selectedLoanPanel.Width - (padding * 2)); // Ensure minimum width
+            int groupWidth = Math.Max(300, selectedLoanPanel.Width - (padding * 2));
             int yPos = padding;
 
             // Header
@@ -319,27 +352,25 @@ namespace LendingSystem.Admin
             {
                 Text = "Loan Information",
                 Location = new Point(padding, yPos),
-                Size = new Size(groupWidth, 80), // Reduced height from 90 to 80
+                Size = new Size(groupWidth, 80),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 ForeColor = Color.FromArgb(70, 70, 70),
                 BackColor = Color.White
             };
 
-            // REMOVED "Reason: \"Insufficient income\"" from the text
             Label loanInfoLabel = new Label
             {
                 Text = "Loan ID: 101 | Juan Dela Cruz\nType: Personal Loan | ₱50,000 | 12 months\nStatus: Rejected (by Officer: John Smith)",
                 Location = new Point(10, 20),
-                Size = new Size(groupWidth - 20, 50), // Reduced height from 60 to 50
+                Size = new Size(groupWidth - 20, 50),
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Color.FromArgb(55, 65, 81)
             };
 
             loanDetailsGroup.Controls.Add(loanInfoLabel);
             selectedLoanPanel.Controls.Add(loanDetailsGroup);
-            yPos += 90; // Reduced from 100 to 90
+            yPos += 90;
 
-            // ... rest of the code remains the same ...
             // Override Actions Group
             overrideActionsGroup = new GroupBox
             {
@@ -368,7 +399,6 @@ namespace LendingSystem.Admin
                 Font = new Font("Segoe UI", 9)
             };
 
-            // Container for interest rate option
             Panel interestContainer = new Panel
             {
                 Location = new Point(10, 75),
@@ -519,9 +549,9 @@ namespace LendingSystem.Admin
             executeButton = new Button
             {
                 Text = "Execute Override",
-                Location = new Point(padding, yPos + 20), // Add extra space before buttons
+                Location = new Point(padding, yPos + 20),
                 Size = new Size(130, 35),
-                BackColor = Color.FromArgb(220, 38, 38), // Red color for important action
+                BackColor = Color.FromArgb(220, 38, 38),
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 FlatStyle = FlatStyle.Flat
@@ -532,7 +562,7 @@ namespace LendingSystem.Admin
             cancelButton = new Button
             {
                 Text = "Cancel",
-                Location = new Point(padding + 140, yPos + 20), // Add extra space before buttons
+                Location = new Point(padding + 140, yPos + 20),
                 Size = new Size(130, 35),
                 BackColor = Color.FromArgb(229, 231, 235),
                 ForeColor = Color.FromArgb(55, 65, 81),
@@ -546,7 +576,7 @@ namespace LendingSystem.Admin
             selectedLoanPanel.Controls.Add(cancelButton);
 
             // Calculate total height needed and adjust panel if needed
-            int totalHeightNeeded = yPos + 100; // Add space for buttons and padding
+            int totalHeightNeeded = yPos + 100;
             if (totalHeightNeeded > selectedLoanPanel.Height)
             {
                 // Enable vertical scrollbar since content is taller than panel
@@ -580,34 +610,11 @@ namespace LendingSystem.Admin
             };
         }
 
-        private void InitializeUserActionsTab(TabPage tab)
-        {
-            tab.BackColor = Color.White;
-            tab.Padding = new Padding(10);
-
-            // Create and add the UserActionsControl
-            var userActionsControl = new UserActionsControl();
-            userActionsControl.Dock = DockStyle.Fill;
-            tab.Controls.Add(userActionsControl);
-        }
-
-        private void InitializeSystemOverridesTab(TabPage tab)
-        {
-            tab.BackColor = Color.White;
-            tab.Padding = new Padding(10);
-
-            // Add the SystemOverridesControl
-            var systemOverridesControl = new SystemOverridesControl();
-            systemOverridesControl.Dock = DockStyle.Fill;
-            tab.Controls.Add(systemOverridesControl);
-        }
-
         private void InitializeAuditLogTab(TabPage tab)
         {
             tab.BackColor = Color.White;
             tab.Padding = new Padding(10);
 
-            // Add the AuditLogControl (replacing the placeholder)
             var auditLogControl = new AuditLogControl();
             auditLogControl.Dock = DockStyle.Fill;
             tab.Controls.Add(auditLogControl);
@@ -615,32 +622,29 @@ namespace LendingSystem.Admin
 
         private void AddSampleLoanData()
         {
-            // Clear existing rows
             loansDataGrid.Rows.Clear();
 
-            // Add sample rows
             loansDataGrid.Rows.Add("101", "Juan Dela Cruz", "₱50,000", "❌ Rejected");
             loansDataGrid.Rows.Add("205", "Maria Santos", "₱120,000", "⏳ Pending");
             loansDataGrid.Rows.Add("312", "Pedro Reyes", "₱80,000", "✅ Approved");
             loansDataGrid.Rows.Add("418", "Anna Lim", "₱200,000", "✅ Approved");
             loansDataGrid.Rows.Add("529", "Robert Tan", "₱75,000", "❌ Rejected");
 
-            // Style rows
             foreach (DataGridViewRow row in loansDataGrid.Rows)
             {
                 if (row.Cells["Status"].Value.ToString().Contains("❌"))
                 {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(254, 242, 242); // Light red
+                    row.DefaultCellStyle.BackColor = Color.FromArgb(254, 242, 242);
                     row.DefaultCellStyle.ForeColor = Color.FromArgb(185, 28, 28);
                 }
                 else if (row.Cells["Status"].Value.ToString().Contains("⏳"))
                 {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(254, 252, 232); // Light yellow
+                    row.DefaultCellStyle.BackColor = Color.FromArgb(254, 252, 232);
                     row.DefaultCellStyle.ForeColor = Color.FromArgb(161, 98, 7);
                 }
                 else if (row.Cells["Status"].Value.ToString().Contains("✅"))
                 {
-                    row.DefaultCellStyle.BackColor = Color.FromArgb(240, 253, 244); // Light green
+                    row.DefaultCellStyle.BackColor = Color.FromArgb(240, 253, 244);
                     row.DefaultCellStyle.ForeColor = Color.FromArgb(21, 128, 61);
                 }
             }
@@ -648,13 +652,11 @@ namespace LendingSystem.Admin
 
         private void LoansDataGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            // Check if the click is on the button column and not header
             if (e.RowIndex >= 0 && e.ColumnIndex == loansDataGrid.Columns["Actions"].Index)
             {
                 selectedLoanPanel.Visible = true;
                 noLoanPanel.Visible = false;
 
-                // Update loan details based on selected row
                 DataGridViewRow row = loansDataGrid.Rows[e.RowIndex];
                 UpdateLoanDetails(row);
             }
@@ -662,23 +664,19 @@ namespace LendingSystem.Admin
 
         private void UpdateLoanDetails(DataGridViewRow row)
         {
-            // Update the loan details group with actual data from the row
             string loanId = row.Cells["ID"].Value.ToString();
             string customer = row.Cells["Customer"].Value.ToString();
             string amount = row.Cells["Amount"].Value.ToString();
             string status = row.Cells["Status"].Value.ToString();
 
-            // In a real app, you'd fetch more details from database
             string loanType = "Personal Loan";
             string term = "12 months";
             string officer = "John Smith";
 
-            // Find and update the label in loanDetailsGroup
             foreach (Control control in loanDetailsGroup.Controls)
             {
                 if (control is Label label)
                 {
-                    // REMOVED the Reason line
                     label.Text = $"Loan ID: {loanId} | {customer}\n" +
                                  $"Type: {loanType} | {amount} | {term}\n" +
                                  $"Status: {status} (by Officer: {officer})";
@@ -689,32 +687,23 @@ namespace LendingSystem.Admin
 
         private void SearchButton_Click(object sender, EventArgs e)
         {
-            string searchTerm = searchTextBox.Text.ToLower();
-
-            // Skip if it's placeholder text
-            if (searchTerm == "loan id or customer name")
+            var placeholder = "loan id or customer name";
+            var query = (searchTextBox?.Text ?? "").Trim();
+            if (string.Equals(query, placeholder, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(query))
             {
-                // Show all rows
-                foreach (DataGridViewRow row in loansDataGrid.Rows)
-                {
-                    row.Visible = true;
-                }
+                // load all
+                if (LoadLoanApplicationsFromDb() == 0)
+                    AddSampleLoanData();
                 return;
             }
 
-            foreach (DataGridViewRow row in loansDataGrid.Rows)
-            {
-                bool visible = string.IsNullOrEmpty(searchTerm) ||
-                              row.Cells["ID"].Value.ToString().ToLower().Contains(searchTerm) ||
-                              row.Cells["Customer"].Value.ToString().ToLower().Contains(searchTerm);
-
-                row.Visible = visible;
-            }
+            // try DB-backed search
+            if (LoadLoanApplicationsFromDb(query) == 0)
+                AddSampleLoanData();
         }
 
         private void ExecuteButton_Click(object sender, EventArgs e)
         {
-            // Validate inputs - check if it's placeholder text
             string reason = reasonTextBox.Text;
             if (string.IsNullOrWhiteSpace(reason) || reason == "Enter detailed reason for override...")
             {
@@ -731,7 +720,6 @@ namespace LendingSystem.Admin
                 return;
             }
 
-            // Validate interest rate if that option is selected
             if (interestRadio.Checked)
             {
                 if (!decimal.TryParse(interestTextBox.Text, out decimal interestRate) || interestRate < 0)
@@ -750,38 +738,32 @@ namespace LendingSystem.Admin
 
             if (result == DialogResult.Yes)
             {
-                // Determine which action was selected
                 string selectedAction = "Approve Loan";
                 if (modifyRadio.Checked) selectedAction = "Modify Terms";
                 else if (interestRadio.Checked) selectedAction = $"Change Interest Rate to {interestTextBox.Text}%";
                 else if (waiveRadio.Checked) selectedAction = "Waive Penalties/Fees";
 
-                // Log the override (in real implementation, save to database)
                 LogOverrideAction(selectedAction);
 
                 MessageBox.Show("Override executed successfully!", "Success",
                               MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Reset form
                 ResetForm();
             }
         }
 
         private void LogOverrideAction(string action)
         {
-            // In a real implementation, this would save to a database
             Console.WriteLine($"Override logged: {action}");
             Console.WriteLine($"Reason: {reasonTextBox.Text}");
             Console.WriteLine($"Performed by Admin at: {DateTime.Now}");
 
-            // You could also show a notification in the UI
             MessageBox.Show("Override has been logged in the audit trail.", "Audit Logged",
                           MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void ResetForm()
         {
-            // Reset textboxes to placeholder state
             reasonTextBox.ForeColor = Color.Gray;
             reasonTextBox.Text = "Enter detailed reason for override...";
 
@@ -792,11 +774,9 @@ namespace LendingSystem.Admin
             interestTextBox.Enabled = false;
             approveRadio.Checked = true;
 
-            // Hide selected loan panel
             selectedLoanPanel.Visible = false;
             noLoanPanel.Visible = true;
 
-            // Clear selection in grid
             loansDataGrid.ClearSelection();
         }
 

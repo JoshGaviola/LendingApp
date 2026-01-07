@@ -54,6 +54,50 @@ namespace LendingApp.Class.Services.Admin
             }
         }
 
+        public void UpdateLoanProduct(int productId, LoanProductCreateRequest req)
+        {
+            Validate(req);
+
+            using (var db = new AppDbContext())
+            {
+                var entity = db.LoanProducts.SingleOrDefault(x => x.ProductId == productId);
+                if (entity == null)
+                    throw new ValidationException("Loan product not found.");
+
+                // Allow keeping same name, but prevent collision with other products
+                var existsOther = db.LoanProducts.AsNoTracking()
+                    .Any(p =>
+                        p.ProductId != productId &&
+                        p.ProductName != null &&
+                        p.ProductName.Equals(req.ProductName, StringComparison.OrdinalIgnoreCase));
+
+                if (existsOther)
+                    throw new ValidationException("A loan product with the same name already exists.");
+
+                entity.ProductName = req.ProductName;
+                entity.Description = req.Description;
+
+                entity.MinAmount = req.MinAmount;
+                entity.MaxAmount = req.MaxAmount;
+
+                entity.MinTermMonths = req.SelectedTerms.Min();
+                entity.MaxTermMonths = req.SelectedTerms.Max();
+
+                entity.InterestRate = req.InterestRate;
+                entity.ProcessingFeePct = req.ServiceFeePct;
+
+                entity.PenaltyRate = req.PenaltyRatePct;
+                entity.GracePeriodDays = req.GracePeriodDays;
+
+                entity.IsActive = req.IsActive;
+
+                db.SaveChanges();
+
+                // Update extended tables/columns as well
+                SaveExtended(productId, req);
+            }
+        }
+
         private static void Validate(LoanProductCreateRequest req)
         {
             if (req == null) throw new ValidationException("Invalid request.");

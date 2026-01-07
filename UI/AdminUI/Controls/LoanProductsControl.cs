@@ -13,7 +13,6 @@ namespace LendingApp.UI.AdminUI
         private DataGridView dgvLoanProducts;
         private TextBox txtSearch;
         private Button btnAddNew;
-        private Button btnConfigureRules;
         private Button btnLoanTypes;
         private Button btnLoanProducts;
         private Button btnEditSelected;
@@ -25,14 +24,13 @@ namespace LendingApp.UI.AdminUI
         private bool isSelectedProductActive = false;
 
         // Track current view
-        private enum ViewMode { LoanTypesList, AddNewProduct, ConfigureRules }
+        private enum ViewMode { LoanTypesList, AddNewProduct }
         private ViewMode currentView = ViewMode.LoanTypesList;
 
         // Panels for different views
         private Panel mainPanel;
         private Panel loanTypesListPanel;
         private AddNewLoanProductControl addNewProductControl;
-        private ConfigureLoanRulesControl configureRulesControl;
 
         // Track if tab buttons have been initialized
         private bool tabButtonsInitialized = false;
@@ -59,7 +57,6 @@ namespace LendingApp.UI.AdminUI
             // Initialize all views
             InitializeLoanTypesListView();
             InitializeAddNewProductView();
-            InitializeConfigureRulesView();
 
             // Show default view
             ShowView(currentView);
@@ -143,8 +140,8 @@ namespace LendingApp.UI.AdminUI
             // Container for right-aligned buttons
             var topActionPanel = new Panel
             {
-                Location = new Point(loanTypesListPanel.Width - 330, yPos - 50), // Align with sub-nav
-                Size = new Size(320, 35)
+                Location = new Point(loanTypesListPanel.Width - 170, yPos - 50), // Align with sub-nav (adjusted width)
+                Size = new Size(160, 35)
             };
 
             // Add New Product button
@@ -165,26 +162,6 @@ namespace LendingApp.UI.AdminUI
                 ShowView(ViewMode.AddNewProduct);
             };
             topActionPanel.Controls.Add(btnAddNew);
-
-            // Configure Rules button
-            btnConfigureRules = new Button
-            {
-                Text = "⚙ Configure Rules",
-                Size = new Size(150, 35),
-                Location = new Point(160, 0),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.White,
-                ForeColor = Color.FromArgb(0, 120, 215),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand
-            };
-            btnConfigureRules.FlatAppearance.BorderColor = Color.FromArgb(0, 120, 215);
-            btnConfigureRules.FlatAppearance.BorderSize = 1;
-            btnConfigureRules.Click += (s, e) =>
-            {
-                ShowView(ViewMode.ConfigureRules);
-            };
-            topActionPanel.Controls.Add(btnConfigureRules);
 
             loanTypesListPanel.Controls.Add(topActionPanel);
 
@@ -239,10 +216,34 @@ namespace LendingApp.UI.AdminUI
             btnEditSelected.FlatAppearance.BorderSize = 1;
             btnEditSelected.Click += (s, e) =>
             {
-                if (!string.IsNullOrEmpty(selectedProductId))
+                if (string.IsNullOrWhiteSpace(selectedProductId))
+                    return;
+
+                int pid;
+                if (!int.TryParse(selectedProductId, NumberStyles.Integer, CultureInfo.InvariantCulture, out pid))
                 {
-                    MessageBox.Show($"Edit loan product ID: {selectedProductId}", "Edit Product",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Invalid product id.", "Edit Product", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Ensure control exists
+                if (addNewProductControl == null)
+                    InitializeAddNewProductView();
+
+                try
+                {
+                    // Switch to AddNewProduct view and load selected product into edit mode
+                    ShowView(ViewMode.AddNewProduct);
+
+                    addNewProductControl.LoadProductForEdit(pid);
+
+                    // Refresh list when save completes, then go back to list
+                    addNewProductControl.ProductSaved -= OnProductSavedFromEditor;
+                    addNewProductControl.ProductSaved += OnProductSavedFromEditor;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to load product for edit", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             };
             actionButtonsPanel.Controls.Add(btnEditSelected);
@@ -503,13 +504,6 @@ namespace LendingApp.UI.AdminUI
             addNewProductControl.Visible = false;
         }
 
-        private void InitializeConfigureRulesView()
-        {
-            configureRulesControl = new ConfigureLoanRulesControl();
-            configureRulesControl.Dock = DockStyle.Fill;
-            configureRulesControl.Visible = false;
-        }
-
         private void ShowView(ViewMode viewMode)
         {
             currentView = viewMode;
@@ -529,8 +523,6 @@ namespace LendingApp.UI.AdminUI
                 mainPanel.Controls.Add(loanTypesListPanel);
                 if (addNewProductControl != null)
                     addNewProductControl.Visible = false;
-                if (configureRulesControl != null)
-                    configureRulesControl.Visible = false;
             }
             else if (viewMode == ViewMode.AddNewProduct)
             {
@@ -539,18 +531,6 @@ namespace LendingApp.UI.AdminUI
 
                 mainPanel.Controls.Add(addNewProductControl);
                 addNewProductControl.Visible = true;
-                if (configureRulesControl != null)
-                    configureRulesControl.Visible = false;
-            }
-            else if (viewMode == ViewMode.ConfigureRules)
-            {
-                if (configureRulesControl == null)
-                    InitializeConfigureRulesView();
-
-                mainPanel.Controls.Add(configureRulesControl);
-                configureRulesControl.Visible = true;
-                if (addNewProductControl != null)
-                    addNewProductControl.Visible = false;
             }
         }
 
@@ -581,7 +561,7 @@ namespace LendingApp.UI.AdminUI
                 btnLoanTypes.FlatAppearance.BorderSize = 0;
                 btnLoanTypes.Font = new Font("Segoe UI", 9, FontStyle.Bold);
             }
-            // Note: AddNewProduct and ConfigureRules don't have tab buttons
+            // Note: AddNewProduct does not have tab button
         }
 
         private void AddSampleData()
@@ -688,6 +668,34 @@ namespace LendingApp.UI.AdminUI
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "Search failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void OnProductSavedFromEditor(int productId)
+        {
+            // Go back to list and refresh grid
+            ShowView(ViewMode.LoanTypesList);
+            LoadLoanProductsFromDb();
+
+            // Optionally reselect edited product
+            SelectProductRow(productId);
+        }
+
+        private void SelectProductRow(int productId)
+        {
+            if (dgvLoanProducts == null) return;
+
+            var idText = productId.ToString(CultureInfo.InvariantCulture);
+
+            foreach (DataGridViewRow row in dgvLoanProducts.Rows)
+            {
+                if (row.Cells["ID"].Value != null && string.Equals(row.Cells["ID"].Value.ToString(), idText, StringComparison.OrdinalIgnoreCase))
+                {
+                    dgvLoanProducts.ClearSelection();
+                    row.Selected = true;
+                    dgvLoanProducts.CurrentCell = row.Cells[0];
+                    break;
+                }
             }
         }
     }

@@ -14,6 +14,12 @@ namespace LendingApp.UI.AdminUI
 {
     public partial class AddNewLoanProductControl : UserControl
     {
+        // NEW: edit mode state
+        private int? _editingProductId;
+
+        // NEW: notify parent to refresh grid
+        public event Action<int> ProductSaved;
+
         // Form fields
         private TextBox txtLoanTypeName;
         private TextBox txtDescription;
@@ -50,6 +56,8 @@ namespace LendingApp.UI.AdminUI
             InitializeControl();
         }
 
+        // Build the dynamic UI (same structure as previous implementation).
+        // Kept self-contained so the control works when instantiated by LoanProductsControl.
         private void InitializeControl()
         {
             // Control settings
@@ -72,7 +80,7 @@ namespace LendingApp.UI.AdminUI
             {
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                Width = mainPanel.Width - 40 // Account for padding
+                Width = Math.Max(820, mainPanel.Width - 40) // Account for padding and avoid zero width on startup
             };
 
             int yPos = 10;
@@ -95,7 +103,7 @@ namespace LendingApp.UI.AdminUI
                 ForeColor = Color.DarkGreen
             };
 
-            // Plus icon (using text symbol) - now declared at class level
+            // Plus / edit icon (class-level so LoadProductForEdit can update it)
             lblPlusIcon = new Label
             {
                 Text = "+",
@@ -145,7 +153,7 @@ namespace LendingApp.UI.AdminUI
             {
                 Location = new Point(120, 12),
                 Size = new Size(300, 25),
-                Text = "Enter loan type name"
+                Text = ""
             };
             panel1.Controls.Add(txtLoanTypeName);
 
@@ -162,7 +170,7 @@ namespace LendingApp.UI.AdminUI
             {
                 Location = new Point(530, 12),
                 Size = new Size(250, 25),
-                Text = "Enter description"
+                Text = ""
             };
             panel1.Controls.Add(txtDescription);
 
@@ -252,7 +260,7 @@ namespace LendingApp.UI.AdminUI
             // Service Fee
             var lblServiceFee = new Label
             {
-                Text = "Service Fee:",
+                Text = "Service Fee (%):",
                 Location = new Point(10, 85),
                 AutoSize = true
             };
@@ -417,7 +425,7 @@ namespace LendingApp.UI.AdminUI
             {
                 Location = new Point(610, 17),
                 Size = new Size(170, 25),
-                Text = "Specify other documents",
+                Text = "",
                 Enabled = false
             };
             chkOthers.CheckedChanged += (s, e) => { txtOthersDescription.Enabled = chkOthers.Checked; };
@@ -478,7 +486,7 @@ namespace LendingApp.UI.AdminUI
             txtGracePeriod = new TextBox { Location = new Point(150, 17), Size = new Size(100, 25), Text = "0" };
 
             // Late Payment Penalty
-            var lblLatePenalty = new Label { Text = "Late Payment Penalty:", Location = new Point(10, 60), AutoSize = true };
+            var lblLatePenalty = new Label { Text = "Late Payment Penalty (%):", Location = new Point(10, 60), AutoSize = true };
             txtLatePenalty = new TextBox { Location = new Point(150, 57), Size = new Size(80, 25), Text = "0.00" };
 
             var lblPer = new Label { Text = "% per", Location = new Point(240, 60), AutoSize = true };
@@ -569,24 +577,18 @@ namespace LendingApp.UI.AdminUI
             // Update content panel height based on final yPos
             contentPanel.Height = yPos + 80;
 
-            // Handle resize
+            // Handle resize to adjust widths and icon position
             this.Resize += (s, e) =>
             {
-                // Update the width of all panels when the form resizes
                 int newWidth = Math.Max(820, mainPanel.Width - 40);
                 contentPanel.Width = newWidth;
 
-                // Update all panel widths
-                if (headerPanel != null) headerPanel.Width = newWidth - 20;
-                if (panel1 != null) panel1.Width = newWidth - 40;
-                if (panel2 != null) panel2.Width = newWidth - 40;
-                if (panel3 != null) panel3.Width = newWidth - 40;
-                if (panel4 != null) panel4.Width = newWidth - 40;
-                if (panel5 != null) panel5.Width = newWidth - 40;
-                if (panel6 != null) panel6.Width = newWidth - 40;
-                if (panel7 != null) panel7.Width = newWidth - 40;
-                if (panel8 != null) panel8.Width = newWidth - 40;
-                if (panelButtons != null) panelButtons.Width = newWidth - 40;
+                // Update all panel widths if they still exist in the control tree
+                foreach (Control c in contentPanel.Controls)
+                {
+                    if (c is Panel p)
+                        p.Width = newWidth - 40;
+                }
 
                 // Update the plus icon position
                 if (lblPlusIcon != null)
@@ -599,7 +601,233 @@ namespace LendingApp.UI.AdminUI
             mainPanel.Controls.Add(contentPanel);
 
             // Add main panel to user control
+            this.Controls.Clear();
             this.Controls.Add(mainPanel);
+        }
+
+        // NEW: public API for LoanProductsControl
+        public void LoadProductForEdit(int productId)
+        {
+            _editingProductId = productId;
+
+            using (var db = new AppDbContext())
+            {
+                var p = db.LoanProducts.AsNoTracking().FirstOrDefault(x => x.ProductId == productId);
+                if (p == null)
+                    throw new InvalidOperationException("Loan product not found.");
+
+                // load extended columns + terms + requirements (raw sql / MySqlConnection)
+                var ext = LoadExtended(productId);
+                var terms = LoadTerms(productId);
+                var reqs = LoadRequirements(productId);
+
+                // Fill base fields
+                txtLoanTypeName.Text = p.ProductName ?? "";
+                txtDescription.Text = p.Description ?? "";
+
+                txtMinLoanAmount.Text = p.MinAmount.ToString("0.##", CultureInfo.InvariantCulture);
+                txtMaxLoanAmount.Text = p.MaxAmount.ToString("0.##", CultureInfo.InvariantCulture);
+
+                txtInterestRate.Text = p.InterestRate.ToString("0.##", CultureInfo.InvariantCulture);
+                txtServiceFeePercentage.Text = p.ProcessingFeePct.ToString("0.##", CultureInfo.InvariantCulture);
+
+                txtGracePeriod.Text = p.GracePeriodDays.ToString(CultureInfo.InvariantCulture);
+                txtLatePenalty.Text = p.PenaltyRate.ToString("0.##", CultureInfo.InvariantCulture);
+
+                rdoStatusActive.Checked = p.IsActive;
+                rdoStatusInactive.Checked = !p.IsActive;
+
+                // Extended fields
+                rdoFixedInterest.Checked = string.Equals(ext.InterestType, "Fixed", StringComparison.OrdinalIgnoreCase);
+                rdoVariableInterest.Checked = !rdoFixedInterest.Checked;
+
+                SelectComboItemOrDefault(cmbInterestPeriod, ext.InterestPeriod, "Month");
+                SelectComboItemOrDefault(cmbLatePenaltyPeriod, ext.PenaltyPeriod, "Month");
+
+                txtServiceFeeFixed.Text = ext.ServiceFeeFixedAmount.HasValue
+                    ? ext.ServiceFeeFixedAmount.Value.ToString("0.##", CultureInfo.InvariantCulture)
+                    : "0.00";
+
+                rdoCollateralYes.Checked = ext.RequiresCollateral;
+                rdoCollateralNo.Checked = !ext.RequiresCollateral;
+
+                // Terms
+                if (termCheckboxes != null)
+                {
+                    foreach (var cb in termCheckboxes)
+                    {
+                        if (cb == null) continue;
+                        int m;
+                        cb.Checked = int.TryParse(cb.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out m) && terms.Contains(m);
+                    }
+                }
+
+                // Requirements
+                chkValidId.Checked = reqs.ContainsKey("ValidId");
+                chkProofOfIncome.Checked = reqs.ContainsKey("ProofOfIncome");
+                chkPayslip.Checked = reqs.ContainsKey("Payslip");
+                chkBankStatement.Checked = reqs.ContainsKey("BankStatement");
+                chkComakerForm.Checked = reqs.ContainsKey("ComakerForm");
+
+                if (reqs.ContainsKey("Others"))
+                {
+                    chkOthers.Checked = true;
+                    txtOthersDescription.Enabled = true;
+                    txtOthersDescription.Text = reqs["Others"] ?? "";
+                }
+                else
+                {
+                    chkOthers.Checked = false;
+                    txtOthersDescription.Enabled = false;
+                    txtOthersDescription.Text = "";
+                }
+            }
+
+            // Update UI labels/buttons for edit mode
+            btnSaveProduct.Text = "Save Changes";
+            if (lblPlusIcon != null) lblPlusIcon.Text = "✎";
+        }
+
+        private sealed class LoanProductExtended
+        {
+            public string InterestType { get; set; }
+            public string InterestPeriod { get; set; }
+            public decimal? ServiceFeeFixedAmount { get; set; }
+            public string PenaltyPeriod { get; set; }
+            public bool RequiresCollateral { get; set; }
+        }
+
+        private static LoanProductExtended LoadExtended(int productId)
+        {
+            var cs = System.Configuration.ConfigurationManager.ConnectionStrings["LendingAppDb"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(cs))
+                throw new ValidationException("Missing connection string: LendingAppDb");
+
+            using (var conn = new MySqlConnection(cs))
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+SELECT 
+  interest_type,
+  interest_period,
+  service_fee_fixed_amount,
+  penalty_period,
+  requires_collateral
+FROM loan_products
+WHERE product_id = @productId;";
+                    cmd.Parameters.AddWithValue("@productId", productId);
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        if (!r.Read())
+                            return new LoanProductExtended();
+
+                        return new LoanProductExtended
+                        {
+                            InterestType = r["interest_type"] as string,
+                            InterestPeriod = r["interest_period"] as string,
+                            ServiceFeeFixedAmount = r["service_fee_fixed_amount"] == DBNull.Value ? (decimal?)null : Convert.ToDecimal(r["service_fee_fixed_amount"], CultureInfo.InvariantCulture),
+                            PenaltyPeriod = r["penalty_period"] as string,
+                            RequiresCollateral = r["requires_collateral"] != DBNull.Value && Convert.ToInt32(r["requires_collateral"], CultureInfo.InvariantCulture) == 1
+                        };
+                    }
+                }
+            }
+        }
+
+        private static HashSet<int> LoadTerms(int productId)
+        {
+            var cs = System.Configuration.ConfigurationManager.ConnectionStrings["LendingAppDb"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(cs))
+                throw new ValidationException("Missing connection string: LendingAppDb");
+
+            var set = new HashSet<int>();
+            using (var conn = new MySqlConnection(cs))
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT term_months FROM loan_product_terms WHERE product_id = @productId;";
+                    cmd.Parameters.AddWithValue("@productId", productId);
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            var v = Convert.ToInt32(r["term_months"], CultureInfo.InvariantCulture);
+                            set.Add(v);
+                        }
+                    }
+                }
+            }
+            return set;
+        }
+
+        private static Dictionary<string, string> LoadRequirements(int productId)
+        {
+            var cs = System.Configuration.ConfigurationManager.ConnectionStrings["LendingAppDb"]?.ConnectionString;
+            if (string.IsNullOrWhiteSpace(cs))
+                throw new ValidationException("Missing connection string: LendingAppDb");
+
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            using (var conn = new MySqlConnection(cs))
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+SELECT requirement_key, requirement_text
+FROM loan_product_requirements
+WHERE product_id = @productId;";
+                    cmd.Parameters.AddWithValue("@productId", productId);
+
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        while (r.Read())
+                        {
+                            var key = (r["requirement_key"] as string) ?? "";
+                            var text = r["requirement_text"] == DBNull.Value ? null : (r["requirement_text"] as string);
+                            if (!string.IsNullOrWhiteSpace(key))
+                                dict[key] = text;
+                        }
+                    }
+                }
+            }
+
+            return dict;
+        }
+
+        private static void SelectComboItemOrDefault(ComboBox cmb, string value, string fallback)
+        {
+            if (cmb == null) return;
+
+            var v = (value ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(v)) v = fallback;
+
+            for (int i = 0; i < cmb.Items.Count; i++)
+            {
+                if (string.Equals(cmb.Items[i].ToString(), v, StringComparison.OrdinalIgnoreCase))
+                {
+                    cmb.SelectedIndex = i;
+                    return;
+                }
+            }
+
+            // fallback
+            for (int i = 0; i < cmb.Items.Count; i++)
+            {
+                if (string.Equals(cmb.Items[i].ToString(), fallback, StringComparison.OrdinalIgnoreCase))
+                {
+                    cmb.SelectedIndex = i;
+                    return;
+                }
+            }
+
+            if (cmb.Items.Count > 0)
+                cmb.SelectedIndex = 0;
         }
 
         private void SaveProduct()
@@ -637,12 +865,26 @@ namespace LendingApp.UI.AdminUI
                 };
 
                 var svc = new LoanProductAdminService();
-                svc.CreateLoanProduct(req);
 
-                MessageBox.Show("Product saved successfully!", "Success",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (_editingProductId.HasValue)
+                {
+                    svc.UpdateLoanProduct(_editingProductId.Value, req);
 
-                ClearForm();
+                    MessageBox.Show("Product updated successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    ProductSaved?.Invoke(_editingProductId.Value);
+                }
+                else
+                {
+                    var newId = svc.CreateLoanProduct(req);
+
+                    MessageBox.Show("Product saved successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    ProductSaved?.Invoke(newId);
+                    ClearForm();
+                }
             }
             catch (ValidationException vex)
             {
@@ -673,7 +915,7 @@ namespace LendingApp.UI.AdminUI
             txtDescription.Clear();
             rdoFixedInterest.Checked = true;
             txtInterestRate.Clear();
-            cmbInterestPeriod.SelectedIndex = 0;
+            if (cmbInterestPeriod.Items.Count > 0) cmbInterestPeriod.SelectedIndex = 0;
             txtServiceFeePercentage.Clear();
             txtServiceFeeFixed.Clear();
             txtMinLoanAmount.Clear();
@@ -699,7 +941,7 @@ namespace LendingApp.UI.AdminUI
             rdoCollateralNo.Checked = true;
             txtGracePeriod.Clear();
             txtLatePenalty.Clear();
-            cmbLatePenaltyPeriod.SelectedIndex = 0;
+            if (cmbLatePenaltyPeriod.Items.Count > 0) cmbLatePenaltyPeriod.SelectedIndex = 0;
             rdoStatusActive.Checked = true;
         }
 

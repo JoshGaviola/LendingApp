@@ -216,7 +216,12 @@
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
+<<<<<<< HEAD
     <Compile Include="Class\Services\PasswordHashing.cs" />
+=======
+    <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
+    <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
+>>>>>>> b9a901ded18974f25ee9ebdd4725bcbfdb8c06f1
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->
     <Compile Include="Program.cs" />

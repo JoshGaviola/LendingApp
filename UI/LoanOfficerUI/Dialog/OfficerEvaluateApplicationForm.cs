@@ -7,6 +7,8 @@ using System.Windows.Forms;
 using LendingApp.Class.Interface;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
+using LendingApp.Class.Services.Loans;
+
 namespace LoanApplicationUI
 {
     public partial class OfficerEvaluateApplicationForm : Form
@@ -232,7 +234,6 @@ namespace LoanApplicationUI
             totalInterestLabel = CreateResultLabel("₱0.00");
             totalPayableLabel = CreateResultLabel("₱0.00");
             aprLabel = CreateResultLabel("0%");
-
             loanTermComboBox = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
@@ -582,40 +583,24 @@ namespace LoanApplicationUI
         }
 
         // ---------------------------
-        // Loan Computation Logic
+        // Loan Computation Logic (UI adapter only)
         // ---------------------------
-        private decimal GetEffectivePrincipal()
+
+        private static LoanInterestMethod MapInterestMethod(string uiText)
         {
-            // If checkbox says reduce, we compute using reduced amount immediately (best UX)
-            if (reduceAmountCheckBox.Checked) return ReducedAmountValue;
+            var m = (uiText ?? "").Trim();
 
-            if (TryParseMoney(currentApplication?.Amount, out var principal))
-                return principal;
+            if (m.Equals("Diminishing Balance", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.DiminishingBalance;
 
-            return 0m;
-        }
+            if (m.Equals("Flat Rate", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.FlatRate;
 
-        private static bool TryParseMoney(string text, out decimal amount)
-        {
-            amount = 0m;
-            if (string.IsNullOrWhiteSpace(text)) return false;
+            if (m.Equals("Add-on Rate", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.AddOnRate;
 
-            var cleaned = text.Replace("₱", "").Replace(",", "").Trim();
-            return decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.GetCultureInfo("en-US"), out amount);
-        }
-
-        private static int ParseSelectedTermMonths(ComboBox cbo)
-        {
-            var t = (cbo.SelectedItem ?? "").ToString();
-            if (string.IsNullOrWhiteSpace(t)) return 12;
-
-            var cleaned = t.ToLowerInvariant()
-                .Replace("months", "")
-                .Replace("month", "")
-                .Trim();
-
-            int months;
-            return int.TryParse(cleaned, out months) ? months : 12;
+            // default: preserves old behavior (anything else treated like flat/add-on)
+            return LoanInterestMethod.FlatRate;
         }
 
         private void UpdateServiceFeeAmount(object sender, EventArgs e)
@@ -623,65 +608,19 @@ namespace LoanApplicationUI
             try
             {
                 var principal = GetEffectivePrincipal();
-                var serviceFeeAmount = (principal * serviceFeeInput.Value) / 100m;
-                serviceFeeAmountLabel.Text = $"(₱{serviceFeeAmount:N2})";
+                var r = LoanComputationService.Calculate(
+                    principal,
+                    (decimal)interestRateInput.Value,
+                    ParseSelectedTermMonths(loanTermComboBox),
+                    (decimal)serviceFeeInput.Value,
+                    MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString()));
+
+                serviceFeeAmountLabel.Text = "(₱" + r.ServiceFeeAmount.ToString("N2", CultureInfo.GetCultureInfo("en-US")) + ")";
             }
             catch
             {
                 serviceFeeAmountLabel.Text = "(₱0.00)";
             }
-        }
-
-        private sealed class LoanCalcResult
-        {
-            public decimal MonthlyPayment { get; set; }
-            public decimal TotalInterest { get; set; }
-            public decimal TotalPayable { get; set; }
-            public decimal AprPct { get; set; }
-        }
-
-        private LoanCalcResult CalculateLoan(decimal principal, decimal annualRatePct, int termMonths, decimal serviceFeePct, string method)
-        {
-            if (principal <= 0m || termMonths <= 0) return new LoanCalcResult();
-
-            var annualRate = annualRatePct / 100m;
-            var monthlyRate = annualRate / 12m;
-
-            decimal monthlyPayment;
-            decimal totalPayable;
-            decimal totalInterest;
-
-            var m = (method ?? "").Trim();
-
-            if (m.Equals("Diminishing Balance", StringComparison.OrdinalIgnoreCase))
-            {
-                // Standard amortized payment
-                monthlyPayment = Pmt(monthlyRate, termMonths, principal);
-                totalPayable = monthlyPayment * termMonths;
-                totalInterest = totalPayable - principal;
-            }
-            else
-            {
-                // Flat/Add-on: interest computed on principal across the whole term
-                // totalInterest = principal * annualRate * (termMonths/12)
-                totalInterest = principal * annualRate * (termMonths / 12m);
-                totalPayable = principal + totalInterest;
-                monthlyPayment = totalPayable / termMonths;
-            }
-
-            var serviceFeeAmount = principal * (serviceFeePct / 100m);
-
-            // Simple APR approximation: nominal annual rate + annualized service fee
-            // This is not "effective APR", but good enough for display right now.
-            var apr = annualRatePct + ((serviceFeeAmount / principal) * (12m / termMonths) * 100m);
-
-            return new LoanCalcResult
-            {
-                MonthlyPayment = RoundMoney(monthlyPayment),
-                TotalInterest = RoundMoney(totalInterest),
-                TotalPayable = RoundMoney(totalPayable + serviceFeeAmount),
-                AprPct = Math.Round(apr, 2)
-            };
         }
 
         private void RecalculateLoan()
@@ -690,11 +629,11 @@ namespace LoanApplicationUI
             {
                 var principal = GetEffectivePrincipal();
                 var term = ParseSelectedTermMonths(loanTermComboBox);
-                var rate = interestRateInput.Value;
-                var fee = serviceFeeInput.Value;
-                var method = interestMethodComboBox.SelectedItem?.ToString();
+                var rate = (decimal)interestRateInput.Value;
+                var fee = (decimal)serviceFeeInput.Value;
+                var method = MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString());
 
-                var r = CalculateLoan(principal, rate, term, fee, method);
+                var r = LoanComputationService.Calculate(principal, rate, term, fee, method);
 
                 monthlyPaymentLabel.Text = "₱" + r.MonthlyPayment.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
                 totalInterestLabel.Text = "₱" + r.TotalInterest.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
@@ -710,24 +649,63 @@ namespace LoanApplicationUI
             }
         }
 
-        private static decimal Pmt(decimal ratePerPeriod, int numberOfPeriods, decimal presentValue)
+        private void CreateLoanRecordIfMissing(LoanApplicationEntity app)
         {
-            if (numberOfPeriods <= 0) return 0m;
-            if (ratePerPeriod == 0m) return presentValue / numberOfPeriods;
+            var existing = _loanReleaseRepo.GetByApplicationId(app.ApplicationId);
+            if (existing != null) return;
 
-            // PMT = r*PV / (1 - (1+r)^-n)
-            var r = (double)ratePerPeriod;
-            var pv = (double)presentValue;
-            var n = numberOfPeriods;
+            var principal = app.RequestedAmount;
+            var termMonths = app.PreferredTerm > 0 ? app.PreferredTerm : ParseSelectedTermMonths(loanTermComboBox);
 
-            var denom = 1.0 - Math.Pow(1.0 + r, -n);
-            if (denom == 0.0) return 0m;
+            var interestRatePct = (decimal)interestRateInput.Value;
+            var serviceFeePct = (decimal)serviceFeeInput.Value;
+            var method = MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString());
 
-            var pmt = (r * pv) / denom;
-            return (decimal)pmt;
+            var calc = LoanComputationService.Calculate(principal, interestRatePct, termMonths, serviceFeePct, method);
+
+            var releaseDate = DateTime.Today;
+            var firstDue = GetNext15th(releaseDate);
+            var maturity = firstDue.AddMonths(termMonths);
+
+            var loan = new LoanEntity
+            {
+                LoanNumber = GenerateLoanNumber(app.ApplicationNumber),
+
+                ApplicationId = app.ApplicationId,
+                CustomerId = app.CustomerId,
+                ProductId = app.ProductId,
+
+                PrincipalAmount = Math.Round(principal, 2, MidpointRounding.AwayFromZero),
+                InterestRate = Math.Round(interestRatePct, 2, MidpointRounding.AwayFromZero),
+                TermMonths = termMonths,
+                MonthlyPayment = calc.MonthlyPayment,
+
+                ProcessingFee = calc.ServiceFeeAmount,
+                TotalPayable = calc.TotalPayable,
+                OutstandingBalance = calc.TotalPayable,
+
+                TotalPaid = 0m,
+                TotalInterestPaid = 0m,
+                TotalPenaltyPaid = 0m,
+
+                Status = "Active",
+                DaysOverdue = 0,
+
+                ReleaseDate = releaseDate,
+                FirstDueDate = firstDue,
+                NextDueDate = firstDue,
+                MaturityDate = maturity,
+                LastPaymentDate = null,
+
+                ReleaseMode = null,
+                ReleasedBy = null,
+
+                CreatedDate = DateTime.Now,
+                LastUpdated = DateTime.Now
+            };
+
+            _loanReleaseRepo.Add(loan);
         }
-
-        private static decimal RoundMoney(decimal x) => Math.Round(x, 2, MidpointRounding.AwayFromZero);
 
         // ---------------------------
         // DB Persistence Logic
@@ -1155,66 +1133,43 @@ namespace LoanApplicationUI
             return (from.Date <= fifteenth) ? fifteenth : baseDate.AddMonths(1).AddDays(14);
         }
 
-        private void CreateLoanRecordIfMissing(LoanApplicationEntity app)
+        private decimal GetEffectivePrincipal()
         {
-            // DB has UNIQUE(application_id), so don't insert twice.
-            var existing = _loanReleaseRepo.GetByApplicationId(app.ApplicationId);
-            if (existing != null) return;
+            // If checkbox says reduce, we compute using reduced amount immediately (best UX)
+            if (reduceAmountCheckBox != null && reduceAmountCheckBox.Checked) return ReducedAmountValue;
 
-            // Use current evaluation UI values (these are exactly what officer approved with)
-            var principal = app.RequestedAmount; // already updated if reduced amount checkbox was checked
-            var termMonths = app.PreferredTerm > 0 ? app.PreferredTerm : ParseSelectedTermMonths(loanTermComboBox);
+            decimal principal;
+            if (TryParseMoney(currentApplication != null ? currentApplication.Amount : null, out principal))
+                return principal;
 
-            var interestRatePct = (decimal)interestRateInput.Value;
-            var serviceFeePct = (decimal)serviceFeeInput.Value;
-            var method = interestMethodComboBox.SelectedItem != null ? interestMethodComboBox.SelectedItem.ToString() : "Diminishing Balance";
+            return 0m;
+        }
 
-            var calc = CalculateLoan(principal, interestRatePct, termMonths, serviceFeePct, method);
+        private static bool TryParseMoney(string text, out decimal amount)
+        {
+            amount = 0m;
+            if (string.IsNullOrWhiteSpace(text)) return false;
 
-            var releaseDate = DateTime.Today;
-            var firstDue = GetNext15th(releaseDate);
-            var maturity = firstDue.AddMonths(termMonths);
+            var cleaned = text.Replace("₱", "").Replace(",", "").Trim();
+            return decimal.TryParse(
+                cleaned,
+                NumberStyles.Number | NumberStyles.AllowDecimalPoint,
+                CultureInfo.GetCultureInfo("en-US"),
+                out amount);
+        }
 
-            var processingFeeAmount = RoundMoney(principal * (serviceFeePct / 100m));
+        private static int ParseSelectedTermMonths(ComboBox cbo)
+        {
+            var t = (cbo != null ? (cbo.SelectedItem ?? "") : "").ToString();
+            if (string.IsNullOrWhiteSpace(t)) return 12;
 
-            var loan = new LoanEntity
-            {
-                LoanNumber = GenerateLoanNumber(app.ApplicationNumber),
+            var cleaned = t.ToLowerInvariant()
+                .Replace("months", "")
+                .Replace("month", "")
+                .Trim();
 
-                ApplicationId = app.ApplicationId,
-                CustomerId = app.CustomerId,
-                ProductId = app.ProductId,
-
-                PrincipalAmount = RoundMoney(principal),
-                InterestRate = RoundMoney(interestRatePct),
-                TermMonths = termMonths,
-                MonthlyPayment = RoundMoney(calc.MonthlyPayment),
-
-                ProcessingFee = processingFeeAmount,
-                TotalPayable = RoundMoney(calc.TotalPayable),
-                OutstandingBalance = RoundMoney(calc.TotalPayable),
-
-                TotalPaid = 0m,
-                TotalInterestPaid = 0m,
-                TotalPenaltyPaid = 0m,
-
-                Status = "Active",
-                DaysOverdue = 0,
-
-                ReleaseDate = releaseDate,
-                FirstDueDate = firstDue,
-                NextDueDate = firstDue,
-                MaturityDate = maturity,
-                LastPaymentDate = null,
-
-                ReleaseMode = null,
-                ReleasedBy = null,
-
-                CreatedDate = DateTime.Now,
-                LastUpdated = DateTime.Now
-            };
-
-            _loanReleaseRepo.Add(loan);
+            int months;
+            return int.TryParse(cleaned, out months) ? months : 12;
         }
     }
 }
