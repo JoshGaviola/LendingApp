@@ -210,6 +210,7 @@
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
+    <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->

@@ -53,7 +53,7 @@ namespace LendingApp.Class.Services.Loans
 
             var serviceFeeAmount = principal * (serviceFeePct / 100m);
 
-            // Same APR approximation as before
+            // Same APR approximation as before (needs changing?)
             var apr = annualRatePct + ((serviceFeeAmount / principal) * (12m / termMonths) * 100m);
 
             return new LoanComputationResult
