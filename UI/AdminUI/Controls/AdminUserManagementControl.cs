@@ -520,7 +520,8 @@ namespace LendingApp.UI.AdminUI.Views
 
             var btnDelete = CreateOutlineButton("🗑 Delete");
             btnDelete.ForeColor = ColorTranslator.FromHtml("#DC2626");
-            btnDelete.Click += (s, e) => ShowMessage("Delete not yet implemented.", true);
+            // Implemented delete action (confirmation, DB delete, refresh UI)
+            btnDelete.Click += (s, e) => DeleteSelectedUser();
 
             actionButtonsPanel.Controls.Add(btnEdit);
             actionButtonsPanel.Controls.Add(btnResetPassword);
@@ -543,6 +544,49 @@ namespace LendingApp.UI.AdminUI.Views
             userDetailsCard.Controls.Add(titlePanel);
 
             return userDetailsCard;
+        }
+
+        private void DeleteSelectedUser()
+        {
+            if (selectedUser == null)
+            {
+                ShowMessage("Please select a user to delete.", true);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"Are you sure you want to permanently delete user '{selectedUser.Username}'?\nThis action cannot be undone.",
+                "Confirm Delete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirm != DialogResult.Yes)
+                return;
+
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var entity = db.Users.SingleOrDefault(u => u.UserId == selectedUser.UserId);
+                    if (entity == null)
+                    {
+                        ShowMessage("User not found in database. It may have been removed already.", true);
+                        LoadUsersFromDb();
+                        return;
+                    }
+
+                    db.Users.Remove(entity);
+                    db.SaveChanges();
+                }
+
+                ShowMessage($"User '{selectedUser.Username}' has been deleted.");
+                LoadUsersFromDb();
+            }
+            catch (Exception ex)
+            {
+                // Provide detailed error in a dialog (keeps behavior consistent with other DB error handling in the control)
+                MessageBox.Show(ex.ToString(), "Failed to delete user", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private Panel CreateActionButtons()
