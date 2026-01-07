@@ -1,12 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
 
 namespace LendingApp.UI.AdminUI.Views
 {
     public partial class AdminOverviewControl : UserControl
     {
+        // ===== UI Models (separation from EF entities) =====
+        private sealed class UserOverviewRow
+        {
+            public string Username { get; set; }
+            public string Role { get; set; }
+            public string Status { get; set; }
+        }
+
+        private sealed class LoanProductOverviewRow
+        {
+            public string Product { get; set; }
+            public string Rate { get; set; }
+            public string Status { get; set; }
+        }
+
         // System Overview stats (static sample values)
         private readonly int _totalUsers = 15;
         private readonly int _activeLoans = 245;
@@ -31,6 +50,11 @@ namespace LendingApp.UI.AdminUI.Views
         private TextBox txtMaxLoginAttempts;
         private TextBox txtSessionTimeout;
 
+        // ===== NEW: Overview grids + "View All" link references =====
+        private DataGridView _usersGrid;
+        private DataGridView _loanProductsGrid;
+        private LinkLabel _viewAllUsersLink;
+
         // Toast
         private Panel _toastPanel;
         private Label _toastLabel;
@@ -45,6 +69,105 @@ namespace LendingApp.UI.AdminUI.Views
 
             BuildUI();
             BuildToast();
+
+            // Load real data AFTER UI is built
+            LoadOverviewData();
+        }
+
+        private void LoadOverviewData()
+        {
+            LoadUsersOverview();
+            LoadLoanProductsOverview();
+        }
+
+        private void LoadUsersOverview()
+        {
+            if (_usersGrid == null) return;
+
+            try
+            {
+                var rows = GetUsersOverviewRows(limit: 4);
+
+                _usersGrid.Rows.Clear();
+                foreach (var r in rows)
+                    _usersGrid.Rows.Add(r.Username, r.Role, r.Status);
+
+                if (_viewAllUsersLink != null)
+                    _viewAllUsersLink.Text = "View All " + GetTotalUserCount().ToString(CultureInfo.InvariantCulture) + " Users →";
+            }
+            catch (Exception ex)
+            {
+                _usersGrid.Rows.Clear();
+                _usersGrid.Rows.Add("Failed to load", "", "");
+                Toast("Failed to load users overview: " + ex.Message, true);
+            }
+        }
+
+        private void LoadLoanProductsOverview()
+        {
+            if (_loanProductsGrid == null) return;
+
+            try
+            {
+                var rows = GetLoanProductsOverviewRows(limit: 3);
+
+                _loanProductsGrid.Rows.Clear();
+                foreach (var r in rows)
+                    _loanProductsGrid.Rows.Add(r.Product, r.Rate, r.Status);
+            }
+            catch (Exception ex)
+            {
+                _loanProductsGrid.Rows.Clear();
+                _loanProductsGrid.Rows.Add("Failed to load", "", "");
+                Toast("Failed to load loan products overview: " + ex.Message, true);
+            }
+        }
+
+        // ===== Data access (kept small and returns UI models only) =====
+        private static List<UserOverviewRow> GetUsersOverviewRows(int limit)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Show newest users first (CreatedDate desc), like an overview dashboard.
+                var users = db.Users.AsNoTracking()
+                    .OrderByDescending(u => u.CreatedDate)
+                    .Take(limit)
+                    .ToList();
+
+                return users.Select(u => new UserOverviewRow
+                {
+                    Username = u.Username ?? "",
+                    Role = u.Role ?? "",
+                    Status = u.IsActive ? "Active" : "Inactive"
+                }).ToList();
+            }
+        }
+
+        private static int GetTotalUserCount()
+        {
+            using (var db = new AppDbContext())
+            {
+                return db.Users.AsNoTracking().Count();
+            }
+        }
+
+        private static List<LoanProductOverviewRow> GetLoanProductsOverviewRows(int limit)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Show newest products first (CreatedDate desc), matching a dashboard summary.
+                var products = db.LoanProducts.AsNoTracking()
+                    .OrderByDescending(p => p.CreatedDate)
+                    .Take(limit)
+                    .ToList();
+
+                return products.Select(p => new LoanProductOverviewRow
+                {
+                    Product = p.ProductName ?? "",
+                    Rate = p.InterestRate.ToString("0.##", CultureInfo.InvariantCulture) + "%", // consistent with LoanProductsControl formatting
+                    Status = p.IsActive ? "Active" : "Inactive"
+                }).ToList();
+            }
         }
 
         private void BuildUI()
@@ -108,12 +231,6 @@ namespace LendingApp.UI.AdminUI.Views
 
             // ===== Override Actions Card =====
             var overrideCard = CreateOverrideActionsCard();
-
-            // DEBUG: Set a background color to see if card is visible
-            // overrideCard.BackColor = Color.Red;
-
-            // DEBUG: Log card properties
-            Console.WriteLine($"Override card created: Height={overrideCard.Height}, Visible={overrideCard.Visible}");
 
             // Add to page (top-down)
             AddRow(mainCard);
@@ -321,30 +438,25 @@ namespace LendingApp.UI.AdminUI.Views
             btnRow.Controls.Add(btnDeactivate);
             body.Controls.Add(btnRow);
 
-            var grid = MakeGrid();
-            grid.Height = 160;
+            _usersGrid = MakeGrid();
+            _usersGrid.Height = 160;
 
-            grid.Columns.Add("Username", "Username");
-            grid.Columns.Add("Role", "Role");
-            grid.Columns.Add("Status", "Status");
+            _usersGrid.Columns.Add("Username", "Username");
+            _usersGrid.Columns.Add("Role", "Role");
+            _usersGrid.Columns.Add("Status", "Status");
 
-            grid.Rows.Add("admin", "Admin", "Active");
-            grid.Rows.Add("maria_s", "Cashier", "Active");
-            grid.Rows.Add("juan_lo", "LoanOfficer", "Active");
-            grid.Rows.Add("pedro_lo", "LoanOfficer", "Inactive");
-
-            body.Controls.Add(grid);
+            body.Controls.Add(_usersGrid);
 
             var linkPanel = new Panel { Dock = DockStyle.Top, Height = 28 };
-            var link = new LinkLabel
+            _viewAllUsersLink = new LinkLabel
             {
                 Text = "View All " + _totalUsers.ToString(CultureInfo.InvariantCulture) + " Users →",
                 AutoSize = true,
                 LinkColor = ColorTranslator.FromHtml("#2563EB"),
                 Location = new Point(0, 6)
             };
-            link.Click += (s, e) => Toast("Navigating to User Management...");
-            linkPanel.Controls.Add(link);
+            _viewAllUsersLink.Click += (s, e) => Toast("Navigating to User Management...");
+            linkPanel.Controls.Add(_viewAllUsersLink);
 
             body.Controls.Add(linkPanel);
 
@@ -356,18 +468,14 @@ namespace LendingApp.UI.AdminUI.Views
             var section = SectionCard("LOAN PRODUCT CONFIGURATION", "₱", "#16A34A");
             var body = (Panel)section.Tag;
 
-            var grid = MakeGrid();
-            grid.Height = 140;
+            _loanProductsGrid = MakeGrid();
+            _loanProductsGrid.Height = 140;
 
-            grid.Columns.Add("Product", "Product");
-            grid.Columns.Add("Rate", "Int. Rate");
-            grid.Columns.Add("Status", "Status");
+            _loanProductsGrid.Columns.Add("Product", "Product");
+            _loanProductsGrid.Columns.Add("Rate", "Int. Rate");
+            _loanProductsGrid.Columns.Add("Status", "Status");
 
-            grid.Rows.Add("Personal Loan", "12% p.a.", "Active");
-            grid.Rows.Add("Emergency Loan", "15% p.a.", "Active");
-            grid.Rows.Add("Salary Loan", "10% p.a.", "Active");
-
-            body.Controls.Add(grid);
+            body.Controls.Add(_loanProductsGrid);
 
             var btnRow = new FlowLayoutPanel
             {
