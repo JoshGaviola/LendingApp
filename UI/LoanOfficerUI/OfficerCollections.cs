@@ -29,10 +29,10 @@ namespace LendingApp.UI.LoanOfficerUI
         private Button btnRecordPayment;
 
         // Sidebar/nav (standalone only)
-        private string activeNav = "Collections";
+        private string activeNav = "Portfolio Monitoring";
         private readonly List<string> navItems = new List<string>
         {
-            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
+            "Dashboard", "Applications", "Customers", "Portfolio Monitoring", "Calendar", "Settings"
         };
         private OfficerApplications _applicationsForm;
         private OfficerCustomers _customersForm;
@@ -93,7 +93,7 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void BuildShell()
         {
-            Text = "Officer Collections";
+            Text = "Portfolio Monitoring";
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = ColorTranslator.FromHtml("#F7F9FC");
             WindowState = FormWindowState.Maximized;
@@ -118,7 +118,7 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             lblHeaderTitle = new Label
             {
-                Text = "COLLECTIONS MANAGEMENT",
+                Text = "PORTFOLIO MONITORING",
                 Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#2C3E50"),
                 AutoSize = true,
@@ -126,7 +126,7 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             lblHeaderSubtitle = new Label
             {
-                Text = "Track and manage all payment collections",
+                Text = "Monitor portfolio health and collection status",
                 Font = new Font("Segoe UI", 9),
                 ForeColor = ColorTranslator.FromHtml("#6B7280"),
                 AutoSize = true,
@@ -142,9 +142,10 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             btnExport.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#D1D5DB");
 
+            // Officers monitor — action should be "View Payments" rather than recording payments
             btnRecordPayment = new Button
             {
-                Text = "Record Payment",
+                Text = "View Payments",
                 Width = 140,
                 Height = 28,
                 BackColor = ColorTranslator.FromHtml("#2563EB"),
@@ -213,7 +214,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowCustomersView();
                     }
-                    else if (item == "Collections")
+                    else if (item == "Portfolio Monitoring")
                     {
                         ShowCollectionsHome();
                     }
@@ -277,7 +278,7 @@ namespace LendingApp.UI.LoanOfficerUI
             tableContainer = new Panel { Dock = DockStyle.Top, Height = 420, BackColor = Color.Transparent, Padding = new Padding(10) };
 
             tableHeader = new Panel { Height = 50, Dock = DockStyle.Top, BackColor = ColorTranslator.FromHtml("#F9FAFB"), BorderStyle = BorderStyle.FixedSingle };
-            lblTableTitle = new Label { Text = "COLLECTIONS LIST", Font = new Font("Segoe UI", 10, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), AutoSize = true, Location = new Point(16, 16) };
+            lblTableTitle = new Label { Text = "PORTFOLIO ITEMS", Font = new Font("Segoe UI", 10, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), AutoSize = true, Location = new Point(16, 16) };
             lblItemsCount = new Label { Text = "0 items", Font = new Font("Segoe UI", 8), ForeColor = ColorTranslator.FromHtml("#1D4ED8"), AutoSize = true, Location = new Point(170, 18), BackColor = ColorTranslator.FromHtml("#DBEAFE"), Padding = new Padding(6, 2, 6, 2) };
             lblShowingFilter = new Label { Text = "Showing: All", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#6B7280"), AutoSize = true };
             tableHeader.Resize += (s, e) =>
@@ -318,7 +319,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(12, 8, 12, 8)
             };
-            lblTotalItems = new Label { Text = "Total: 0 collections", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#4B5563"), AutoSize = true, Location = new Point(12, 10) };
+            lblTotalItems = new Label { Text = "Total: 0 items", Font = new Font("Segoe UI", 9), ForeColor = ColorTranslator.FromHtml("#4B5563"), AutoSize = true, Location = new Point(12, 10) };
             lblTotalAmount = new Label { Text = "Total Amount: ₱0", Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = ColorTranslator.FromHtml("#111827"), AutoSize = true };
             tableFooter.Resize += (s, e) =>
             {
@@ -425,8 +426,8 @@ namespace LendingApp.UI.LoanOfficerUI
 
             if (!_hosted)
             {
-                btnExport.Click += (s, e) => MessageBox.Show("Export collections (CSV/Excel)", "Export");
-                btnRecordPayment.Click += (s, e) => MessageBox.Show("Record Payment workflow", "Record Payment");
+                btnExport.Click += (s, e) => MessageBox.Show("Export portfolio data (CSV/Excel)", "Export");
+                btnRecordPayment.Click += (s, e) => MessageBox.Show("Open payment records (view-only)", "Payments");
             }
         }
 
@@ -498,13 +499,13 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 var statusAction = gridCollections.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
                 var loanId = gridCollections.Rows[e.RowIndex].Cells["LoanId"].Value?.ToString();
-                MessageBox.Show($"{statusAction} {loanId}", "Collections Action", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"{statusAction} {loanId}", "Portfolio Action", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
         private string GetActionText(string status)
         {
-            if (status == "Overdue" || status == "Due Today") return "Collect";
+            // Officers monitor only — always provide a view action
             return "View";
         }
 

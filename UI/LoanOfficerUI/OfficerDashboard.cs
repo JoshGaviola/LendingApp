@@ -20,14 +20,13 @@ namespace LendingApp.UI.LoanOfficerUI
         private string activeNav = "Dashboard";
         private readonly List<string> navItems = new List<string>
         {
-            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings", "Loan Calculator"
+            "Dashboard", "Applications", "Customers", "Collections", "Settings", "Loan Calculator"
         };
 
         // Embedded views
         private OfficerApplications _applicationsForm;
         private OfficerCollections _collectionsForm;
         private OfficerCustomers _customersForm; // Added for customers view
-        private OfficerCalendar _calendarForm; // Added for calendar view
         private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
@@ -159,10 +158,6 @@ namespace LendingApp.UI.LoanOfficerUI
                     else if (item == "Collections")
                     {
                         ShowCollectionsView();
-                    }
-                    else if (item == "Calendar")
-                    {
-                        ShowCalendarView();
                     }
                     else if (item == "Settings")
                     {
@@ -408,11 +403,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
-            }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
                 _settingsForm.Hide();
@@ -518,45 +508,6 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
-        private void ShowCalendarView()
-        {
-            summaryPanel.Visible = false;
-
-            contentPanel.SuspendLayout();
-            contentPanel.Controls.Clear();
-
-            // Hide/remove other embedded views
-            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
-            {
-                _applicationsForm.Hide();
-                contentPanel.Controls.Remove(_applicationsForm);
-            }
-            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
-            {
-                _collectionsForm.Hide();
-                contentPanel.Controls.Remove(_collectionsForm);
-            }
-            if (_customersForm != null && !_customersForm.IsDisposed)
-            {
-                _customersForm.Hide();
-                contentPanel.Controls.Remove(_customersForm);
-            }
-
-            if (_calendarForm == null || _calendarForm.IsDisposed)
-            {
-                _calendarForm = new OfficerCalendar
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-            }
-
-            contentPanel.Controls.Add(_calendarForm);
-            _calendarForm.Show();
-            contentPanel.ResumeLayout();
-        }
-
         private void ShowSettingsView()
         {
             summaryPanel.Visible = false;
@@ -579,11 +530,6 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
-            }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
             }
 
             if (_settingsForm == null || _settingsForm.IsDisposed)
@@ -618,11 +564,6 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
-            }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
             }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
@@ -797,11 +738,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
-            }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
                 _settingsForm.Hide();
@@ -921,7 +857,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionTasks.Controls.Clear();
             var header = new Label
             {
-                Text = "TODAY'S TASKS & CALENDAR",
+                Text = "TODAY'S TASKS",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#2C3E50"),
                 BackColor = ColorTranslator.FromHtml("#DBEAFE"),
