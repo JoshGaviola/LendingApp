@@ -91,6 +91,8 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             };
             _btnClose.Click += (s, e) => Close();
 
+            // Add controls to the form's Controls collection (designer may have added others)
+            // Ensure we don't duplicate if designer already placed some controls.
             if (!Controls.Contains(_grid)) Controls.Add(_grid);
             if (!Controls.Contains(_btnRefresh)) Controls.Add(_btnRefresh);
             if (!Controls.Contains(_btnClose)) Controls.Add(_btnClose);
@@ -98,20 +100,18 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
         private void LoadData()
         {
-            if (_grid == null) return;
-
             _grid.Rows.Clear();
 
             try
             {
                 using (var db = new AppDbContext())
                 {
-                    // Applications
+                    // Load loan applications for this customer (if any)
                     var apps = db.LoanApplications
-                        .AsNoTracking()
-                        .Where(a => a.CustomerId == _customerId)
-                        .OrderByDescending(a => a.ApplicationDate)
-                        .ToList();
+                                 .AsNoTracking()
+                                 .Where(a => a.CustomerId == _customerId)
+                                 .OrderByDescending(a => a.ApplicationDate)
+                                 .ToList();
 
                     foreach (var a in apps)
                     {

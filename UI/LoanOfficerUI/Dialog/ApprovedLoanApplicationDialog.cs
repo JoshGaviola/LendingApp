@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Windows.Forms;
 using LendingApp.Class.Interface;
 using LendingApp.Class.Repo;
+using LendingApp.Class.Services.Contracts;
 using LendingApp.Class.Services.Loans;
+using LendingApp.UI.LoanOfficerUI.Dialog;
+using LoanApplicationUI; // <-- ADD THIS so AmortizationScheduleForm resolves correctly
 
 namespace LendingApp.UI.LoanOfficerUI.Dialog
 {
@@ -15,8 +19,6 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
         private readonly ILoanApplicationEvaluationRepository _evalRepo;
 
         private readonly string _appId;
-
-        // NEW: view model instead of EF entities in the UI
         private ApprovedLoanApplicationSummaryVm _vm;
 
         public ApprovedLoanApplicationDialog(string appId)
@@ -33,7 +35,7 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             _appId = appId;
             _loanRepo = loanRepo;
             _customerRepo = customerRepo;
-            _evalRepo = evalRepo;
+            _evalRepo = evalRepo; // <-- FIX (was _eval_repo)
 
             InitializeComponent();
             LoadVm();
@@ -52,7 +54,7 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
         private void LoadVm()
         {
-            var svc = new ApprovedLoanApplicationSummaryService(_loanRepo, _customerRepo, _evalRepo);
+            var svc = new ApprovedLoanApplicationSummaryService(_loanRepo, _customerRepo, _evalRepo); // <-- FIX
             _vm = svc.Build(_appId);
         }
 
@@ -141,7 +143,7 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
 
             y += 8;
 
-            // Buttons row (unchanged)
+            // Buttons row
             var buttons = new FlowLayoutPanel
             {
                 Location = new Point(0, y),
@@ -151,16 +153,14 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             };
 
             var btnContract = MakeOutlineButton("View Contract", 120);
-            btnContract.Click += (s, e) => MessageBox.Show("Contract viewer not implemented yet.", "Contract");
+            btnContract.Click += ViewContract_Click;
 
             var btnAmort = MakeOutlineButton("View Amortization", 150);
-            btnAmort.Click += (s, e) => MessageBox.Show("Amortization viewer not implemented yet.", "Amortization");
+            btnAmort.Click += ViewAmortization_Click;
 
             var btnDocs = MakeOutlineButton("View Documents", 130);
-            btnDocs.Click += (s, e) => MessageBox.Show("Documents viewer not implemented yet.", "Documents");
+            btnDocs.Click += ViewDocuments_Click;
 
-            // NOTE: CancelLoan in the old dialog wrote to DB.
-            // If you want to fully separate logic, move that to a service too.
             var btnCancelLoan = MakeDangerOutlineButton("Cancel Loan", 120);
             btnCancelLoan.Click += (s, e) => MessageBox.Show("Cancel Loan logic should be moved to a service next.", "Info");
 
@@ -176,8 +176,136 @@ namespace LendingApp.UI.LoanOfficerUI.Dialog
             root.Controls.Add(buttons);
         }
 
+        // Event handlers wired to isolated methods for clarity and testability
+
+        private void ViewContract_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_vm?.ApplicationNumber))
+                {
+                    MessageBox.Show("Application number unavailable.", "Contract", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var appEntity = _loanRepo.GetByApplicationNumber(_vm.ApplicationNumber);
+                if (appEntity == null)
+                {
+                    MessageBox.Show("Application record not found.", "Contract", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var latestEval = _evalRepo.GetLatestByApplicationId(appEntity.ApplicationId); // <-- FIX
+                long? evalId = (latestEval == null) ? (long?)null : (latestEval as dynamic).EvaluationId;
+
+                var tempPath = Path.Combine(Path.GetTempPath(), $"contract_{appEntity.ApplicationNumber}_{Guid.NewGuid():N}.pdf");
+                var svc = new ContractService();
+                svc.GenerateContractPdf(appEntity.ApplicationId, evalId, tempPath);
+
+                using (var preview = new ContractPreviewForm(tempPath))
+                {
+                    preview.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open contract preview.\n\n" + ex.Message, "Contract", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ViewAmortization_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_vm?.ApplicationNumber))
+                {
+                    MessageBox.Show("Application number unavailable.", "Amortization", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var appEntity = _loanRepo.GetByApplicationNumber(_vm.ApplicationNumber); // <-- FIX (_loan_repo -> _loanRepo)
+                if (appEntity == null)
+                {
+                    MessageBox.Show("Application record not found.", "Amortization", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var latestEval = _evalRepo.GetLatestByApplicationId(appEntity.ApplicationId); // <-- FIX
+
+                decimal principal = appEntity.RequestedAmount;
+                int term = appEntity.PreferredTerm > 0 ? appEntity.PreferredTerm : 12;
+                decimal rate = 0m;
+                decimal fee = 0m;
+                LoanInterestMethod method = LoanInterestMethod.DiminishingBalance;
+
+                if (latestEval != null)
+                {
+                    var dyn = latestEval as dynamic;
+                    if (dyn != null)
+                    {
+                        if (dyn.ReduceAmount == true) principal = 12000m;
+                        if (dyn.TermMonths != null && dyn.TermMonths > 0) term = (int)dyn.TermMonths;
+                        rate = dyn.InterestRatePct ?? rate;
+                        fee = dyn.ServiceFeePct ?? fee;
+                        method = LoanComputationService.ParseInterestMethod(dyn.InterestMethod ?? "Diminishing Balance");
+                    }
+                }
+
+                var schedule = LoanComputationService.GetAmortizationSchedule(principal, rate, term, fee, method);
+
+                // FIX: AmortizationScheduleForm is a Form; do NOT use "using" and call ShowDialog normally
+                var f = new AmortizationScheduleForm(schedule, $"Amortization — ₱{principal:N2} · {term} months");
+                f.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open amortization schedule.\n\n" + ex.Message, "Amortization", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ViewDocuments_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_vm?.ApplicationNumber))
+                {
+                    MessageBox.Show("Application number unavailable.", "Documents", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var appEntity = _loanRepo.GetByApplicationNumber(_vm.ApplicationNumber); // <-- FIX (_loan_repo -> _loanRepo)
+                if (appEntity == null)
+                {
+                    MessageBox.Show("Application record not found.", "Documents", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(appEntity.CustomerId))
+                {
+                    MessageBox.Show("Application does not contain a customer id.", "Documents", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var customer = _customerRepo.GetById(appEntity.CustomerId);
+                if (customer == null)
+                {
+                    MessageBox.Show("Customer not found.", "Documents", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                using (var frm = new LendingApp.UI.CustomerUI.CustomerRegistration(customer))
+                {
+                    frm.StartPosition = FormStartPosition.CenterParent;
+                    frm.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open documents.\n\n" + ex.Message, "Documents", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         // UI helpers below remain unchanged (AddSection/AddKeyValueBox/Make*Button...)
-        // Keep your existing implementations as-is.
         private void AddSection(Control parent, string title, ref int y)
         {
             var header = new Panel

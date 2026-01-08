@@ -9,6 +9,7 @@ using LendingApp.Class.Interface;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
 using LendingApp.Class.Services.Loans;
+using LendingApp.UI.LoanOfficerUI.Dialog;
 
 namespace LoanApplicationUI
 {

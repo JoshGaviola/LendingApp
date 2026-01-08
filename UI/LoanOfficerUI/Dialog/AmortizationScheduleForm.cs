@@ -8,9 +8,9 @@ using System.Text;
 using System.Windows.Forms;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace LoanApplicationUI
+namespace LendingApp.UI.LoanOfficerUI.Dialog
 {
-    public class AmortizationScheduleForm : Form
+    public partial class AmortizationScheduleForm : Form
     {
         private DataGridView dgv;
         private Button btnClose;
