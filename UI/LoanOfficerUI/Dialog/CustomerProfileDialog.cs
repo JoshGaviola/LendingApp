@@ -26,8 +26,10 @@ namespace LendingApp.UI.LoanOfficerUI
             _customerRepo = customerRepo ?? throw new ArgumentNullException(nameof(customerRepo));
 
             InitializeComponent();   // calls the designer one
-            SetupUI();
+
+            // Load from DB first (if possible), then build UI once.
             LoadCustomerData();
+            SetupUI();
         }
 
         private void ReloadFromDb()
@@ -41,7 +43,19 @@ namespace LendingApp.UI.LoanOfficerUI
 
             // Rebuild UI to reflect updated values (labels are static text created once)
             SetupUI();
-            LoadCustomerData();
+        }
+
+        private void LoadCustomerData()
+        {
+            // If we have an ID, always prefer DB as the source-of-truth.
+            if (string.IsNullOrWhiteSpace(customer?.Id))
+                return;
+
+            var dbCustomer = _customerRepo.GetById(customer.Id);
+            if (dbCustomer == null)
+                return;
+
+            customer = MapToDialogCustomerData(dbCustomer);
         }
 
         private static CustomerData MapToDialogCustomerData(CustomerRegistrationData c)
@@ -233,13 +247,11 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            // Removed "Apply Loan", "Credit History", "Add Co-maker" per request.
             string[] buttons =
             {
                 "Update Profile",
-                "Apply Loan",
                 "View Loans",
-                "Credit History",
-                "Add Co-maker",
                 "Generate Report",
                 customer?.Status == "Active" ? "Blacklist" : "Activate"
             };
@@ -249,12 +261,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
             for (int i = 0; i < buttons.Length; i++)
             {
-                if (i == 4)
-                {
-                    x = 10;
-                    rowY = 50;
-                }
-
                 Button btn = new Button
                 {
                     Text = buttons[i],
@@ -322,12 +328,6 @@ namespace LendingApp.UI.LoanOfficerUI
 
             parent.Controls.Add(panel);
             y += 100;
-        }
-
-        private void LoadCustomerData()
-        {
-            // Data is already injected through constructor.
-            // This method exists for compatibility.
         }
 
         // Expanded customer data class to support what UI is showing
