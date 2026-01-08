@@ -8,6 +8,11 @@ using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Class.Repo;
 using LendingApp.UI.CustomerUI;
 using LendingApp.UI.LoanOfficerUI.Dialog; // <-- new dialog namespace
+using PdfSharp.Pdf;
+using PdfSharp.Drawing;
+using System.IO;
+using LendingApp.Class;
+using LendingApp.Class.Services.Reports; // add at top of file's using section
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -336,6 +341,19 @@ namespace LendingApp.UI.LoanOfficerUI
                         return;
                     }
 
+                    if (btn.Text == "Generate Report")
+                    {
+                        try
+                        {
+                            GeneratePdfReport();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Failed to generate report:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        return;
+                    }
+
                     MessageBox.Show(btn.Text + " feature", "Action");
                 };
                 panel.Controls.Add(btn);
@@ -344,6 +362,36 @@ namespace LendingApp.UI.LoanOfficerUI
 
             parent.Controls.Add(panel);
             y += 100;
+        }
+
+        private void GeneratePdfReport()
+        {
+            if (string.IsNullOrWhiteSpace(customer?.Id))
+            {
+                MessageBox.Show("Invalid customer id.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // refresh latest customer from DB
+            var dbCustomer = _customerRepo.GetById(customer.Id);
+            if (dbCustomer != null) customer = MapToDialogCustomerData(dbCustomer);
+
+            using (var sfd = new SaveFileDialog { Filter = "PDF files (*.pdf)|*.pdf", FileName = $"{customer.Id}_profile.pdf" })
+            {
+                if (sfd.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    var svc = new CustomerReportService();
+                    svc.GenerateCustomerProfilePdf(customer.Id, sfd.FileName);
+
+                    MessageBox.Show("Report generated: " + sfd.FileName, "Report", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to generate report:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         // Expanded customer data class to support what UI is showing
