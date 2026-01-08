@@ -525,11 +525,51 @@ namespace LoanApplicationUI
             };
 
             generateContractButton.Click += (s, e) => MessageBox.Show("Generating contract preview...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            viewAmortizationButton.Click += (s, e) => MessageBox.Show("Viewing amortization schedule...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            viewAmortizationButton.Click += ViewAmortizationButton_Click;
 
             saveAsDraftButton.Click += (s, e) => SaveAsDraft();
             rejectButton.Click += (s, e) => RejectApplication();
             approveButton.Click += (s, e) => ApproveApplication();
+        }
+
+        private void ViewAmortizationButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var principal = GetEffectivePrincipal();
+                if (principal <= 0m)
+                {
+                    MessageBox.Show("Invalid principal amount for amortization.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var term = ParseSelectedTermMonths(loanTermComboBox);
+                if (term <= 0)
+                {
+                    MessageBox.Show("Select a valid term.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var rate = (decimal)interestRateInput.Value;
+                var fee = (decimal)serviceFeeInput.Value;
+                var method = MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString());
+
+                var schedule = LoanComputationService.GetAmortizationSchedule(
+                    principal: principal,
+                    annualRatePct: rate,
+                    termMonths: term,
+                    serviceFeePct: fee,
+                    method: method);
+
+                using (var f = new AmortizationScheduleForm(schedule, $"Amortization — ₱{principal:N2} · {term} months"))
+                {
+                    f.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to generate amortization schedule.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // ---------------------------
