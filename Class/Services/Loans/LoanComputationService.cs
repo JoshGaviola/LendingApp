@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace LendingApp.Class.Services.Loans
 {
@@ -16,6 +17,16 @@ namespace LendingApp.Class.Services.Loans
         public decimal TotalPayable { get; set; } // includes service fee
         public decimal AprPct { get; set; }
         public decimal ServiceFeeAmount { get; set; }
+    }
+
+    // New: amortization row model
+    public sealed class AmortizationRow
+    {
+        public int Month { get; set; }
+        public decimal Payment { get; set; }
+        public decimal Principal { get; set; }
+        public decimal Interest { get; set; }
+        public decimal Balance { get; set; }
     }
 
     public static class LoanComputationService
@@ -64,6 +75,88 @@ namespace LendingApp.Class.Services.Loans
                 AprPct = Math.Round(apr, 2),
                 ServiceFeeAmount = RoundMoney(serviceFeeAmount)
             };
+        }
+
+        // New: produce an amortization schedule (full schedule)
+        public static List<AmortizationRow> GetAmortizationSchedule(
+            decimal principal,
+            decimal annualRatePct,
+            int termMonths,
+            decimal serviceFeePct,
+            LoanInterestMethod method)
+        {
+            var rows = new List<AmortizationRow>();
+
+            if (principal <= 0m || termMonths <= 0)
+                return rows;
+
+            var annualRate = annualRatePct / 100m;
+            var monthlyRate = annualRate / 12m;
+            int n = termMonths;
+
+            if (method == LoanInterestMethod.DiminishingBalance)
+            {
+                var monthlyPayment = Pmt(monthlyRate, n, principal);
+                decimal balance = principal;
+
+                for (int month = 1; month <= n; month++)
+                {
+                    decimal interest = RoundMoney(balance * monthlyRate);
+                    decimal principalPortion = RoundMoney(monthlyPayment - interest);
+
+                    // guard rounding: last payment may need adjustment
+                    if (month == n)
+                    {
+                        principalPortion = balance;
+                        monthlyPayment = principalPortion + interest;
+                    }
+
+                    balance = RoundMoney(balance - principalPortion);
+                    if (balance < 0m) balance = 0m;
+
+                    rows.Add(new AmortizationRow
+                    {
+                        Month = month,
+                        Payment = RoundMoney(monthlyPayment),
+                        Principal = principalPortion,
+                        Interest = interest,
+                        Balance = balance
+                    });
+                }
+            }
+            else // FlatRate / AddOnRate - equal interest slice each month
+            {
+                decimal totalInterest = principal * annualRate * (n / 12m);
+                decimal totalPayableNoFee = principal + totalInterest;
+                decimal monthlyPayment = n > 0 ? (totalPayableNoFee / n) : 0m;
+                decimal interestPortion = RoundMoney(totalInterest / n);
+                decimal principalPortion = RoundMoney(monthlyPayment - interestPortion);
+                decimal balance = principal;
+
+                for (int month = 1; month <= n; month++)
+                {
+                    // last month adjust principal portion to clear rounding drift
+                    if (month == n)
+                    {
+                        principalPortion = balance;
+                        monthlyPayment = principalPortion + interestPortion;
+                    }
+
+                    balance = RoundMoney(balance - principalPortion);
+                    if (balance < 0m) balance = 0m;
+
+                    rows.Add(new AmortizationRow
+                    {
+                        Month = month,
+                        Payment = RoundMoney(monthlyPayment),
+                        Principal = principalPortion,
+                        Interest = interestPortion,
+                        Balance = balance
+                    });
+                }
+            }
+
+            return rows;
         }
 
         private static decimal Pmt(decimal ratePerPeriod, int numberOfPeriods, decimal presentValue)

@@ -441,6 +441,9 @@
     <Compile Include="UI\LoanOfficerUI\Dialog\ReviewApplicationDialog.Designer.cs">
       <DependentUpon>ReviewApplicationDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\LoanCalculatorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
       <SubType>Form</SubType>
     </Compile>

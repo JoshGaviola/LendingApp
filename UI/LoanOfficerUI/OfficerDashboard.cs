@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using LendingApp.Class.Services;
+using static LendingApp.Class.Services.DataGetter;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -19,7 +20,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private string activeNav = "Dashboard";
         private readonly List<string> navItems = new List<string>
         {
-            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
+            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings", "Loan Calculator"
         };
 
         // Embedded views
@@ -170,6 +171,11 @@ namespace LendingApp.UI.LoanOfficerUI
                     else if (item == "Dashboard") // FIX: handle dashboard explicitly
                     {
                         ShowDashboardHome();
+                    }
+                    else if (item == "Loan Calculator")
+                    {
+                        using (var f = new LoanCalculatorForm())
+                            f.ShowDialog(this);
                     }
                     else
                     {
