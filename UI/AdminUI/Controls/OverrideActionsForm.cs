@@ -54,7 +54,7 @@ namespace LendingSystem.Admin
             this.Dock = DockStyle.Fill;
             this.Padding = new Padding(10);
 
-            // Main tab control (only Loan Overrides + Audit Log now)
+            // Main tab control (only Loan Overrides)
             tabControl = new TabControl
             {
                 Dock = DockStyle.Fill,
@@ -63,16 +63,13 @@ namespace LendingSystem.Admin
                 Padding = new Point(12, 8)
             };
 
-            // Create tabs: Loan Overrides and Audit Log
+            // Create tab: Loan Overrides
             loanOverridesTab = new TabPage("Loan Overrides");
-            TabPage auditLogTab = new TabPage("Audit Log");
 
-            // Initialize tabs with actual controls (User Actions and System Overrides removed)
+            // Initialize Loan Overrides tab
             InitializeLoanOverridesTab();
-            InitializeAuditLogTab(auditLogTab);
 
             tabControl.TabPages.Add(loanOverridesTab);
-            tabControl.TabPages.Add(auditLogTab);
 
             this.Controls.Add(tabControl);
 
@@ -608,16 +605,6 @@ namespace LendingSystem.Admin
                     textBox.ForeColor = Color.Gray;
                 }
             };
-        }
-
-        private void InitializeAuditLogTab(TabPage tab)
-        {
-            tab.BackColor = Color.White;
-            tab.Padding = new Padding(10);
-
-            var auditLogControl = new AuditLogControl();
-            auditLogControl.Dock = DockStyle.Fill;
-            tab.Controls.Add(auditLogControl);
         }
 
         private void AddSampleLoanData()

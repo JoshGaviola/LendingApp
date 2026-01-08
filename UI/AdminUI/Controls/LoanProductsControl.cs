@@ -16,7 +16,6 @@ namespace LendingApp.UI.AdminUI
         private Button btnLoanTypes;
         private Button btnLoanProducts;
         private Button btnEditSelected;
-        private Button btnViewSelected;
         private Button btnDeactivateSelected;
 
         // Track selected row ID and status
@@ -192,7 +191,7 @@ namespace LendingApp.UI.AdminUI
 
             yPos += 35;
 
-            // ===== ROW ACTION BUTTONS (Edit, View, Deactivate) =====
+            // ===== ROW ACTION BUTTONS (Edit, Deactivate) =====
             var actionButtonsPanel = new Panel
             {
                 Location = new Point(10, yPos),
@@ -248,35 +247,11 @@ namespace LendingApp.UI.AdminUI
             };
             actionButtonsPanel.Controls.Add(btnEditSelected);
 
-            btnViewSelected = new Button
-            {
-                Text = "👁 View Selected",
-                Size = new Size(100, 30),
-                Location = new Point(110, 0),
-                Font = new Font("Segoe UI", 9),
-                FlatStyle = FlatStyle.Flat,
-                Cursor = Cursors.Hand,
-                BackColor = Color.White,
-                ForeColor = Color.Green,
-                Enabled = false
-            };
-            btnViewSelected.FlatAppearance.BorderColor = Color.Green;
-            btnViewSelected.FlatAppearance.BorderSize = 1;
-            btnViewSelected.Click += (s, e) =>
-            {
-                if (!string.IsNullOrEmpty(selectedProductId))
-                {
-                    MessageBox.Show($"View loan product ID: {selectedProductId}", "View Product",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            };
-            actionButtonsPanel.Controls.Add(btnViewSelected);
-
             btnDeactivateSelected = new Button
             {
                 Text = "✗ Deactivate Selected",
                 Size = new Size(120, 30),
-                Location = new Point(220, 0),
+                Location = new Point(110, 0),
                 Font = new Font("Segoe UI", 9),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -432,7 +407,6 @@ namespace LendingApp.UI.AdminUI
                     // Update action buttons
                     actionButtonsPanel.Visible = true;
                     btnEditSelected.Enabled = true;
-                    btnViewSelected.Enabled = true;
                     btnDeactivateSelected.Enabled = true;
 
                     // Update deactivate button text based on status
@@ -454,7 +428,6 @@ namespace LendingApp.UI.AdminUI
                     // No row selected, hide and disable action buttons
                     actionButtonsPanel.Visible = false;
                     btnEditSelected.Enabled = false;
-                    btnViewSelected.Enabled = false;
                     btnDeactivateSelected.Enabled = false;
                     selectedProductId = null;
                     isSelectedProductActive = false;
