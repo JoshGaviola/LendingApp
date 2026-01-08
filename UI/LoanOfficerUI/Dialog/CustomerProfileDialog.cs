@@ -7,6 +7,7 @@ using LendingApp.Class.Interface;
 using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Class.Repo;
 using LendingApp.UI.CustomerUI;
+using LendingApp.UI.LoanOfficerUI.Dialog; // <-- new dialog namespace
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -317,6 +318,21 @@ namespace LendingApp.UI.LoanOfficerUI
                             }
                         }
 
+                        return;
+                    }
+
+                    if (btn.Text == "View Loans")
+                    {
+                        if (string.IsNullOrWhiteSpace(customer?.Id))
+                        {
+                            MessageBox.Show("Invalid customer id.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        using (var dlg = new CustomerLoansDialog(customer.Id, customer.FullName))
+                        {
+                            dlg.ShowDialog(this);
+                        }
                         return;
                     }
 

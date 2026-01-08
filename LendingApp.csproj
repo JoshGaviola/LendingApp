@@ -423,6 +423,12 @@
     <Compile Include="UI\LoanOfficerUI\Dialog\CashierLoanSettlementForm.Designer.cs">
       <DependentUpon>CashierLoanSettlementForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerLoansDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerLoansDialog.Designer.cs">
+      <DependentUpon>CustomerLoansDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.cs">
       <SubType>Form</SubType>
     </Compile>
