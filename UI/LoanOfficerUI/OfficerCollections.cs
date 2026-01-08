@@ -588,9 +588,10 @@ namespace LendingApp.UI.LoanOfficerUI
 
             try
             {
-                // Open the loan view dialog that was already implemented.
-                // ApprovedLoanApplicationDialog expects an identifier (app/loan id) and will build the view model.
-                using (var dlg = new LendingApp.UI.LoanOfficerUI.Dialog.ApprovedLoanApplicationDialog(loanId))
+                // Resolve loan -> application number when possible, then open ApprovedLoanApplicationDialog
+                var appNumber = ResolveApplicationNumberFromLoanId(loanId);
+
+                using (var dlg = new LendingApp.UI.LoanOfficerUI.Dialog.ApprovedLoanApplicationDialog(appNumber))
                 {
                     dlg.StartPosition = FormStartPosition.CenterParent;
                     dlg.ShowDialog(this);
@@ -603,6 +604,53 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 MessageBox.Show("Failed to open loan view:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// Try to resolve a displayed LoanId (could be loan_number or a LN-{loanId} placeholder)
+        /// into an application number acceptable to ApprovedLoanApplicationDialog.
+        /// Returns the original loanId when resolution fails so the dialog can attempt lookup by application number.
+        /// </summary>
+        private string ResolveApplicationNumberFromLoanId(string loanId)
+        {
+            if (string.IsNullOrWhiteSpace(loanId)) return loanId;
+
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // 1) Try exact loan_number match
+                    var loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanNumber == loanId);
+                    if (loan == null)
+                    {
+                        // 2) Try parse LN-{id} pattern
+                        if (loanId.StartsWith("LN-", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var part = loanId.Substring(3);
+                            int numericId;
+                            if (int.TryParse(part, out numericId))
+                            {
+                                loan = db.Loans.AsNoTracking().FirstOrDefault(l => l.LoanId == numericId);
+                            }
+                        }
+                    }
+
+                    if (loan != null)
+                    {
+                        // find corresponding application entity to get the application number
+                        var app = db.LoanApplications.AsNoTracking().FirstOrDefault(a => a.ApplicationId == loan.ApplicationId);
+                        if (app != null && !string.IsNullOrWhiteSpace(app.ApplicationNumber))
+                            return app.ApplicationNumber;
+                    }
+                }
+            }
+            catch
+            {
+                // fail silently — return original id below
+            }
+
+            // fallback: maybe the UI already contains an application number; return original value
+            return loanId;
         }
 
         private string GetActionText(string status)
