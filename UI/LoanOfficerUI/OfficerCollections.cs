@@ -6,6 +6,9 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
+using LendingApp.Class.Models.LoanOfiicerModels;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -16,6 +19,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerCollectionLogic collectionLogic;
 
         // Data model
+        private readonly List<CollectionItem> dbCollections = new List<CollectionItem>();
 
         // Shell (consistent with OfficerDashboard)
         private Panel headerPanel;
@@ -71,7 +75,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private string startDate = "Dec 14";
         private string endDate = "Dec 21";
         private string searchTerm = "";
-      
+
 
         private readonly string[] filterOptions = { "All", "Overdue", "Due Today", "Upcoming", "Collected" };
 
@@ -83,12 +87,68 @@ namespace LendingApp.UI.LoanOfficerUI
             _hosted = hosted;
             InitializeComponent();
             BuildShell();
+
+            // create logic holder and attempt to load DB-backed data
             collectionLogic = new OfficerCollectionLogic();
+            LoadCollectionsFromDb();
 
             BuildCollectionsHome();
             BindEvents();
             ApplyData();
             RefreshTable();
+        }
+
+        /// <summary>
+        /// Load collections from the database. If DB read fails we silently fall back to the
+        /// built-in sample data already present in OfficerCollectionLogic.
+        /// </summary>
+        private void LoadCollectionsFromDb()
+        {
+            try
+            {
+                var svc = new LendingApp.Class.Services.Collections.OfficerCollectionService();
+                var items = svc.GetCollections();
+
+                if (items != null && items.Any())
+                {
+                    dbCollections.Clear();
+                    dbCollections.AddRange(items);
+
+                    var summary = svc.CalculateSummary(items);
+
+                    // Update the existing collectionLogic fields so UI cards keep using collectionLogic
+                    collectionLogic.summary["dueToday"] = summary.DueToday;
+                    collectionLogic.summary["overdue"] = summary.Overdue;
+                    collectionLogic.summary["thisWeek"] = summary.ThisWeek;
+                    collectionLogic.summary["collectedToday"] = summary.CollectedToday;
+
+                    collectionLogic.CollectionRate = summary.CollectionRate;
+                    collectionLogic.AverageCollection = summary.AverageCollection;
+                    collectionLogic.FollowUp = summary.FollowUp;
+                }
+            }
+            catch
+            {
+                // keep UI resilient: leave in-memory sample data in place if service fails
+            }
+        }
+
+        /// <summary>
+        /// Map the DB collection status + metadata to the UI status categories used by filters.
+        /// </summary>
+        private string MapToUiStatus(string dbStatus, int daysOverdue, DateTime dueDate)
+        {
+            if (!string.IsNullOrWhiteSpace(dbStatus) && dbStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                return "Collected";
+
+            if (daysOverdue > 0)
+                return "Overdue";
+
+            if (dueDate.Date == DateTime.Today)
+                return "Due Today";
+
+            // default: upcoming
+            return "Upcoming";
         }
 
         private void BuildShell()
@@ -334,12 +394,12 @@ namespace LendingApp.UI.LoanOfficerUI
             tableHeader.Controls.Add(lblShowingFilter);
 
             quickStatsPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent, Padding = new Padding(10, 0, 10, 10) };
-             qsRate = MakeQuickStatCard("Collection Rate", collectionLogic.CollectionRate = "75.5%", "+5.2% from last week", "#EDE9FE", "#7C3AED");
+            qsRate = MakeQuickStatCard("Collection Rate", collectionLogic.CollectionRate = "75.5%", "+5.2% from last week", "#EDE9FE", "#7C3AED");
             qsAverage = MakeQuickStatCard("Average Collection", collectionLogic.AverageCollection = "3,548", "Per payment", "#DBEAFE", "#2563EB");
-            qsFollowups = MakeQuickStatCard("Follow-ups Today", collectionLogic.FollowUp = "5"," 2 high priority", "#FFEDD5", "#EA580C");
+            qsFollowups = MakeQuickStatCard("Follow-ups Today", collectionLogic.FollowUp = "5", " 2 high priority", "#FFEDD5", "#EA580C");
             quickStatsPanel.Controls.Add(qsRate);
-           quickStatsPanel.Controls.Add(qsAverage);
-           quickStatsPanel.Controls.Add(qsFollowups);
+            quickStatsPanel.Controls.Add(qsAverage);
+            quickStatsPanel.Controls.Add(qsFollowups);
 
             contentPanel.Controls.Clear();
             contentPanel.Controls.Add(quickStatsPanel);
@@ -439,7 +499,10 @@ namespace LendingApp.UI.LoanOfficerUI
 
         private void RefreshTable()
         {
-            var filtered = collectionLogic.Allcollections.Where(item =>
+            // Prefer DB-backed collections if available; otherwise fall back to in-memory sample data
+            var source = dbCollections.Any() ? dbCollections : collectionLogic.Allcollections.ToList();
+
+            var filtered = source.Where(item =>
             {
                 bool matchesFilter = selectedFilter == "All" || item.Status == selectedFilter;
                 bool matchesSearch = string.IsNullOrWhiteSpace(searchTerm)
@@ -490,16 +553,55 @@ namespace LendingApp.UI.LoanOfficerUI
                 }
             }
 
+            // update counts and totals
+            lblItemsCount.Text = $"{filtered.Count} items";
+            lblTotalItems.Text = $"Total: {filtered.Count} items";
+
+            // compute total amount from the Amount strings (format "₱x,xxx")
+            decimal totalAmount = 0m;
+            foreach (var it in filtered)
+            {
+                if (string.IsNullOrWhiteSpace(it.Amount)) continue;
+                var cleaned = it.Amount.Replace("₱", "").Replace(",", "").Trim();
+                decimal val;
+                if (decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out val))
+                {
+                    totalAmount += val;
+                }
+            }
+            lblTotalAmount.Text = $"Total Amount: ₱{totalAmount.ToString("N0", CultureInfo.InvariantCulture)}";
         }
 
         private void GridCollections_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
-            if (gridCollections.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+
+            // Only handle clicks on the Actions button column
+            if (!(gridCollections.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
+
+            var loanId = gridCollections.Rows[e.RowIndex].Cells["LoanId"].Value?.ToString();
+            if (string.IsNullOrWhiteSpace(loanId))
             {
-                var statusAction = gridCollections.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
-                var loanId = gridCollections.Rows[e.RowIndex].Cells["LoanId"].Value?.ToString();
-                MessageBox.Show($"{statusAction} {loanId}", "Portfolio Action", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Loan identifier is missing.", "View Loan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                // Open the loan view dialog that was already implemented.
+                // ApprovedLoanApplicationDialog expects an identifier (app/loan id) and will build the view model.
+                using (var dlg = new LendingApp.UI.LoanOfficerUI.Dialog.ApprovedLoanApplicationDialog(loanId))
+                {
+                    dlg.StartPosition = FormStartPosition.CenterParent;
+                    dlg.ShowDialog(this);
+
+                    // Optionally refresh collections after closing if the dialog may change state
+                    RefreshTable();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open loan view:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
