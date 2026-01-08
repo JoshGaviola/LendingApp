@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -524,7 +525,36 @@ namespace LoanApplicationUI
                 RecalculateLoan();
             };
 
-            generateContractButton.Click += (s, e) => MessageBox.Show("Generating contract preview...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            generateContractButton.Click += (s, e) =>
+            {
+                try
+                {
+                    var appEntity = _loanRepo.GetByApplicationNumber(currentApplication?.Id);
+                    if (appEntity == null)
+                    {
+                        MessageBox.Show("Application not loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // optional: persist current evaluation as draft first, then use its id.
+                    // For now we just generate using applicationId and latest evaluation if any.
+                    var latestEval = _evalRepo.GetLatestByApplicationId(appEntity.ApplicationId);
+                    long? evalId = latestEval?.EvaluationId;
+
+                    var tempPath = Path.Combine(Path.GetTempPath(), $"contract_{appEntity.ApplicationNumber}_{Guid.NewGuid():N}.pdf");
+                    var svc = new LendingApp.Class.Services.Contracts.ContractService();
+                    svc.GenerateContractPdf(appEntity.ApplicationId, evalId, tempPath);
+
+                    using (var preview = new LendingApp.UI.LoanOfficerUI.Dialog.ContractPreviewForm(tempPath))
+                    {
+                        preview.ShowDialog(this);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to generate contract preview:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
             viewAmortizationButton.Click += ViewAmortizationButton_Click;
 
             saveAsDraftButton.Click += (s, e) => SaveAsDraft();

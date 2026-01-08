@@ -219,6 +219,7 @@
     <Compile Include="Class\Repo\LoanRepository.cs" />
     <Compile Include="Class\Services\Admin\LoanProductAdminService.cs" />
     <Compile Include="Class\Services\Admin\LoanProductCreateRequest.cs" />
+    <Compile Include="Class\Services\Contracts\ContractService.cs" />
     <Compile Include="Class\Services\CreditScoringService.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
@@ -423,6 +424,12 @@
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CashierLoanSettlementForm.Designer.cs">
       <DependentUpon>CashierLoanSettlementForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\ContractPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\ContractPreviewForm.Designer.cs">
+      <DependentUpon>ContractPreviewForm.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CustomerLoansDialog.cs">
       <SubType>Form</SubType>

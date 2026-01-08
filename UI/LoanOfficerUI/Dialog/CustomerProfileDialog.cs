@@ -217,19 +217,7 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             btnClose.Click += (s, e) => Close();
 
-            Button btnEdit = new Button
-            {
-                Text = "Edit Customer",
-                Location = new Point(590, 10),
-                Size = new Size(100, 30),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.FromArgb(59, 130, 246),
-                ForeColor = Color.White
-            };
-            btnEdit.Click += (s, e) => MessageBox.Show("Edit customer feature", "Edit");
-
             buttonPanel.Controls.Add(btnClose);
-            buttonPanel.Controls.Add(btnEdit);
             mainPanel.Controls.Add(buttonPanel);
 
             Controls.Clear();
@@ -253,14 +241,13 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
-            // Removed "Apply Loan", "Credit History", "Add Co-maker" per request.
+            // Keep only the desired quick actions (removed Blacklist/Activate)
             string[] buttons =
             {
-                "Update Profile",
-                "View Loans",
-                "Generate Report",
-                customer?.Status == "Active" ? "Blacklist" : "Activate"
-            };
+        "Update Profile",
+        "View Loans",
+        "Generate Report"
+    };
 
             int x = 10;
             int rowY = 10;
@@ -276,20 +263,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     FlatStyle = FlatStyle.Flat
                 };
 
-                if (buttons[i] == "Blacklist")
-                {
-                    btn.ForeColor = Color.Red;
-                    btn.FlatAppearance.BorderColor = Color.Red;
-                }
-                else if (buttons[i] == "Activate")
-                {
-                    btn.ForeColor = Color.Green;
-                    btn.FlatAppearance.BorderColor = Color.Green;
-                }
-                else
-                {
-                    btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
-                }
+                btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
 
                 btn.Click += (s, e) =>
                 {

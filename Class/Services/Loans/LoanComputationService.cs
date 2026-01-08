@@ -159,6 +159,24 @@ namespace LendingApp.Class.Services.Loans
             return rows;
         }
 
+        public static LoanInterestMethod ParseInterestMethod(string uiText)
+        {
+            var m = (uiText ?? "").Trim();
+
+            if (m.Equals("Diminishing Balance", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.DiminishingBalance;
+
+            if (m.Equals("Flat Rate", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.FlatRate;
+
+            if (m.Equals("Add-on Rate", StringComparison.OrdinalIgnoreCase) ||
+                m.Equals("Add On Rate", StringComparison.OrdinalIgnoreCase) ||
+                m.Equals("Addon Rate", StringComparison.OrdinalIgnoreCase))
+                return LoanInterestMethod.AddOnRate;
+
+            return LoanInterestMethod.DiminishingBalance;
+        }
+
         private static decimal Pmt(decimal ratePerPeriod, int numberOfPeriods, decimal presentValue)
         {
             if (numberOfPeriods <= 0) return 0m;
