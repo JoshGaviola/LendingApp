@@ -674,7 +674,8 @@ namespace LendingApp.UI.LoanOfficerUI
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect
             };
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("LoanType", "Loan Type");
@@ -689,18 +690,15 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             grid.Columns.Add(actionsCol);
 
-            // MODIFIED: Wire the Review button click
+            // Wire the Review button click
             grid.CellContentClick += (s, e) =>
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    // Get the application data
                     var row = grid.Rows[e.RowIndex];
-                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Juan Dela Cruz";
-                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Personal Loan";
-                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱50,000";
-
-                    // Show the application review
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Unknown";
+                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Loan";
+                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱0";
                     ShowApplicationReview(customer, loanType, amount);
                 }
             };
@@ -708,10 +706,66 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            // Add sample data
-            grid.Rows.Add("Juan Dela Cruz", "Personal Loan", "₱50,000", "2 days", "High", "Review");
-            grid.Rows.Add("Maria Santos", "Business Loan", "₱200,000", "1 day", "High", "Review");
-            grid.Rows.Add("Pedro Reyes", "Emergency Loan", "₱25,000", "3 days", "Medium", "Review");
+            // Load real loan applications from DB (populate ApplicantsData.AllLoans)
+            try
+            {
+                // Request all loans; OfficerApplicationLogic/GetApplications treats "All Status" as no status filter
+                DataGetter.Data.LoadLoans("All Status", "All Types", "");
+
+                // If no data, show friendly placeholder
+                if (DataGetter.Data.AllLoans == null || DataGetter.Data.AllLoans.Count == 0)
+                {
+                    var placeholder = new Label
+                    {
+                        Text = "No pending applications.",
+                        AutoSize = true,
+                        Location = new Point(20, 40),
+                        ForeColor = ColorTranslator.FromHtml("#6B7280")
+                    };
+                    sectionPending.Controls.Add(placeholder);
+                    return;
+                }
+
+                // Populate grid using real data and compute priority using ApplicationPriority
+                foreach (var loan in DataGetter.Data.AllLoans)
+                {
+                    // Determine days waiting from the Time string if possible
+                    string daysStr = "-";
+                    int days = 0;
+                    if (!string.IsNullOrWhiteSpace(loan.Time))
+                    {
+                        if (DateTime.TryParse(loan.Time, out var dt))
+                        {
+                            days = (DateTime.Now.Date - dt.Date).Days;
+                            daysStr = days <= 0 ? "0 days" : $"{days} days";
+                        }
+                    }
+
+                    // Amount formatting (fall back to LoanAmount if Amount is zero)
+                    decimal amt = loan.Amount;
+                    if (amt == 0 && loan.LoanAmount != 0) amt = loan.LoanAmount;
+                    string amountStr = amt > 0 ? $"₱{amt:N0}" : "₱0";
+
+                    // Compute priority using the shared calculator (tune inputs later)
+                    double score = LendingApp.Class.LogicClass.LoanOfficer.ApplicationPriority
+                        .ComputePriorityScore(days, amt, loan.Type ?? loan.LoanRef ?? "");
+                    string priority = LendingApp.Class.LogicClass.LoanOfficer.ApplicationPriority.GetPriorityLabel(score);
+
+                    grid.Rows.Add(loan.Borrower, loan.Type ?? loan.LoanRef, amountStr, daysStr, priority, "Review");
+                }
+            }
+            catch
+            {
+                // Avoid breaking UI on DB errors; show a placeholder and allow retry via Applications view.
+                var placeholder = new Label
+                {
+                    Text = "Unable to load pending applications. Open Applications view to retry.",
+                    AutoSize = true,
+                    Location = new Point(20, 40),
+                    ForeColor = ColorTranslator.FromHtml("#6B7280")
+                };
+                sectionPending.Controls.Add(placeholder);
+            }
         }
 
         private void ShowApplicationReview(string customer, string loanType, string amount)

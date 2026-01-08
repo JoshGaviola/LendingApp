@@ -114,6 +114,9 @@
       <HintPath>packages\PDFsharp.6.2.3\lib\netstandard2.0\PdfSharp.WPFonts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.ConfigurationManager, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -131,10 +134,13 @@
       <HintPath>packages\System.IO.Pipelines.5.0.2\lib\net461\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
@@ -178,6 +184,7 @@
     <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierProcessLogic.cs" />
     <Compile Include="Class\LogicClass\Loan Product\LoanProduct.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\ApplicationPriority.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
@@ -216,12 +223,9 @@
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
-<<<<<<< HEAD
     <Compile Include="Class\Services\PasswordHashing.cs" />
-=======
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
->>>>>>> b9a901ded18974f25ee9ebdd4725bcbfdb8c06f1
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->
     <Compile Include="Program.cs" />
@@ -524,6 +528,7 @@
       <DependentUpon>OfficerSettings.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="bin\Debug\LendingApp.exe.config" />
     <None Include="Document\wg_personal-loan-agreement-template.pdf" />
     <None Include="Lending Program ERD.drawio" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
@@ -539,6 +544,8 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <Content Include="bin\Debug\LendingApp.exe" />
+    <Content Include="bin\Debug\LendingApp.pdb" />
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
     <Content Include="lendingapp.sql" />
@@ -547,7 +554,6 @@
     <Content Include="UpgradeLog.htm" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="bin\Debug\" />
     <Folder Include="bin\Release\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
