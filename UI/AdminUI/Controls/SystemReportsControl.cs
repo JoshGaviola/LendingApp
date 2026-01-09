@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingSystem.Reports
 {
@@ -221,8 +224,8 @@ namespace LendingSystem.Reports
             reportGrid.Columns.Add("date", "Date");
             reportGrid.Columns.Add("status", "Status");
 
-            // Add sample data
-            AddSampleLoanData(reportGrid);
+            // Load real data from database; fall back to sample data on error
+            LoadLoanDataIntoGrid(reportGrid);
 
             borderPanel.Controls.Add(reportGrid);
             panelY += 210;
@@ -298,6 +301,75 @@ namespace LendingSystem.Reports
 
             mainContainer.Controls.Add(borderPanel);
             tab.Controls.Add(mainContainer);
+        }
+
+        /// <summary>
+        /// Loads loan data from the database into the provided grid.
+        /// On any failure the method falls back to the existing sample data method.
+        /// </summary>
+        private void LoadLoanDataIntoGrid(DataGridView grid)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var rows = (from l in db.Loans.AsNoTracking()
+                                join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj
+                                from c in cj.DefaultIfEmpty()
+                                join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj
+                                from p in pj.DefaultIfEmpty()
+                                select new
+                                {
+                                    LoanNumber = l.LoanNumber,
+                                    CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                    ProductName = p != null ? p.ProductName : "",
+                                    Amount = l.PrincipalAmount,
+                                    Date = l.ReleaseDate,
+                                    Status = l.Status
+                                })
+                                .OrderByDescending(x => (DateTime?)x.Date ?? DateTime.MinValue)
+                                .ToList();
+
+                    grid.Rows.Clear();
+
+                    foreach (var r in rows)
+                    {
+                        var dateText = r.Date != DateTime.MinValue ? r.Date.ToString("yyyy-MM-dd") : "";
+                        int idx = grid.Rows.Add(
+                            r.LoanNumber ?? "",
+                            string.IsNullOrWhiteSpace(r.CustomerName) ? "" : r.CustomerName,
+                            r.ProductName ?? "",
+                            $"₱{r.Amount:N2}",
+                            dateText,
+                            r.Status ?? ""
+                        );
+
+                        // Color code status cell
+                        var statusCell = grid.Rows[idx].Cells["status"];
+                        var status = (r.Status ?? "").Trim();
+                        if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(220, 252, 231);
+                            statusCell.Style.ForeColor = Color.FromArgb(21, 128, 61);
+                        }
+                        else if (status.Equals("Overdue", StringComparison.OrdinalIgnoreCase) || status.Equals("Defaulted", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 226, 226);
+                            statusCell.Style.ForeColor = Color.FromArgb(185, 28, 28);
+                        }
+                        else if (status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || status.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 249, 195);
+                            statusCell.Style.ForeColor = Color.FromArgb(161, 98, 7);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // If any error occurs reading the database, fall back to sample data so UI remains usable.
+                AddSampleLoanData(grid);
+            }
         }
 
         private void InitializePaymentReportsTab(TabPage tab)
