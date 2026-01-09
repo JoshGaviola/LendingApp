@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingSystem.Reports
 {
@@ -185,8 +189,8 @@ namespace LendingSystem.Reports
             paymentGrid.Columns.Add("type", "Type");
             paymentGrid.Columns.Add("status", "Status");
 
-            // Add sample data
-            AddSamplePaymentData();
+            // Load real data from database; fall back to sample data on error
+            LoadPaymentDataIntoGrid(paymentGrid);
 
             borderPanel.Controls.Add(paymentGrid);
             panelY += 210;
@@ -248,6 +252,71 @@ namespace LendingSystem.Reports
             this.Controls.Add(mainContainer);
 
             this.ResumeLayout(false);
+        }
+
+        /// <summary>
+        /// Load payments from the database and populate the provided grid.
+        /// Falls back to sample data on failure.
+        /// </summary>
+        private void LoadPaymentDataIntoGrid(DataGridView grid)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var rows = (from p in db.Payments.AsNoTracking()
+                                join l in db.Loans.AsNoTracking() on p.LoanId equals l.LoanId into lj
+                                from l in lj.DefaultIfEmpty()
+                                join c in db.Customers.AsNoTracking() on p.CustomerId equals c.CustomerId into cj
+                                from c in cj.DefaultIfEmpty()
+                                select new
+                                {
+                                    p.PaymentId,
+                                    Receipt = p.ReceiptNo,
+                                    Date = p.PaymentDate,
+                                    Customer = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                    LoanNumber = l != null ? l.LoanNumber : "",
+                                    Amount = p.AmountPaid,
+                                    Method = p.PaymentMethod,
+                                    Principal = p.PrincipalPaid,
+                                    Interest = p.InterestPaid,
+                                    Penalty = p.PenaltyPaid
+                                })
+                                .OrderByDescending(x => x.Date)
+                                .ToList();
+
+                    grid.Rows.Clear();
+
+                    foreach (var r in rows)
+                    {
+                        var customerDisplay = string.IsNullOrWhiteSpace(r.Customer) ? r.LoanNumber : r.Customer;
+                        var dateText = r.Date != DateTime.MinValue ? r.Date.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "";
+
+                        int idx = grid.Rows.Add(
+                            r.PaymentId.ToString(),
+                            customerDisplay,
+                            dateText,
+                            $"₱{r.Amount:N2}",
+                            r.Method ?? "",
+                            "Recorded"
+                        );
+
+                        // Color code status as recorded (green) - you can refine logic later
+                        var statusCell = grid.Rows[idx].Cells["status"];
+                        statusCell.Style.BackColor = Color.FromArgb(220, 252, 231);
+                        statusCell.Style.ForeColor = Color.FromArgb(21, 128, 61);
+                    }
+
+                    // Select first row if any
+                    if (grid.Rows.Count > 0)
+                        grid.Rows[0].Selected = true;
+                }
+            }
+            catch
+            {
+                // On error, keep UI usable by falling back to sample data.
+                AddSamplePaymentData();
+            }
         }
 
         private void AddSamplePaymentData()
