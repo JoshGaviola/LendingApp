@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingSystem.Reports
 {
@@ -185,8 +189,8 @@ namespace LendingSystem.Reports
             customerGrid.Columns.Add("status", "Status");
             customerGrid.Columns.Add("rank", "Rank");
 
-            // Add sample customer data
-            AddSampleCustomerData();
+            // Load real data from database; fall back to sample data on error
+            LoadCustomerDataIntoGrid(customerGrid);
 
             borderPanel.Controls.Add(customerGrid);
             panelY += 210;
@@ -248,6 +252,87 @@ namespace LendingSystem.Reports
             this.Controls.Add(mainContainer);
 
             this.ResumeLayout(false);
+        }
+
+        /// <summary>
+        /// Load customers and derived analytics into the grid.
+        /// Falls back to sample data when DB access fails.
+        /// </summary>
+        private void LoadCustomerDataIntoGrid(DataGridView grid)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    // Join customers with loans to compute aggregates per customer
+                    var rows = (from c in db.Customers.AsNoTracking()
+                                join l in db.Loans.AsNoTracking() on c.CustomerId equals l.CustomerId into loans
+                                select new
+                                {
+                                    CustomerId = c.CustomerId,
+                                    Name = ((c.FirstName ?? "") + " " + (c.LastName ?? "")).Trim(),
+                                    TotalLoanAmount = loans.Sum(x => (decimal?)x.PrincipalAmount) ?? 0m,
+                                    TotalLoansCount = loans.Count(),
+                                    AvgScore = (int?)c.InitialCreditScore ?? 0,
+                                    Status = c.Status ?? ""
+                                })
+                                .OrderByDescending(x => x.TotalLoanAmount)
+                                .ToList();
+
+                    grid.Rows.Clear();
+
+                    int rank = 1;
+                    foreach (var r in rows)
+                    {
+                        int idx = grid.Rows.Add(
+                            r.CustomerId ?? "",
+                            string.IsNullOrWhiteSpace(r.Name) ? r.CustomerId : r.Name,
+                            $"₱{r.TotalLoanAmount:N2}",
+                            r.AvgScore.ToString(CultureInfo.InvariantCulture),
+                            r.Status,
+                            rank.ToString(CultureInfo.InvariantCulture)
+                        );
+
+                        // Style status cell
+                        var statusCell = grid.Rows[idx].Cells["status"];
+                        var status = (r.Status ?? "").Trim();
+                        if (status.Equals("Blacklisted", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 226, 226);
+                            statusCell.Style.ForeColor = Color.FromArgb(185, 28, 28);
+                        }
+                        else if (r.AvgScore >= 90)
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(220, 252, 231);
+                            statusCell.Style.ForeColor = Color.FromArgb(21, 128, 61);
+                        }
+                        else if (r.AvgScore >= 70)
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 249, 195);
+                            statusCell.Style.ForeColor = Color.FromArgb(161, 98, 7);
+                        }
+
+                        // Highlight top ranks
+                        var rankCell = grid.Rows[idx].Cells["rank"];
+                        if (rank <= 3)
+                        {
+                            rankCell.Style.BackColor = Color.FromArgb(255, 251, 235);
+                            rankCell.Style.ForeColor = Color.FromArgb(180, 83, 9);
+                            rankCell.Style.Font = new Font(grid.Font, FontStyle.Bold);
+                        }
+
+                        rank++;
+                    }
+
+                    if (grid.Rows.Count > 0)
+                        grid.Rows[0].Selected = true;
+                }
+            }
+            catch
+            {
+                // DB read failed - fall back to sample data so the UI remains usable
+                AddSampleCustomerData();
+            }
         }
 
         private void AddSampleCustomerData()
