@@ -194,6 +194,7 @@
     <Compile Include="Class\Models\Admin\UserEntity.cs" />
     <Compile Include="Class\Models\CashierModels\PaymentEntity.cs" />
     <Compile Include="Class\Models\Loans\CollectionEntity.cs" />
+    <Compile Include="Class\Models\Tasks\TaskEntity.cs" />
     <Compile Include="Class\Models\User\User.cs" />
     <Compile Include="Class\Models\CashierModels\LoanReleaseModels.cs" />
     <Compile Include="Class\Models\CashierModels\TransactionModels.cs" />
@@ -225,6 +226,7 @@
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
+    <Compile Include="Class\Services\OfficerDashboardService.cs" />
     <Compile Include="Class\Services\PasswordHashing.cs" />
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />

@@ -1032,6 +1032,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 Dock = DockStyle.Top,
                 Padding = new Padding(8, 8, 0, 0)
             };
+
             var grid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -1041,6 +1042,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 RowHeadersVisible = false
             };
+
             grid.Columns.Add("Time", "Time");
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("TaskType", "Task Type");
@@ -1049,9 +1051,37 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionTasks.Controls.Add(grid);
             sectionTasks.Controls.Add(header);
 
-            foreach (var task in dashboard.AllTodayTasks)
+            // Try load today's tasks from DB via service
+            var todayTasks = new List<LendingApp.Class.Services.TodayTaskData>();
+            var hasDb = LendingApp.Class.Services.OfficerDashboardService.TryGetTodayTasks(todayTasks, 200);
+
+            if (hasDb)
             {
-                grid.Rows.Add(task.Time, task.Customer, task.TaskType, task.Status);
+                if (todayTasks.Count == 0)
+                {
+                    var placeholder = new Label
+                    {
+                        Text = "No tasks scheduled for today.",
+                        AutoSize = true,
+                        Location = new Point(20, 40),
+                        ForeColor = ColorTranslator.FromHtml("#6B7280")
+                    };
+                    sectionTasks.Controls.Add(placeholder);
+                    return;
+                }
+
+                foreach (var t in todayTasks)
+                {
+                    grid.Rows.Add(t.TimeDisplay, t.CustomerName, t.TaskType, t.Status);
+                }
+            }
+            else
+            {
+                // fallback to in-memory sample data (existing behavior)
+                foreach (var task in dashboard.AllTodayTasks)
+                {
+                    grid.Rows.Add(task.Time, task.Customer, task.TaskType, task.Status);
+                }
             }
         }
 
