@@ -24,7 +24,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private string activeNav = "Dashboard";
         private readonly List<string> navItems = new List<string>
         {
-            "Dashboard", "Applications", "Customers", "Collections", "Settings", "Loan Calculator"
+            "Dashboard", "Applications", "Customers", "Collections", "Reports", "Settings", "Loan Calculator"
         };
 
         // Embedded views
@@ -166,11 +166,15 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowCollectionsView();
                     }
+                    else if (item == "Reports")
+                    {
+                        ShowReportsView();
+                    }
                     else if (item == "Settings")
                     {
                         ShowSettingsView();
                     }
-                    else if (item == "Dashboard") // FIX: handle dashboard explicitly
+                    else if (item == "Dashboard")
                     {
                         ShowDashboardHome();
                     }
@@ -554,6 +558,137 @@ namespace LendingApp.UI.LoanOfficerUI
 
             contentPanel.Controls.Add(_settingsForm);
             _settingsForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowReportsView()
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Top summary cards container
+            var top = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 110,
+                BackColor = Color.White
+            };
+
+            // Card factory helper
+            Func<string, string, string, Panel> makeCard = (title, value, sub) =>
+            {
+                var p = new Panel
+                {
+                    Size = new Size(220, 80),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    BackColor = Color.White
+                };
+                var lblTitle = new Label
+                {
+                    Text = title,
+                    ForeColor = ColorTranslator.FromHtml("#6B7280"),
+                    Location = new Point(8, 6),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
+                };
+                var lblValue = new Label
+                {
+                    Text = value,
+                    ForeColor = ColorTranslator.FromHtml("#111827"),
+                    Location = new Point(8, 28),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 12, FontStyle.Bold)
+                };
+                var lblSub = new Label
+                {
+                    Text = sub,
+                    ForeColor = ColorTranslator.FromHtml("#9CA3AF"),
+                    Location = new Point(140, 34),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
+                };
+                p.Controls.Add(lblTitle);
+                p.Controls.Add(lblValue);
+                p.Controls.Add(lblSub);
+                return p;
+            };
+
+            // Default placeholders
+            var cardTotal = makeCard("Total Loans", "...", "");
+            var cardActive = makeCard("Active Loans", "...", "");
+            var cardOverdue = makeCard("Overdue", "...", "");
+            var cardOutstanding = makeCard("Outstanding", "...", "");
+
+            // Layout cards
+            cardTotal.Location = new Point(10, 15);
+            cardActive.Location = new Point(cardTotal.Right + 10, 15);
+            cardOverdue.Location = new Point(cardActive.Right + 10, 15);
+            cardOutstanding.Location = new Point(cardOverdue.Right + 10, 15);
+
+            top.Controls.Add(cardTotal);
+            top.Controls.Add(cardActive);
+            top.Controls.Add(cardOverdue);
+            top.Controls.Add(cardOutstanding);
+
+            // Recent loans grid
+            var grid = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect
+            };
+            grid.Columns.Add("LoanNumber", "Loan Number");
+            grid.Columns.Add("Customer", "Customer");
+            grid.Columns.Add("Status", "Status");
+            grid.Columns.Add("Outstanding", "Outstanding");
+            grid.Columns.Add("DaysOverdue", "Days Over");
+            grid.Columns.Add("NextDue", "Next Due");
+
+            contentPanel.Controls.Add(grid);
+            contentPanel.Controls.Add(top);
+
+            // Load real data
+            try
+            {
+                // Summary
+                if (LendingApp.Class.Services.OfficerReportsService.TryGetReportsSummary(out var summary))
+                {
+                    cardTotal.Controls[1].Text = $"[{summary.TotalLoans}]";
+                    cardActive.Controls[1].Text = $"[{summary.ActiveLoans}]";
+                    cardOverdue.Controls[1].Text = $"[{summary.OverdueLoans}]";
+                    cardOutstanding.Controls[1].Text = $"{summary.TotalOutstanding.ToString("C0", CultureInfo.InvariantCulture)}";
+                }
+                else
+                {
+                    // DB not reachable: show placeholder text in cards
+                    cardTotal.Controls[1].Text = "n/a";
+                    cardActive.Controls[1].Text = "n/a";
+                    cardOverdue.Controls[1].Text = "n/a";
+                    cardOutstanding.Controls[1].Text = "n/a";
+                }
+
+                // Recent loans
+                var recent = new List<LendingApp.Class.Services.RecentLoanData>();
+                if (LendingApp.Class.Services.OfficerReportsService.TryGetRecentLoans(recent, 100))
+                {
+                    foreach (var r in recent)
+                    {
+                        var nextDue = r.NextDueDate.HasValue ? r.NextDueDate.Value.ToString("yyyy-MM-dd") : "";
+                        grid.Rows.Add(r.LoanNumber, r.Customer, r.Status, $"₱{r.OutstandingBalance:N2}", r.DaysOverdue, nextDue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to load reports: " + (ex.InnerException?.Message ?? ex.Message), "Reports Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
             contentPanel.ResumeLayout();
         }
 

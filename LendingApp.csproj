@@ -227,6 +227,7 @@
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
     <Compile Include="Class\Services\OfficerDashboardService.cs" />
+    <Compile Include="Class\Services\OfficerReportsService.cs" />
     <Compile Include="Class\Services\PasswordHashing.cs" />
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
