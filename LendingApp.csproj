@@ -226,21 +226,15 @@
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
-<<<<<<< HEAD
-
     <Compile Include="Class\Services\PasswordHashing.cs" />
-
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
-
-=======
     <Compile Include="Class\Services\OfficerDashboardService.cs" />
     <Compile Include="Class\Services\OfficerReportsService.cs" />
     <Compile Include="Class\Services\PasswordHashing.cs" />
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
     <Compile Include="Class\Services\Reports\CustomerReportService.cs" />
->>>>>>> 5f51dcec466b2ed17e9a9c5960ed927e27d8cecb
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->
     <Compile Include="Program.cs" />

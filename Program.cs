@@ -36,29 +36,21 @@ namespace LendingApp
             }
 
             // e run ni sa console bai, e copy tapos sa sql ilisdi ang admin123 og ang hash nga ma generate diri
-<<<<<<< HEAD
-            /*
+            
             string hash = BCrypt.Net.BCrypt.HashPassword("admin123");
-=======
-            string hash = BCrypt.Net.BCrypt.HashPassword("123456");
->>>>>>> 5f51dcec466b2ed17e9a9c5960ed927e27d8cecb
             Console.WriteLine(hash);
             Console.ReadLine();
-            */
 
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
-<<<<<<< HEAD
-            //Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
-           //Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
-           Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
-=======
-           // Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
-           // Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
-             Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
->>>>>>> 5f51dcec466b2ed17e9a9c5960ed927e27d8cecb
+
+            //  Application.Run(new LendingApp.UI.AdminUI.AdminLogin());
+            //Application.Run(new LendingApp.UI.CashierUI.CashierLogin());
+            //Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerLogin());
+            Application.Run(new LendingApp.UI.LoanOfficerUI.OfficerDashboard());
+
+
 
         }
 

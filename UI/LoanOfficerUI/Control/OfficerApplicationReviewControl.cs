@@ -502,6 +502,7 @@ namespace LendingSystem
             int buttonSpacing = 5;
             int rowHeight = buttonHeight + 5;
 
+         
             for (int i = 0; i < buttons.Length; i++)
             {
                 int buttonWidth = 140;
@@ -536,8 +537,9 @@ namespace LendingSystem
                 {
                     btn.FlatAppearance.BorderSize = 0;
                 }
+                int index = i; 
+                btn.Click += (s, e) => ShowDialogForButton(buttons[index]);
 
-                btn.Click += (s, e) => ShowDialogForButton(buttons[i]);
 
                 buttonPanel.Controls.Add(btn);
                 currentX += buttonWidth + buttonSpacing;
