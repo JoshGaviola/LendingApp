@@ -3,9 +3,13 @@ using LendingSystem;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using LendingApp.Class.Services;
 using static LendingApp.Class.Services.DataGetter;
+using LendingApp.Class;                 // <-- needed for AppDbContext
+using System.Data.Entity;               // <-- AsNoTracking
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -33,6 +37,9 @@ namespace LendingApp.UI.LoanOfficerUI
         private OfficerApplicationReviewControl _reviewControl;
         private OfficerCollectionFollowUpControl _collectionFollowUpControl;
         private OfficerApplicationLogic applicationLogic;
+
+        // Keep latest DB-backed overdue rows so the Follow-Up dialog can use real data.
+        private readonly List<OverdueLoanData> _dbOverdueLoans = new List<OverdueLoanData>();
 
         private class ActivityItem
         {
@@ -257,7 +264,10 @@ namespace LendingApp.UI.LoanOfficerUI
             lblOverdueTitle.Text = "Overdue";
             lblOverdueTitle.ForeColor = ColorTranslator.FromHtml("#DC2626");
             lblOverdueTitle.Location = new Point(10, 8);
+
+            // This will be updated in BuildOverdueLoansSection after DB load.
             lblOverdueCount.Text = $"[{dashboard.TotalOverdueLoans}]";
+
             lblOverdueCount.ForeColor = ColorTranslator.FromHtml("#991B1B");
             lblOverdueCount.Location = new Point(10, 28);
             lblOverdueSub.Text = "Loans";
@@ -778,6 +788,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private void BuildOverdueLoansSection()
         {
             sectionOverdue.Controls.Clear();
+
             var header = new Label
             {
                 Text = "OVERDUE LOANS (NEEDS FOLLOW-UP)",
@@ -789,6 +800,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 Dock = DockStyle.Top,
                 Padding = new Padding(8, 8, 0, 0)
             };
+
             var grid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -798,11 +810,13 @@ namespace LendingApp.UI.LoanOfficerUI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 RowHeadersVisible = false
             };
+
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("AmountDue", "Amount Due");
             grid.Columns.Add("DaysOverdue", "Days Over");
             grid.Columns.Add("Contact", "Contact");
             grid.Columns.Add("Priority", "Priority");
+
             var actionsCol = new DataGridViewButtonColumn
             {
                 HeaderText = "Actions",
@@ -810,46 +824,198 @@ namespace LendingApp.UI.LoanOfficerUI
                 UseColumnTextForButtonValue = true
             };
             grid.Columns.Add(actionsCol);
-            grid.CellContentClick += (s, e) =>
-            {
-                if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
-                {
-                    // Get the loan data from the clicked row
-                    var row = grid.Rows[e.RowIndex];
-                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Pedro Reyes";
-                    string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "₱3,850.00";
-                    string daysOverdue = row.Cells["DaysOverdue"].Value?.ToString() ?? "5";
-
-                    // Create loan data for the follow-up control
-                    var overdueLoanData = new LendingSystem.OverdueLoanData
-                    {
-                        Id = "LN-2024-0456",
-                        Customer = customer,
-                        CustomerId = "CUST-045",
-                        LoanType = "Personal Loan",
-                        OriginalAmount = "₱50,000",
-                        Term = "12 months",
-                        DueDate = "December 10, 2024",
-                        DaysOverdue = int.TryParse(daysOverdue.Replace(" days", ""), out int days) ? days : 5,
-                        AmountDue = amountDue,
-                        Penalty = "₱12.70",
-                        TotalDue = "₱3,862.70",
-                        OutstandingBalance = "₱23,100.00",
-                        Contact = "+639456789012"
-                    };
-
-                    // Show the collection follow-up control
-                    ShowCollectionFollowUp(overdueLoanData);
-                }
-            };
 
             sectionOverdue.Controls.Add(grid);
             sectionOverdue.Controls.Add(header);
 
-            foreach (var loan in dashboard.AllOverdueLoans)
+            // Always load from DB first; if it fails, fall back to sample dashboard.AllOverdueLoans.
+            _dbOverdueLoans.Clear();
+            var hasDb = TryLoadOverdueLoansFromDb(_dbOverdueLoans);
+
+            var rows = hasDb
+                ? _dbOverdueLoans
+                : dashboard.AllOverdueLoans.Select(x => new OverdueLoanData
+                {
+                    Id = x.Id,
+                    Customer = x.Customer,
+                    CustomerId = "",
+                    LoanType = "",
+                    OriginalAmount = "",
+                    Term = "",
+                    DueDate = "",
+                    DaysOverdue = x.DaysOverdue,
+                    AmountDue = x.AmountDue,
+                    Penalty = "",
+                    TotalDue = "",
+                    OutstandingBalance = "",
+                    Contact = x.Contact
+                }).ToList();
+
+            // Update the Overdue card count to reflect DB rows when possible.
+            try
             {
-                grid.Rows.Add(loan.Customer, loan.AmountDue, loan.DaysOverdue, loan.Contact, loan.Priority);
+                lblOverdueCount.Text = $"[{rows.Count}]";
             }
+            catch { /* keep UI resilient */ }
+
+            foreach (var r in rows)
+            {
+                grid.Rows.Add(
+                    r.Customer ?? "",
+                    r.AmountDue ?? "",
+                    $"{r.DaysOverdue}",
+                    r.Contact ?? "",
+                    GetPriorityLabelFromDays(r.DaysOverdue));
+            }
+
+            grid.CellContentClick += (s, e) =>
+            {
+                if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
+                {
+                    // Prefer DB-backed object if available, else fallback from grid.
+                    OverdueLoanData selected = null;
+
+                    if (hasDb && e.RowIndex < _dbOverdueLoans.Count)
+                    {
+                        selected = _dbOverdueLoans[e.RowIndex];
+                    }
+                    else
+                    {
+                        var row = grid.Rows[e.RowIndex];
+                        string customer = row.Cells["Customer"].Value?.ToString() ?? "";
+                        string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "";
+                        int daysOverdue = 0;
+                        int.TryParse(row.Cells["DaysOverdue"].Value?.ToString() ?? "0", out daysOverdue);
+
+                        selected = new OverdueLoanData
+                        {
+                            Id = "",
+                            Customer = customer,
+                            CustomerId = "",
+                            LoanType = "",
+                            OriginalAmount = "",
+                            Term = "",
+                            DueDate = "",
+                            DaysOverdue = daysOverdue,
+                            AmountDue = amountDue,
+                            Penalty = "",
+                            TotalDue = "",
+                            OutstandingBalance = "",
+                            Contact = row.Cells["Contact"].Value?.ToString() ?? ""
+                        };
+                    }
+
+                    ShowCollectionFollowUp(selected);
+                }
+            };
+        }
+
+        /// <summary>
+        /// Loads overdue loans from DB using the `loans` table (and joins customers + loan_products).
+        /// Overdue condition: Status == 'Active' AND (DaysOverdue > 0 OR NextDueDate < Today).
+        /// Uses fields that exist in lendingapp.sql: loans.days_overdue, loans.next_due_date, customers.mobile_number, etc.
+        /// </summary>
+        private bool TryLoadOverdueLoansFromDb(List<OverdueLoanData> target)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var today = DateTime.Today;
+
+                    // Query minimal columns; avoid DbFunctions/TruncateTime calls to keep translation simple.
+                    var query =
+                        from l in db.Loans.AsNoTracking()
+                        join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj
+                        from c in cj.DefaultIfEmpty()
+                        join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj
+                        from p in pj.DefaultIfEmpty()
+                        where (l.Status ?? "") == "Active"
+                              && (
+                                  l.DaysOverdue > 0
+                                  // next_due_date on or before today
+                                  || (l.NextDueDate != null && l.NextDueDate <= today)
+                                  // or outstanding balance exists and next due is null or due already
+                                  || (l.OutstandingBalance > 0 && (l.NextDueDate == null || l.NextDueDate <= today))
+                                 )
+                        orderby l.DaysOverdue descending, l.NextDueDate
+                        select new
+                        {
+                            l.LoanNumber,
+                            l.CustomerId,
+                            CustomerFirst = c != null ? c.FirstName : null,
+                            CustomerLast = c != null ? c.LastName : null,
+                            Contact = c != null ? c.MobileNumber : null,
+                            ProductName = p != null ? p.ProductName : null,
+                            l.PrincipalAmount,
+                            l.TermMonths,
+                            l.NextDueDate,
+                            l.DaysOverdue,
+                            l.MonthlyPayment,
+                            l.OutstandingBalance
+                        };
+
+                    var data = query.Take(100).ToList();
+
+                    // DB reachable — clear and populate target (may be zero rows)
+                    target.Clear();
+
+                    foreach (var x in data)
+                    {
+                        int days = x.DaysOverdue;
+                        if (days <= 0 && x.NextDueDate.HasValue && x.NextDueDate.Value.Date < today)
+                            days = (today - x.NextDueDate.Value.Date).Days;
+
+                        var dueDateText = x.NextDueDate.HasValue
+                            ? x.NextDueDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+                            : string.Empty;
+
+                        var amountDue = x.MonthlyPayment > 0 ? $"₱{x.MonthlyPayment:N2}" : $"₱{x.OutstandingBalance:N2}";
+
+                        var customerName = (x.CustomerFirst ?? "").Trim();
+                        if (!string.IsNullOrWhiteSpace(x.CustomerLast))
+                        {
+                            customerName = (customerName + " " + x.CustomerLast).Trim();
+                        }
+                        if (string.IsNullOrWhiteSpace(customerName))
+                            customerName = x.CustomerId ?? "";
+
+                        target.Add(new OverdueLoanData
+                        {
+                            Id = x.LoanNumber ?? "",
+                            Customer = customerName,
+                            CustomerId = x.CustomerId ?? "",
+                            LoanType = x.ProductName ?? "",
+                            OriginalAmount = x.PrincipalAmount > 0 ? $"₱{x.PrincipalAmount:N0}" : "",
+                            Term = x.TermMonths > 0 ? $"{x.TermMonths} months" : "",
+                            DueDate = dueDateText,
+                            DaysOverdue = days,
+                            AmountDue = amountDue,
+                            Penalty = "",
+                            TotalDue = "",
+                            OutstandingBalance = $"₱{x.OutstandingBalance:N2}",
+                            Contact = x.Contact ?? ""
+                        });
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // show inner exception where available for precise diagnostics
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show("Failed to load overdue loans from DB:\n" + msg, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+        }
+
+        private static string GetPriorityLabelFromDays(int daysOverdue)
+        {
+            if (daysOverdue >= 7) return "Critical";
+            if (daysOverdue >= 4) return "High";
+            if (daysOverdue >= 1) return "Medium";
+            return "Low";
         }
 
         private void BuildTasksSection()
