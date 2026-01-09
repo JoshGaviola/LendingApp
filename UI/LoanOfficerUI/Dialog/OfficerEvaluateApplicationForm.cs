@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -8,6 +9,7 @@ using LendingApp.Class.Interface;
 using LendingApp.Class.Models.Loans;
 using LendingApp.Class.Repo;
 using LendingApp.Class.Services.Loans;
+using LendingApp.UI.LoanOfficerUI.Dialog;
 
 namespace LoanApplicationUI
 {
@@ -524,12 +526,81 @@ namespace LoanApplicationUI
                 RecalculateLoan();
             };
 
-            generateContractButton.Click += (s, e) => MessageBox.Show("Generating contract preview...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            viewAmortizationButton.Click += (s, e) => MessageBox.Show("Viewing amortization schedule...", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            generateContractButton.Click += (s, e) =>
+            {
+                try
+                {
+                    var appEntity = _loanRepo.GetByApplicationNumber(currentApplication?.Id);
+                    if (appEntity == null)
+                    {
+                        MessageBox.Show("Application not loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // optional: persist current evaluation as draft first, then use its id.
+                    // For now we just generate using applicationId and latest evaluation if any.
+                    var latestEval = _evalRepo.GetLatestByApplicationId(appEntity.ApplicationId);
+                    long? evalId = latestEval?.EvaluationId;
+
+                    var tempPath = Path.Combine(Path.GetTempPath(), $"contract_{appEntity.ApplicationNumber}_{Guid.NewGuid():N}.pdf");
+                    var svc = new LendingApp.Class.Services.Contracts.ContractService();
+                    svc.GenerateContractPdf(appEntity.ApplicationId, evalId, tempPath);
+
+                    using (var preview = new LendingApp.UI.LoanOfficerUI.Dialog.ContractPreviewForm(tempPath))
+                    {
+                        preview.ShowDialog(this);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to generate contract preview:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
+            viewAmortizationButton.Click += ViewAmortizationButton_Click;
 
             saveAsDraftButton.Click += (s, e) => SaveAsDraft();
             rejectButton.Click += (s, e) => RejectApplication();
             approveButton.Click += (s, e) => ApproveApplication();
+        }
+
+        private void ViewAmortizationButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var principal = GetEffectivePrincipal();
+                if (principal <= 0m)
+                {
+                    MessageBox.Show("Invalid principal amount for amortization.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var term = ParseSelectedTermMonths(loanTermComboBox);
+                if (term <= 0)
+                {
+                    MessageBox.Show("Select a valid term.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var rate = (decimal)interestRateInput.Value;
+                var fee = (decimal)serviceFeeInput.Value;
+                var method = MapInterestMethod(interestMethodComboBox.SelectedItem?.ToString());
+
+                var schedule = LoanComputationService.GetAmortizationSchedule(
+                    principal: principal,
+                    annualRatePct: rate,
+                    termMonths: term,
+                    serviceFeePct: fee,
+                    method: method);
+
+                using (var f = new AmortizationScheduleForm(schedule, $"Amortization — ₱{principal:N2} · {term} months"))
+                {
+                    f.ShowDialog(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to generate amortization schedule.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // ---------------------------

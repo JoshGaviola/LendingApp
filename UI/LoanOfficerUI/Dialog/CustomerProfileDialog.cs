@@ -7,6 +7,12 @@ using LendingApp.Class.Interface;
 using LendingApp.Class.Models.LoanOfiicerModels;
 using LendingApp.Class.Repo;
 using LendingApp.UI.CustomerUI;
+using LendingApp.UI.LoanOfficerUI.Dialog; // <-- new dialog namespace
+using PdfSharp.Pdf;
+using PdfSharp.Drawing;
+using System.IO;
+using LendingApp.Class;
+using LendingApp.Class.Services.Reports; // add at top of file's using section
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -26,8 +32,10 @@ namespace LendingApp.UI.LoanOfficerUI
             _customerRepo = customerRepo ?? throw new ArgumentNullException(nameof(customerRepo));
 
             InitializeComponent();   // calls the designer one
-            SetupUI();
+
+            // Load from DB first (if possible), then build UI once.
             LoadCustomerData();
+            SetupUI();
         }
 
         private void ReloadFromDb()
@@ -41,7 +49,19 @@ namespace LendingApp.UI.LoanOfficerUI
 
             // Rebuild UI to reflect updated values (labels are static text created once)
             SetupUI();
-            LoadCustomerData();
+        }
+
+        private void LoadCustomerData()
+        {
+            // If we have an ID, always prefer DB as the source-of-truth.
+            if (string.IsNullOrWhiteSpace(customer?.Id))
+                return;
+
+            var dbCustomer = _customerRepo.GetById(customer.Id);
+            if (dbCustomer == null)
+                return;
+
+            customer = MapToDialogCustomerData(dbCustomer);
         }
 
         private static CustomerData MapToDialogCustomerData(CustomerRegistrationData c)
@@ -197,19 +217,7 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             btnClose.Click += (s, e) => Close();
 
-            Button btnEdit = new Button
-            {
-                Text = "Edit Customer",
-                Location = new Point(590, 10),
-                Size = new Size(100, 30),
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.FromArgb(59, 130, 246),
-                ForeColor = Color.White
-            };
-            btnEdit.Click += (s, e) => MessageBox.Show("Edit customer feature", "Edit");
-
             buttonPanel.Controls.Add(btnClose);
-            buttonPanel.Controls.Add(btnEdit);
             mainPanel.Controls.Add(buttonPanel);
 
             Controls.Clear();
@@ -233,28 +241,19 @@ namespace LendingApp.UI.LoanOfficerUI
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            // Keep only the desired quick actions (removed Blacklist/Activate)
             string[] buttons =
             {
-                "Update Profile",
-                "Apply Loan",
-                "View Loans",
-                "Credit History",
-                "Add Co-maker",
-                "Generate Report",
-                customer?.Status == "Active" ? "Blacklist" : "Activate"
-            };
+        "Update Profile",
+        "View Loans",
+        "Generate Report"
+    };
 
             int x = 10;
             int rowY = 10;
 
             for (int i = 0; i < buttons.Length; i++)
             {
-                if (i == 4)
-                {
-                    x = 10;
-                    rowY = 50;
-                }
-
                 Button btn = new Button
                 {
                     Text = buttons[i],
@@ -264,20 +263,7 @@ namespace LendingApp.UI.LoanOfficerUI
                     FlatStyle = FlatStyle.Flat
                 };
 
-                if (buttons[i] == "Blacklist")
-                {
-                    btn.ForeColor = Color.Red;
-                    btn.FlatAppearance.BorderColor = Color.Red;
-                }
-                else if (buttons[i] == "Activate")
-                {
-                    btn.ForeColor = Color.Green;
-                    btn.FlatAppearance.BorderColor = Color.Green;
-                }
-                else
-                {
-                    btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
-                }
+                btn.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
 
                 btn.Click += (s, e) =>
                 {
@@ -314,6 +300,34 @@ namespace LendingApp.UI.LoanOfficerUI
                         return;
                     }
 
+                    if (btn.Text == "View Loans")
+                    {
+                        if (string.IsNullOrWhiteSpace(customer?.Id))
+                        {
+                            MessageBox.Show("Invalid customer id.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        using (var dlg = new CustomerLoansDialog(customer.Id, customer.FullName))
+                        {
+                            dlg.ShowDialog(this);
+                        }
+                        return;
+                    }
+
+                    if (btn.Text == "Generate Report")
+                    {
+                        try
+                        {
+                            GeneratePdfReport();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Failed to generate report:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        return;
+                    }
+
                     MessageBox.Show(btn.Text + " feature", "Action");
                 };
                 panel.Controls.Add(btn);
@@ -324,10 +338,34 @@ namespace LendingApp.UI.LoanOfficerUI
             y += 100;
         }
 
-        private void LoadCustomerData()
+        private void GeneratePdfReport()
         {
-            // Data is already injected through constructor.
-            // This method exists for compatibility.
+            if (string.IsNullOrWhiteSpace(customer?.Id))
+            {
+                MessageBox.Show("Invalid customer id.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // refresh latest customer from DB
+            var dbCustomer = _customerRepo.GetById(customer.Id);
+            if (dbCustomer != null) customer = MapToDialogCustomerData(dbCustomer);
+
+            using (var sfd = new SaveFileDialog { Filter = "PDF files (*.pdf)|*.pdf", FileName = $"{customer.Id}_profile.pdf" })
+            {
+                if (sfd.ShowDialog(this) != DialogResult.OK) return;
+
+                try
+                {
+                    var svc = new CustomerReportService();
+                    svc.GenerateCustomerProfilePdf(customer.Id, sfd.FileName);
+
+                    MessageBox.Show("Report generated: " + sfd.FileName, "Report", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to generate report:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         // Expanded customer data class to support what UI is showing

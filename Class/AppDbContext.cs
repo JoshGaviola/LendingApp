@@ -8,6 +8,7 @@ using LoanProductEntity = LendingApp.Class.Models.Loans.LoanProductEntity;
 using LoanApplicationEvaluationEntity = LendingApp.Class.Models.Loans.LoanApplicationEvaluationEntity;
 using LoanEntity = LendingApp.Class.Models.Loans.LoanEntity;
 using LendingApp.Class.Models.Admin;
+using TaskEntity = LendingApp.Class.Models.Tasks.TaskEntity; // <- added
 
 namespace LendingApp.Class
 {
@@ -19,14 +20,15 @@ namespace LendingApp.Class
         public DbSet<LoanApplicationEntity> LoanApplications { get; set; }
         public DbSet<LoanProductEntity> LoanProducts { get; set; }
 
-
-
         public DbSet<LoanApplicationEvaluationEntity> LoanApplicationEvaluations { get; set; }
         public DbSet<LoanEntity> Loans { get; set; }
         public DbSet<CollectionEntity> Collections { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
 
         public DbSet<UserEntity> Users { get; set; }
+
+        // NEW: Tasks DbSet
+        public DbSet<TaskEntity> Tasks { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -222,6 +224,22 @@ namespace LendingApp.Class
 
             modelBuilder.Entity<LoanEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
             modelBuilder.Entity<LoanEntity>().Property(x => x.LastUpdated).HasColumnName("last_updated").IsRequired();
+
+            // ===== tasks mapping (ADDED) =====
+            modelBuilder.Entity<TaskEntity>()
+                .ToTable("tasks")
+                .HasKey(x => x.TaskId);
+
+            modelBuilder.Entity<TaskEntity>().Property(x => x.TaskId).HasColumnName("task_id");
+            modelBuilder.Entity<TaskEntity>().Property(x => x.AssignedTo).HasColumnName("assigned_to").IsRequired();
+            modelBuilder.Entity<TaskEntity>().Property(x => x.LoanId).HasColumnName("loan_id");
+            modelBuilder.Entity<TaskEntity>().Property(x => x.CustomerId).HasColumnName("customer_id").HasMaxLength(32);
+            modelBuilder.Entity<TaskEntity>().Property(x => x.TaskType).HasColumnName("task_type").HasMaxLength(50).IsRequired();
+            modelBuilder.Entity<TaskEntity>().Property(x => x.Description).HasColumnName("description").HasMaxLength(500);
+            modelBuilder.Entity<TaskEntity>().Property(x => x.ScheduledTime).HasColumnName("scheduled_time").IsRequired();
+            modelBuilder.Entity<TaskEntity>().Property(x => x.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            modelBuilder.Entity<TaskEntity>().Property(x => x.CreatedDate).HasColumnName("created_date").IsRequired();
+            modelBuilder.Entity<TaskEntity>().Property(x => x.CompletedDate).HasColumnName("completed_date");
 
             modelBuilder.Entity<CollectionEntity>()
                 .ToTable("collections")

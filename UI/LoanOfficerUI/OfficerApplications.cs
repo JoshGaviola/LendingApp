@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using LendingApp.Models.LoanOfficer;
 using LendingApp.Class.Services;
 using LendingApp.UI.LoanOfficerUI.Dialog;
+using LendingApp.Class.Repo;
+using LendingApp.Class.Models.Loans;
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -118,6 +120,16 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             gridApplications.Columns.Add(actionCol);
 
+            // New: Reject column to allow quick reject from list when applicable
+            var rejectCol = new DataGridViewButtonColumn
+            {
+                Name = "RejectAction",
+                HeaderText = "Reject",
+                Text = "Reject",
+                UseColumnTextForButtonValue = true
+            };
+            gridApplications.Columns.Add(rejectCol);
+
             gridApplications.CellContentClick += GridApplications_CellContentClick;
 
             lblResults.Text = "";
@@ -182,6 +194,26 @@ namespace LendingApp.UI.LoanOfficerUI
 
                 var btnCell = (DataGridViewButtonCell)gridApplications.Rows[rowIndex].Cells[5];
                 btnCell.Value = GetActionText(app.Applied);
+
+                // Set reject button availability: only for Pending or Review
+                var rejectCell = gridApplications.Rows[rowIndex].Cells["RejectAction"] as DataGridViewButtonCell;
+                if (rejectCell != null)
+                {
+                    if (string.Equals(app.Applied, "Pending", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(app.Applied, "Review", StringComparison.OrdinalIgnoreCase))
+                    {
+                        rejectCell.Value = "Reject";
+                        // style to indicate destructive action
+                        rejectCell.Style.ForeColor = Color.White;
+                        rejectCell.Style.BackColor = Color.FromArgb(200, 0, 0);
+                    }
+                    else
+                    {
+                        rejectCell.Value = "";
+                        rejectCell.Style.ForeColor = Color.Black;
+                        rejectCell.Style.BackColor = Color.White;
+                    }
+                }
             }
 
             lblResults.Text = $"{Loans.AllLoans.Count} of {logic.TotalApplications} applications";
@@ -196,6 +228,16 @@ namespace LendingApp.UI.LoanOfficerUI
             var action = gridApplications.Rows[e.RowIndex].Cells[e.ColumnIndex].Value?.ToString();
 
             if (string.IsNullOrWhiteSpace(appId)) return;
+
+            // If Reject button clicked (column named "RejectAction")
+            if (gridApplications.Columns[e.ColumnIndex].Name == "RejectAction")
+            {
+                // if no visible value, ignore
+                if (string.IsNullOrWhiteSpace(action)) return;
+
+                HandleRejectFromList(appId);
+                return;
+            }
 
             // REVIEW -> show review dialog (send for evaluation happens there)
             if (string.Equals(action, "Review", StringComparison.OrdinalIgnoreCase))
@@ -282,12 +324,140 @@ namespace LendingApp.UI.LoanOfficerUI
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
+        private void HandleRejectFromList(string appId)
+        {
+            // Prompt for rejection reason (required)
+            var reason = PromptRejectionReason();
+            if (reason == null) return; // user cancelled
+
+            if (MessageBox.Show($"Are you sure you want to reject application {appId}?", "Confirm Rejection",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            try
+            {
+                var loanRepo = new LendingApp.Class.Repo.LoanApplicationRepository();
+                var evalRepo = new LendingApp.Class.Repo.LoanApplicationEvaluationRepository();
+
+                var entity = loanRepo.GetByApplicationNumber(appId);
+                if (entity == null)
+                {
+                    MessageBox.Show("Application not found in database.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Create a minimal evaluation record documenting the rejection
+                var eval = new LoanApplicationEvaluationEntity
+                {
+                    ApplicationId = entity.ApplicationId,
+                    Decision = "Reject",
+                    RejectionReason = reason,
+                    Remarks = null,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    StatusAfter = "Rejected"
+                };
+                evalRepo.Add(eval);
+
+                // Update application entity
+                entity.PreferredTerm = entity.PreferredTerm; // keep existing
+                entity.Status = "Rejected";
+                entity.RejectionReason = reason;
+                entity.StatusDate = DateTime.Now;
+
+                loanRepo.Update(entity);
+
+                MessageBox.Show("Application rejected.", "Updated", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                updateStatusSummary();
+                LoadApplications();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to reject application.\n\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private string PromptRejectionReason()
+        {
+            using (var dlg = new Form())
+            {
+                dlg.Text = "Rejection Reason";
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.Size = new Size(420, 220);
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+
+                var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
+
+                var lbl = new Label { Text = "Select reason for rejection (required):", Location = new Point(10, 10), AutoSize = true };
+                panel.Controls.Add(lbl);
+
+                var cbo = new ComboBox
+                {
+                    Location = new Point(10, 36),
+                    Width = 380,
+                    DropDownStyle = ComboBoxStyle.DropDownList
+                };
+                cbo.Items.AddRange(new object[]
+                {
+                    "Low Credit Score",
+                    "Insufficient Income",
+                    "High Existing Debt",
+                    "Incomplete Documents",
+                    "Failed Verification",
+                    "Other"
+                });
+                cbo.SelectedIndex = 0;
+                panel.Controls.Add(cbo);
+
+                var notesLbl = new Label { Text = "Optional note:", Location = new Point(10, 72), AutoSize = true };
+                panel.Controls.Add(notesLbl);
+
+                var txt = new TextBox { Location = new Point(10, 92), Width = 380, Height = 40, Multiline = true, ScrollBars = ScrollBars.Vertical };
+                panel.Controls.Add(txt);
+
+                var btnOk = new Button { Text = "OK", Location = new Point(220, 140), Size = new Size(80, 30), BackColor = ColorTranslator.FromHtml("#2563EB"), ForeColor = Color.White };
+                var btnCancel = new Button { Text = "Cancel", Location = new Point(310, 140), Size = new Size(80, 30) };
+
+                btnOk.Click += (s, e) =>
+                {
+                    if (cbo.SelectedIndex < 0)
+                    {
+                        MessageBox.Show("Please select a rejection reason.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    dlg.DialogResult = DialogResult.OK;
+                    dlg.Close();
+                };
+                btnCancel.Click += (s, e) =>
+                {
+                    dlg.DialogResult = DialogResult.Cancel;
+                    dlg.Close();
+                };
+
+                panel.Controls.Add(btnOk);
+                panel.Controls.Add(btnCancel);
+
+                dlg.Controls.Add(panel);
+
+                if (dlg.ShowDialog(this) != DialogResult.OK) return null;
+
+                var reason = cbo.SelectedItem?.ToString() ?? "Other";
+                var note = txt.Text?.Trim();
+                if (!string.IsNullOrWhiteSpace(note))
+                    return $"{reason}: {note}";
+                return reason;
+            }
+        }
+
         private void btnNewApplication_Click(object sender, EventArgs e)
         {
             using (var dialog = new NewLoanApplicationDialog())
             {
                 if (dialog.ShowDialog(this) == DialogResult.OK)
-                    
+
                 {
                     updateStatusSummary();
                     LoadApplications();

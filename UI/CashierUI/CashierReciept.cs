@@ -74,9 +74,6 @@ namespace LendingApp.UI.CashierUI
         private Button btnReprint;
         private Button btnEmail;
         private Button btnVoid;
-        private Button btnExportBatch;
-        private Button btnPrintAllToday;
-        private Button btnSearchCustomer;
 
         // Summary Labels
         private Label lblTotalReceipts;
@@ -673,25 +670,9 @@ namespace LendingApp.UI.CashierUI
             btnVoid.FlatAppearance.BorderColor = ColorTranslator.FromHtml("#FCA5A5");
             btnVoid.Click += (s, e) => ShowToast($"Receipt {selectedReceipt?.ReceiptNo} marked as void");
 
-            btnExportBatch = CreateButton("📥 Export Batch", 120, ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
-            btnExportBatch.Click += (s, e) => ShowToast("Exporting batch receipts...");
-
-            btnPrintAllToday = CreateButton("🖨️ Print All Today", 140, ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
-            btnPrintAllToday.Click += (s, e) =>
-            {
-                var todayReceipts = receipts.Where(r => r.Date.Date == DateTime.Today).ToList();
-                ShowToast($"Printing all {todayReceipts.Count} receipts from today");
-            };
-
-            btnSearchCustomer = CreateButton("👤 Search by Customer", 160, ColorTranslator.FromHtml("#FFFFFF"), ColorTranslator.FromHtml("#374151"));
-            btnSearchCustomer.Click += (s, e) => ShowToast("Opening customer search dialog...");
-
             panel.Controls.Add(btnReprint);
             panel.Controls.Add(btnEmail);
             panel.Controls.Add(btnVoid);
-            panel.Controls.Add(btnExportBatch);
-            panel.Controls.Add(btnPrintAllToday);
-            panel.Controls.Add(btnSearchCustomer);
 
             return panel;
         }

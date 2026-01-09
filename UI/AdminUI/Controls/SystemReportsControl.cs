@@ -1,12 +1,35 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingSystem.Reports
 {
     public partial class SystemReportsControl : UserControl
     {
         private TabControl tabControl;
+
+        private enum LoanReportType
+        {
+            ActiveLoans,
+            ReleasedLoans,
+            LoanAging,
+            MaturedLoans,
+            PreTerminated
+        }
+
+        // Strongly-typed projection to avoid dynamic in expression trees
+        private class LoanReportRow
+        {
+            public string LoanNumber { get; set; }
+            public string CustomerName { get; set; }
+            public string ProductName { get; set; }
+            public decimal Amount { get; set; }
+            public DateTime? Date { get; set; }
+            public string Status { get; set; }
+        }
 
         public SystemReportsControl()
         {
@@ -124,6 +147,49 @@ namespace LendingSystem.Reports
 
             int radioY = 25;
 
+            // Create DataGridView for report output once and reuse
+            DataGridView reportGrid = new DataGridView
+            {
+                Location = new Point(20, panelY + 160),
+                Size = new Size(borderPanel.Width - 40, 200),
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                ReadOnly = true,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                Font = new Font("Segoe UI", 8.5f),
+                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+                GridColor = Color.FromArgb(229, 231, 235)
+            };
+
+            // Style the grid - MATCHING YOUR DESIGN
+            reportGrid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+            {
+                BackColor = Color.FromArgb(243, 244, 246),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.FromArgb(30, 30, 30),
+                Alignment = DataGridViewContentAlignment.MiddleLeft,
+                Padding = new Padding(5)
+            };
+
+            reportGrid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            reportGrid.EnableHeadersVisualStyles = false;
+            reportGrid.ColumnHeadersHeight = 40;
+            reportGrid.RowTemplate.Height = 35;
+
+            // Add columns (consistent across reports)
+            reportGrid.Columns.Add("id", "ID");
+            reportGrid.Columns.Add("customer", "Customer");
+            reportGrid.Columns.Add("loanType", "Loan Type");
+            reportGrid.Columns.Add("amount", "Amount");
+            reportGrid.Columns.Add("date", "Date");
+            reportGrid.Columns.Add("status", "Status");
+
             // Radio buttons for report selection
             RadioButton activeLoansRadio = new RadioButton
             {
@@ -178,59 +244,38 @@ namespace LendingSystem.Reports
             borderPanel.Controls.Add(reportGroup);
             panelY += 160;
 
-            // Report Table
-            DataGridView reportGrid = new DataGridView
-            {
-                Location = new Point(20, panelY),
-                Size = new Size(borderPanel.Width - 40, 200),
-                BackgroundColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                AllowUserToResizeRows = false,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                MultiSelect = false,
-                ReadOnly = true,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                Font = new Font("Segoe UI", 8.5f),
-                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
-                GridColor = Color.FromArgb(229, 231, 235)
-            };
-
-            // Style the grid - MATCHING YOUR DESIGN
-            reportGrid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-            {
-                BackColor = Color.FromArgb(243, 244, 246),
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = Color.FromArgb(30, 30, 30),
-                Alignment = DataGridViewContentAlignment.MiddleLeft,
-                Padding = new Padding(5)
-            };
-
-            reportGrid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            reportGrid.EnableHeadersVisualStyles = false;
-            reportGrid.ColumnHeadersHeight = 40;
-            reportGrid.RowTemplate.Height = 35;
-
-            // Add columns
-            reportGrid.Columns.Add("id", "ID");
-            reportGrid.Columns.Add("customer", "Customer");
-            reportGrid.Columns.Add("loanType", "Loan Type");
-            reportGrid.Columns.Add("amount", "Amount");
-            reportGrid.Columns.Add("date", "Date");
-            reportGrid.Columns.Add("status", "Status");
-
-            // Add sample data
-            AddSampleLoanData(reportGrid);
-
+            // Add grid after group (we created it above with location)
             borderPanel.Controls.Add(reportGrid);
-            panelY += 210;
+
+            // Wire radio events to refresh the grid with the selected report
+            activeLoansRadio.CheckedChanged += (s, e) =>
+            {
+                if (activeLoansRadio.Checked) RefreshLoanReport(reportGrid, LoanReportType.ActiveLoans);
+            };
+            releasedLoansRadio.CheckedChanged += (s, e) =>
+            {
+                if (releasedLoansRadio.Checked) RefreshLoanReport(reportGrid, LoanReportType.ReleasedLoans);
+            };
+            loanAgingRadio.CheckedChanged += (s, e) =>
+            {
+                if (loanAgingRadio.Checked) RefreshLoanReport(reportGrid, LoanReportType.LoanAging);
+            };
+            maturedLoansRadio.CheckedChanged += (s, e) =>
+            {
+                if (maturedLoansRadio.Checked) RefreshLoanReport(reportGrid, LoanReportType.MaturedLoans);
+            };
+            preTerminatedRadio.CheckedChanged += (s, e) =>
+            {
+                if (preTerminatedRadio.Checked) RefreshLoanReport(reportGrid, LoanReportType.PreTerminated);
+            };
+
+            // Load default report initially
+            RefreshLoanReport(reportGrid, LoanReportType.ActiveLoans);
 
             // Action Buttons
             Panel buttonPanel = new Panel
             {
-                Location = new Point(20, panelY),
+                Location = new Point(20, panelY + 210),
                 Size = new Size(borderPanel.Width - 40, 40),
                 BackColor = Color.Transparent
             };
@@ -298,6 +343,174 @@ namespace LendingSystem.Reports
 
             mainContainer.Controls.Add(borderPanel);
             tab.Controls.Add(mainContainer);
+        }
+
+        /// <summary>
+        /// Refreshes the loan DataGridView based on the selected report type.
+        /// Queries are targeted and lightweight; falls back to samples on error.
+        /// </summary>
+        private void RefreshLoanReport(DataGridView grid, LoanReportType type)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    IQueryable<LoanReportRow> query = null;
+                    var today = DateTime.Today;
+
+                    switch (type)
+                    {
+                        case LoanReportType.ActiveLoans:
+                            query = from l in db.Loans.AsNoTracking()
+                                    join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj
+                                    from c in cj.DefaultIfEmpty()
+                                    join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj
+                                    from p in pj.DefaultIfEmpty()
+                                    where (l.Status ?? "") == "Active"
+                                    select new LoanReportRow
+                                    {
+                                        LoanNumber = l.LoanNumber,
+                                        CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                        ProductName = p != null ? p.ProductName : "",
+                                        Amount = l.PrincipalAmount,
+                                        Date = (DateTime?)l.ReleaseDate,
+                                        Status = l.Status
+                                    };
+                            break;
+
+                        case LoanReportType.ReleasedLoans:
+                            // ReleaseDate is non-nullable in model; filter by a reasonable condition if needed.
+                            query = from l in db.Loans.AsNoTracking()
+                                    join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj2
+                                    from c in cj2.DefaultIfEmpty()
+                                    join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj2
+                                    from p in pj2.DefaultIfEmpty()
+                                    select new LoanReportRow
+                                    {
+                                        LoanNumber = l.LoanNumber,
+                                        CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                        ProductName = p != null ? p.ProductName : "",
+                                        Amount = l.PrincipalAmount,
+                                        Date = (DateTime?)l.ReleaseDate,
+                                        Status = l.Status
+                                    };
+                            break;
+
+                        case LoanReportType.LoanAging:
+                            // show loans ordered by DaysOverdue desc
+                            query = from l in db.Loans.AsNoTracking()
+                                    join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj3
+                                    from c in cj3.DefaultIfEmpty()
+                                    join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj3
+                                    from p in pj3.DefaultIfEmpty()
+                                    where l.DaysOverdue > 0
+                                    select new LoanReportRow
+                                    {
+                                        LoanNumber = l.LoanNumber,
+                                        CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                        ProductName = p != null ? p.ProductName : "",
+                                        Amount = l.PrincipalAmount,
+                                        Date = (DateTime?)l.ReleaseDate,
+                                        Status = "Overdue: " + l.DaysOverdue
+                                    };
+                            break;
+
+                        case LoanReportType.MaturedLoans:
+                            query = from l in db.Loans.AsNoTracking()
+                                    join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj4
+                                    from c in cj4.DefaultIfEmpty()
+                                    join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj4
+                                    from p in pj4.DefaultIfEmpty()
+                                    where l.MaturityDate <= today
+                                    select new LoanReportRow
+                                    {
+                                        LoanNumber = l.LoanNumber,
+                                        CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                        ProductName = p != null ? p.ProductName : "",
+                                        Amount = l.PrincipalAmount,
+                                        Date = (DateTime?)l.MaturityDate,
+                                        Status = l.Status
+                                    };
+                            break;
+
+                        case LoanReportType.PreTerminated:
+                            // Best-effort: check for common statuses that indicate pre-termination / written off / restructured
+                            query = from l in db.Loans.AsNoTracking()
+                                    join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj5
+                                    from c in cj5.DefaultIfEmpty()
+                                    join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj5
+                                    from p in pj5.DefaultIfEmpty()
+                                    where (l.Status ?? "").Contains("Restructured") || (l.Status ?? "").Contains("WrittenOff") || (l.Status ?? "").Contains("PreTerm")
+                                    select new LoanReportRow
+                                    {
+                                        LoanNumber = l.LoanNumber,
+                                        CustomerName = ((c != null ? (c.FirstName ?? "") : "") + " " + (c != null ? (c.LastName ?? "") : "")).Trim(),
+                                        ProductName = p != null ? p.ProductName : "",
+                                        Amount = l.PrincipalAmount,
+                                        Date = (DateTime?)l.ReleaseDate,
+                                        Status = l.Status
+                                    };
+                            break;
+                    }
+
+                    var rows = (query ?? Enumerable.Empty<LoanReportRow>().AsQueryable())
+                        .OrderByDescending(x => x.Date ?? DateTime.MinValue)
+                        .ToList();
+
+                    // Populate grid
+                    grid.Rows.Clear();
+                    foreach (var r in rows)
+                    {
+                        var dateVal = r.Date.HasValue && r.Date != DateTime.MinValue ? r.Date.Value.ToString("yyyy-MM-dd") : "";
+                        int idx = grid.Rows.Add(
+                            r.LoanNumber ?? "",
+                            string.IsNullOrWhiteSpace(r.CustomerName) ? "" : r.CustomerName,
+                            r.ProductName ?? "",
+                            $"₱{r.Amount:N2}",
+                            dateVal,
+                            r.Status ?? ""
+                        );
+
+                        // Color code status cell
+                        var statusCell = grid.Rows[idx].Cells["status"];
+                        var status = (r.Status ?? "").ToString().Trim();
+                        if (status.Equals("Active", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(220, 252, 231);
+                            statusCell.Style.ForeColor = Color.FromArgb(21, 128, 61);
+                        }
+                        else if (status.StartsWith("Overdue", StringComparison.OrdinalIgnoreCase) || status.Equals("Overdue", StringComparison.OrdinalIgnoreCase) || status.Equals("Defaulted", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 226, 226);
+                            statusCell.Style.ForeColor = Color.FromArgb(185, 28, 28);
+                        }
+                        else if (status.Equals("Completed", StringComparison.OrdinalIgnoreCase) || status.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                        {
+                            statusCell.Style.BackColor = Color.FromArgb(254, 249, 195);
+                            statusCell.Style.ForeColor = Color.FromArgb(161, 98, 7);
+                        }
+                    }
+
+                    // Select first row if any
+                    if (grid.Rows.Count > 0)
+                        grid.Rows[0].Selected = true;
+                }
+            }
+            catch
+            {
+                // fallback; keep UI usable when DB unavailable
+                AddSampleLoanData(grid);
+            }
+        }
+
+        /// <summary>
+        /// Loads loan data from the database into the provided grid.
+        /// On any failure the method falls back to the existing sample data method.
+        /// (Retained for external calls; delegates to RefreshLoanReport with default)
+        /// </summary>
+        private void LoadLoanDataIntoGrid(DataGridView grid)
+        {
+            RefreshLoanReport(grid, LoanReportType.ActiveLoans);
         }
 
         private void InitializePaymentReportsTab(TabPage tab)

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using LendingApp.Class;
+using System.Data.Entity;
 
 namespace LendingSystem.Reports
 {
@@ -193,8 +197,8 @@ namespace LendingSystem.Reports
             financialGrid.Columns.Add("lastMonth", "Last Month");
             financialGrid.Columns.Add("ytd", "YTD");
 
-            // Add sample financial data
-            AddSampleFinancialData();
+            // Load real data from database; fall back to sample data on error
+            LoadFinancialDataIntoGrid(financialGrid);
 
             borderPanel.Controls.Add(financialGrid);
             panelY += 190;
@@ -256,6 +260,120 @@ namespace LendingSystem.Reports
             this.Controls.Add(mainContainer);
 
             this.ResumeLayout(false);
+        }
+
+        /// <summary>
+        /// Load financial metrics from DB and populate grid. Falls back to sample data on error.
+        /// Metrics are best-effort using available tables: Payments and Loans.
+        /// </summary>
+        private void LoadFinancialDataIntoGrid(DataGridView grid)
+        {
+            try
+            {
+                var today = DateTime.Today;
+                var thisMonthStart = new DateTime(today.Year, today.Month, 1);
+                var thisMonthEnd = thisMonthStart.AddMonths(1).AddDays(-1);
+                var lastMonthStart = thisMonthStart.AddMonths(-1);
+                var lastMonthEnd = thisMonthStart.AddDays(-1);
+                var ytdStart = new DateTime(today.Year, 1, 1);
+
+                using (var db = new AppDbContext())
+                {
+                    // Interest income: sum of interest_portion from payments
+                    var interestThis = db.Payments.AsNoTracking()
+                        .Where(p => p.PaymentDate >= thisMonthStart && p.PaymentDate <= thisMonthEnd)
+                        .Sum(p => (decimal?)p.InterestPaid) ?? 0m;
+
+                    var interestLast = db.Payments.AsNoTracking()
+                        .Where(p => p.PaymentDate >= lastMonthStart && p.PaymentDate <= lastMonthEnd)
+                        .Sum(p => (decimal?)p.InterestPaid) ?? 0m;
+
+                    var interestYtd = db.Payments.AsNoTracking()
+                        .Where(p => p.PaymentDate >= ytdStart && p.PaymentDate <= today)
+                        .Sum(p => (decimal?)p.InterestPaid) ?? 0m;
+
+                    // Service charges: use loan.ProcessingFee for loans released in period
+                    var serviceThis = db.Loans.AsNoTracking()
+                        .Where(l => l.ReleaseDate >= thisMonthStart && l.ReleaseDate <= thisMonthEnd)
+                        .Sum(l => (decimal?)l.ProcessingFee) ?? 0m;
+
+                    var serviceLast = db.Loans.AsNoTracking()
+                        .Where(l => l.ReleaseDate >= lastMonthStart && l.ReleaseDate <= lastMonthEnd)
+                        .Sum(l => (decimal?)l.ProcessingFee) ?? 0m;
+
+                    var serviceYtd = db.Loans.AsNoTracking()
+                        .Where(l => l.ReleaseDate >= ytdStart && l.ReleaseDate <= today)
+                        .Sum(l => (decimal?)l.ProcessingFee) ?? 0m;
+
+                    // Outstanding principal balance: sum of outstanding_balance for active (non-paid) loans
+                    var outThis = db.Loans.AsNoTracking()
+                        .Where(l => !(l.Status ?? "").Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                        .Sum(l => (decimal?)l.OutstandingBalance) ?? 0m;
+
+                    // Approximate last month outstanding by considering loans released before or on lastMonthEnd.
+                    var outLast = db.Loans.AsNoTracking()
+                        .Where(l => l.ReleaseDate <= lastMonthEnd && !(l.Status ?? "").Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                        .Sum(l => (decimal?)l.OutstandingBalance) ?? 0m;
+
+                    // YTD outstanding: current snapshot (best-effort)
+                    var outYtd = db.Loans.AsNoTracking()
+                        .Sum(l => (decimal?)l.OutstandingBalance) ?? 0m;
+
+                    // PAR (30+ days)
+                    var parThis = db.Loans.AsNoTracking()
+                        .Where(l => l.DaysOverdue >= 30)
+                        .Sum(l => (decimal?)l.OutstandingBalance) ?? 0m;
+
+                    // Loan loss provision: example rule -> 5% of outstanding for loans 90+ days overdue
+                    var lossProvisionThis = db.Loans.AsNoTracking()
+                        .Where(l => l.DaysOverdue >= 90)
+                        .Sum(l => (decimal?)l.OutstandingBalance) ?? 0m;
+                    lossProvisionThis = Math.Round(lossProvisionThis * 0.05m, 2);
+
+                    // Clear and populate grid
+                    grid.Rows.Clear();
+
+                    grid.Rows.Add("Interest Income", Money(interestThis), Money(interestLast), Money(interestYtd));
+                    grid.Rows.Add("Service Charges", Money(serviceThis), Money(serviceLast), Money(serviceYtd));
+                    grid.Rows.Add("Outstanding Bal", Money(outThis), Money(outLast), Money(outYtd));
+                    grid.Rows.Add("PAR (30+ days)", Money(parThis), "-", "-");
+                    grid.Rows.Add("Loan Loss Provision (5% of 90+ days)", Money(lossProvisionThis), "-", "-");
+
+                    // Style rows by metric type
+                    foreach (DataGridViewRow row in grid.Rows)
+                    {
+                        var metric = (row.Cells["metric"].Value ?? "").ToString();
+                        if (metric.Contains("Income") || metric.Contains("Charges"))
+                        {
+                            row.Cells["thisMonth"].Style.BackColor = Color.FromArgb(240, 253, 244);
+                            row.Cells["lastMonth"].Style.BackColor = Color.FromArgb(240, 253, 244);
+                            row.Cells["ytd"].Style.BackColor = Color.FromArgb(240, 253, 244);
+                        }
+                        else if (metric.Contains("PAR") || metric.Contains("Loss"))
+                        {
+                            row.Cells["thisMonth"].Style.BackColor = Color.FromArgb(254, 242, 242);
+                            row.Cells["lastMonth"].Style.BackColor = Color.FromArgb(254, 242, 242);
+                            row.Cells["ytd"].Style.BackColor = Color.FromArgb(254, 242, 242);
+                        }
+                        else if (metric.Contains("Outstanding"))
+                        {
+                            row.Cells["thisMonth"].Style.BackColor = Color.FromArgb(239, 246, 255);
+                            row.Cells["lastMonth"].Style.BackColor = Color.FromArgb(239, 246, 255);
+                            row.Cells["ytd"].Style.BackColor = Color.FromArgb(239, 246, 255);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // keep UI usable if DB read fails
+                AddSampleFinancialData();
+            }
+        }
+
+        private static string Money(decimal amount)
+        {
+            return "₱" + amount.ToString("N2", CultureInfo.GetCultureInfo("en-US"));
         }
 
         private void AddSampleFinancialData()

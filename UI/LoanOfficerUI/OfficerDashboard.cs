@@ -3,8 +3,13 @@ using LendingSystem;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using LendingApp.Class.Services;
+using static LendingApp.Class.Services.DataGetter;
+using LendingApp.Class;                 // <-- needed for AppDbContext
+using System.Data.Entity;               // <-- AsNoTracking
 
 namespace LendingApp.UI.LoanOfficerUI
 {
@@ -19,20 +24,22 @@ namespace LendingApp.UI.LoanOfficerUI
         private string activeNav = "Dashboard";
         private readonly List<string> navItems = new List<string>
         {
-            "Dashboard", "Applications", "Customers", "Collections", "Calendar", "Settings"
+            "Dashboard", "Applications", "Customers", "Collections", "Reports", "Settings", "Loan Calculator"
         };
 
         // Embedded views
         private OfficerApplications _applicationsForm;
         private OfficerCollections _collectionsForm;
         private OfficerCustomers _customersForm; // Added for customers view
-        private OfficerCalendar _calendarForm; // Added for calendar view
         private OfficerSettings _settingsForm; // Added for settings view
         private bool _homeResizeHooked;
 
         private OfficerApplicationReviewControl _reviewControl;
         private OfficerCollectionFollowUpControl _collectionFollowUpControl;
         private OfficerApplicationLogic applicationLogic;
+
+        // Keep latest DB-backed overdue rows so the Follow-Up dialog can use real data.
+        private readonly List<OverdueLoanData> _dbOverdueLoans = new List<OverdueLoanData>();
 
         private class ActivityItem
         {
@@ -159,17 +166,22 @@ namespace LendingApp.UI.LoanOfficerUI
                     {
                         ShowCollectionsView();
                     }
-                    else if (item == "Calendar")
+                    else if (item == "Reports")
                     {
-                        ShowCalendarView();
+                        ShowReportsView();
                     }
                     else if (item == "Settings")
                     {
                         ShowSettingsView();
                     }
-                    else if (item == "Dashboard") // FIX: handle dashboard explicitly
+                    else if (item == "Dashboard")
                     {
                         ShowDashboardHome();
+                    }
+                    else if (item == "Loan Calculator")
+                    {
+                        using (var f = new LoanCalculatorForm())
+                            f.ShowDialog(this);
                     }
                     else
                     {
@@ -256,7 +268,10 @@ namespace LendingApp.UI.LoanOfficerUI
             lblOverdueTitle.Text = "Overdue";
             lblOverdueTitle.ForeColor = ColorTranslator.FromHtml("#DC2626");
             lblOverdueTitle.Location = new Point(10, 8);
+
+            // This will be updated in BuildOverdueLoansSection after DB load.
             lblOverdueCount.Text = $"[{dashboard.TotalOverdueLoans}]";
+
             lblOverdueCount.ForeColor = ColorTranslator.FromHtml("#991B1B");
             lblOverdueCount.Location = new Point(10, 28);
             lblOverdueSub.Text = "Loans";
@@ -402,11 +417,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
-            }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
                 _settingsForm.Hide();
@@ -512,45 +522,6 @@ namespace LendingApp.UI.LoanOfficerUI
             contentPanel.ResumeLayout();
         }
 
-        private void ShowCalendarView()
-        {
-            summaryPanel.Visible = false;
-
-            contentPanel.SuspendLayout();
-            contentPanel.Controls.Clear();
-
-            // Hide/remove other embedded views
-            if (_applicationsForm != null && !_applicationsForm.IsDisposed)
-            {
-                _applicationsForm.Hide();
-                contentPanel.Controls.Remove(_applicationsForm);
-            }
-            if (_collectionsForm != null && !_collectionsForm.IsDisposed)
-            {
-                _collectionsForm.Hide();
-                contentPanel.Controls.Remove(_collectionsForm);
-            }
-            if (_customersForm != null && !_customersForm.IsDisposed)
-            {
-                _customersForm.Hide();
-                contentPanel.Controls.Remove(_customersForm);
-            }
-
-            if (_calendarForm == null || _calendarForm.IsDisposed)
-            {
-                _calendarForm = new OfficerCalendar
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-            }
-
-            contentPanel.Controls.Add(_calendarForm);
-            _calendarForm.Show();
-            contentPanel.ResumeLayout();
-        }
-
         private void ShowSettingsView()
         {
             summaryPanel.Visible = false;
@@ -574,11 +545,6 @@ namespace LendingApp.UI.LoanOfficerUI
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
             }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
-            }
 
             if (_settingsForm == null || _settingsForm.IsDisposed)
             {
@@ -592,6 +558,137 @@ namespace LendingApp.UI.LoanOfficerUI
 
             contentPanel.Controls.Add(_settingsForm);
             _settingsForm.Show();
+            contentPanel.ResumeLayout();
+        }
+
+        private void ShowReportsView()
+        {
+            summaryPanel.Visible = false;
+
+            contentPanel.SuspendLayout();
+            contentPanel.Controls.Clear();
+
+            // Top summary cards container
+            var top = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 110,
+                BackColor = Color.White
+            };
+
+            // Card factory helper
+            Func<string, string, string, Panel> makeCard = (title, value, sub) =>
+            {
+                var p = new Panel
+                {
+                    Size = new Size(220, 80),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    BackColor = Color.White
+                };
+                var lblTitle = new Label
+                {
+                    Text = title,
+                    ForeColor = ColorTranslator.FromHtml("#6B7280"),
+                    Location = new Point(8, 6),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
+                };
+                var lblValue = new Label
+                {
+                    Text = value,
+                    ForeColor = ColorTranslator.FromHtml("#111827"),
+                    Location = new Point(8, 28),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 12, FontStyle.Bold)
+                };
+                var lblSub = new Label
+                {
+                    Text = sub,
+                    ForeColor = ColorTranslator.FromHtml("#9CA3AF"),
+                    Location = new Point(140, 34),
+                    AutoSize = true,
+                    Font = new Font("Segoe UI", 9, FontStyle.Regular)
+                };
+                p.Controls.Add(lblTitle);
+                p.Controls.Add(lblValue);
+                p.Controls.Add(lblSub);
+                return p;
+            };
+
+            // Default placeholders
+            var cardTotal = makeCard("Total Loans", "...", "");
+            var cardActive = makeCard("Active Loans", "...", "");
+            var cardOverdue = makeCard("Overdue", "...", "");
+            var cardOutstanding = makeCard("Outstanding", "...", "");
+
+            // Layout cards
+            cardTotal.Location = new Point(10, 15);
+            cardActive.Location = new Point(cardTotal.Right + 10, 15);
+            cardOverdue.Location = new Point(cardActive.Right + 10, 15);
+            cardOutstanding.Location = new Point(cardOverdue.Right + 10, 15);
+
+            top.Controls.Add(cardTotal);
+            top.Controls.Add(cardActive);
+            top.Controls.Add(cardOverdue);
+            top.Controls.Add(cardOutstanding);
+
+            // Recent loans grid
+            var grid = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect
+            };
+            grid.Columns.Add("LoanNumber", "Loan Number");
+            grid.Columns.Add("Customer", "Customer");
+            grid.Columns.Add("Status", "Status");
+            grid.Columns.Add("Outstanding", "Outstanding");
+            grid.Columns.Add("DaysOverdue", "Days Over");
+            grid.Columns.Add("NextDue", "Next Due");
+
+            contentPanel.Controls.Add(grid);
+            contentPanel.Controls.Add(top);
+
+            // Load real data
+            try
+            {
+                // Summary
+                if (LendingApp.Class.Services.OfficerReportsService.TryGetReportsSummary(out var summary))
+                {
+                    cardTotal.Controls[1].Text = $"[{summary.TotalLoans}]";
+                    cardActive.Controls[1].Text = $"[{summary.ActiveLoans}]";
+                    cardOverdue.Controls[1].Text = $"[{summary.OverdueLoans}]";
+                    cardOutstanding.Controls[1].Text = $"{summary.TotalOutstanding.ToString("C0", CultureInfo.InvariantCulture)}";
+                }
+                else
+                {
+                    // DB not reachable: show placeholder text in cards
+                    cardTotal.Controls[1].Text = "n/a";
+                    cardActive.Controls[1].Text = "n/a";
+                    cardOverdue.Controls[1].Text = "n/a";
+                    cardOutstanding.Controls[1].Text = "n/a";
+                }
+
+                // Recent loans
+                var recent = new List<LendingApp.Class.Services.RecentLoanData>();
+                if (LendingApp.Class.Services.OfficerReportsService.TryGetRecentLoans(recent, 100))
+                {
+                    foreach (var r in recent)
+                    {
+                        var nextDue = r.NextDueDate.HasValue ? r.NextDueDate.Value.ToString("yyyy-MM-dd") : "";
+                        grid.Rows.Add(r.LoanNumber, r.Customer, r.Status, $"₱{r.OutstandingBalance:N2}", r.DaysOverdue, nextDue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to load reports: " + (ex.InnerException?.Message ?? ex.Message), "Reports Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
             contentPanel.ResumeLayout();
         }
 
@@ -612,11 +709,6 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
-            }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
             }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
@@ -674,7 +766,8 @@ namespace LendingApp.UI.LoanOfficerUI
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                RowHeadersVisible = false
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect
             };
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("LoanType", "Loan Type");
@@ -689,18 +782,15 @@ namespace LendingApp.UI.LoanOfficerUI
             };
             grid.Columns.Add(actionsCol);
 
-            // MODIFIED: Wire the Review button click
+            // Wire the Review button click
             grid.CellContentClick += (s, e) =>
             {
                 if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
                 {
-                    // Get the application data
                     var row = grid.Rows[e.RowIndex];
-                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Juan Dela Cruz";
-                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Personal Loan";
-                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱50,000";
-
-                    // Show the application review
+                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Unknown";
+                    string loanType = row.Cells["LoanType"].Value?.ToString() ?? "Loan";
+                    string amount = row.Cells["Amount"].Value?.ToString() ?? "₱0";
                     ShowApplicationReview(customer, loanType, amount);
                 }
             };
@@ -708,10 +798,66 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionPending.Controls.Add(grid);
             sectionPending.Controls.Add(header);
 
-            // Add sample data
-            grid.Rows.Add("Juan Dela Cruz", "Personal Loan", "₱50,000", "2 days", "High", "Review");
-            grid.Rows.Add("Maria Santos", "Business Loan", "₱200,000", "1 day", "High", "Review");
-            grid.Rows.Add("Pedro Reyes", "Emergency Loan", "₱25,000", "3 days", "Medium", "Review");
+            // Load real loan applications from DB (populate ApplicantsData.AllLoans)
+            try
+            {
+                // Request all loans; OfficerApplicationLogic/GetApplications treats "All Status" as no status filter
+                DataGetter.Data.LoadLoans("All Status", "All Types", "");
+
+                // If no data, show friendly placeholder
+                if (DataGetter.Data.AllLoans == null || DataGetter.Data.AllLoans.Count == 0)
+                {
+                    var placeholder = new Label
+                    {
+                        Text = "No pending applications.",
+                        AutoSize = true,
+                        Location = new Point(20, 40),
+                        ForeColor = ColorTranslator.FromHtml("#6B7280")
+                    };
+                    sectionPending.Controls.Add(placeholder);
+                    return;
+                }
+
+                // Populate grid using real data and compute priority using ApplicationPriority
+                foreach (var loan in DataGetter.Data.AllLoans)
+                {
+                    // Determine days waiting from the Time string if possible
+                    string daysStr = "-";
+                    int days = 0;
+                    if (!string.IsNullOrWhiteSpace(loan.Time))
+                    {
+                        if (DateTime.TryParse(loan.Time, out var dt))
+                        {
+                            days = (DateTime.Now.Date - dt.Date).Days;
+                            daysStr = days <= 0 ? "0 days" : $"{days} days";
+                        }
+                    }
+
+                    // Amount formatting (fall back to LoanAmount if Amount is zero)
+                    decimal amt = loan.Amount;
+                    if (amt == 0 && loan.LoanAmount != 0) amt = loan.LoanAmount;
+                    string amountStr = amt > 0 ? $"₱{amt:N0}" : "₱0";
+
+                    // Compute priority using the shared calculator (tune inputs later)
+                    double score = LendingApp.Class.LogicClass.LoanOfficer.ApplicationPriority
+                        .ComputePriorityScore(days, amt, loan.Type ?? loan.LoanRef ?? "");
+                    string priority = LendingApp.Class.LogicClass.LoanOfficer.ApplicationPriority.GetPriorityLabel(score);
+
+                    grid.Rows.Add(loan.Borrower, loan.Type ?? loan.LoanRef, amountStr, daysStr, priority, "Review");
+                }
+            }
+            catch
+            {
+                // Avoid breaking UI on DB errors; show a placeholder and allow retry via Applications view.
+                var placeholder = new Label
+                {
+                    Text = "Unable to load pending applications. Open Applications view to retry.",
+                    AutoSize = true,
+                    Location = new Point(20, 40),
+                    ForeColor = ColorTranslator.FromHtml("#6B7280")
+                };
+                sectionPending.Controls.Add(placeholder);
+            }
         }
 
         private void ShowApplicationReview(string customer, string loanType, string amount)
@@ -736,11 +882,6 @@ namespace LendingApp.UI.LoanOfficerUI
             {
                 _customersForm.Hide();
                 contentPanel.Controls.Remove(_customersForm);
-            }
-            if (_calendarForm != null && !_calendarForm.IsDisposed)
-            {
-                _calendarForm.Hide();
-                contentPanel.Controls.Remove(_calendarForm);
             }
             if (_settingsForm != null && !_settingsForm.IsDisposed)
             {
@@ -782,6 +923,7 @@ namespace LendingApp.UI.LoanOfficerUI
         private void BuildOverdueLoansSection()
         {
             sectionOverdue.Controls.Clear();
+
             var header = new Label
             {
                 Text = "OVERDUE LOANS (NEEDS FOLLOW-UP)",
@@ -793,6 +935,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 Dock = DockStyle.Top,
                 Padding = new Padding(8, 8, 0, 0)
             };
+
             var grid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -802,11 +945,13 @@ namespace LendingApp.UI.LoanOfficerUI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 RowHeadersVisible = false
             };
+
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("AmountDue", "Amount Due");
             grid.Columns.Add("DaysOverdue", "Days Over");
             grid.Columns.Add("Contact", "Contact");
             grid.Columns.Add("Priority", "Priority");
+
             var actionsCol = new DataGridViewButtonColumn
             {
                 HeaderText = "Actions",
@@ -814,46 +959,198 @@ namespace LendingApp.UI.LoanOfficerUI
                 UseColumnTextForButtonValue = true
             };
             grid.Columns.Add(actionsCol);
-            grid.CellContentClick += (s, e) =>
-            {
-                if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
-                {
-                    // Get the loan data from the clicked row
-                    var row = grid.Rows[e.RowIndex];
-                    string customer = row.Cells["Customer"].Value?.ToString() ?? "Pedro Reyes";
-                    string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "₱3,850.00";
-                    string daysOverdue = row.Cells["DaysOverdue"].Value?.ToString() ?? "5";
-
-                    // Create loan data for the follow-up control
-                    var overdueLoanData = new LendingSystem.OverdueLoanData
-                    {
-                        Id = "LN-2024-0456",
-                        Customer = customer,
-                        CustomerId = "CUST-045",
-                        LoanType = "Personal Loan",
-                        OriginalAmount = "₱50,000",
-                        Term = "12 months",
-                        DueDate = "December 10, 2024",
-                        DaysOverdue = int.TryParse(daysOverdue.Replace(" days", ""), out int days) ? days : 5,
-                        AmountDue = amountDue,
-                        Penalty = "₱12.70",
-                        TotalDue = "₱3,862.70",
-                        OutstandingBalance = "₱23,100.00",
-                        Contact = "+639456789012"
-                    };
-
-                    // Show the collection follow-up control
-                    ShowCollectionFollowUp(overdueLoanData);
-                }
-            };
 
             sectionOverdue.Controls.Add(grid);
             sectionOverdue.Controls.Add(header);
 
-            foreach (var loan in dashboard.AllOverdueLoans)
+            // Always load from DB first; if it fails, fall back to sample dashboard.AllOverdueLoans.
+            _dbOverdueLoans.Clear();
+            var hasDb = TryLoadOverdueLoansFromDb(_dbOverdueLoans);
+
+            var rows = hasDb
+                ? _dbOverdueLoans
+                : dashboard.AllOverdueLoans.Select(x => new OverdueLoanData
+                {
+                    Id = x.Id,
+                    Customer = x.Customer,
+                    CustomerId = "",
+                    LoanType = "",
+                    OriginalAmount = "",
+                    Term = "",
+                    DueDate = "",
+                    DaysOverdue = x.DaysOverdue,
+                    AmountDue = x.AmountDue,
+                    Penalty = "",
+                    TotalDue = "",
+                    OutstandingBalance = "",
+                    Contact = x.Contact
+                }).ToList();
+
+            // Update the Overdue card count to reflect DB rows when possible.
+            try
             {
-                grid.Rows.Add(loan.Customer, loan.AmountDue, loan.DaysOverdue, loan.Contact, loan.Priority);
+                lblOverdueCount.Text = $"[{rows.Count}]";
             }
+            catch { /* keep UI resilient */ }
+
+            foreach (var r in rows)
+            {
+                grid.Rows.Add(
+                    r.Customer ?? "",
+                    r.AmountDue ?? "",
+                    $"{r.DaysOverdue}",
+                    r.Contact ?? "",
+                    GetPriorityLabelFromDays(r.DaysOverdue));
+            }
+
+            grid.CellContentClick += (s, e) =>
+            {
+                if (e.ColumnIndex == actionsCol.Index && e.RowIndex >= 0)
+                {
+                    // Prefer DB-backed object if available, else fallback from grid.
+                    OverdueLoanData selected = null;
+
+                    if (hasDb && e.RowIndex < _dbOverdueLoans.Count)
+                    {
+                        selected = _dbOverdueLoans[e.RowIndex];
+                    }
+                    else
+                    {
+                        var row = grid.Rows[e.RowIndex];
+                        string customer = row.Cells["Customer"].Value?.ToString() ?? "";
+                        string amountDue = row.Cells["AmountDue"].Value?.ToString() ?? "";
+                        int daysOverdue = 0;
+                        int.TryParse(row.Cells["DaysOverdue"].Value?.ToString() ?? "0", out daysOverdue);
+
+                        selected = new OverdueLoanData
+                        {
+                            Id = "",
+                            Customer = customer,
+                            CustomerId = "",
+                            LoanType = "",
+                            OriginalAmount = "",
+                            Term = "",
+                            DueDate = "",
+                            DaysOverdue = daysOverdue,
+                            AmountDue = amountDue,
+                            Penalty = "",
+                            TotalDue = "",
+                            OutstandingBalance = "",
+                            Contact = row.Cells["Contact"].Value?.ToString() ?? ""
+                        };
+                    }
+
+                    ShowCollectionFollowUp(selected);
+                }
+            };
+        }
+
+        /// <summary>
+        /// Loads overdue loans from DB using the `loans` table (and joins customers + loan_products).
+        /// Overdue condition: Status == 'Active' AND (DaysOverdue > 0 OR NextDueDate < Today).
+        /// Uses fields that exist in lendingapp.sql: loans.days_overdue, loans.next_due_date, customers.mobile_number, etc.
+        /// </summary>
+        private bool TryLoadOverdueLoansFromDb(List<OverdueLoanData> target)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var today = DateTime.Today;
+
+                    // Query minimal columns; avoid DbFunctions/TruncateTime calls to keep translation simple.
+                    var query =
+                        from l in db.Loans.AsNoTracking()
+                        join c in db.Customers.AsNoTracking() on l.CustomerId equals c.CustomerId into cj
+                        from c in cj.DefaultIfEmpty()
+                        join p in db.LoanProducts.AsNoTracking() on l.ProductId equals p.ProductId into pj
+                        from p in pj.DefaultIfEmpty()
+                        where (l.Status ?? "") == "Active"
+                              && (
+                                  l.DaysOverdue > 0
+                                  // next_due_date on or before today
+                                  || (l.NextDueDate != null && l.NextDueDate <= today)
+                                  // or outstanding balance exists and next due is null or due already
+                                  || (l.OutstandingBalance > 0 && (l.NextDueDate == null || l.NextDueDate <= today))
+                                 )
+                        orderby l.DaysOverdue descending, l.NextDueDate
+                        select new
+                        {
+                            l.LoanNumber,
+                            l.CustomerId,
+                            CustomerFirst = c != null ? c.FirstName : null,
+                            CustomerLast = c != null ? c.LastName : null,
+                            Contact = c != null ? c.MobileNumber : null,
+                            ProductName = p != null ? p.ProductName : null,
+                            l.PrincipalAmount,
+                            l.TermMonths,
+                            l.NextDueDate,
+                            l.DaysOverdue,
+                            l.MonthlyPayment,
+                            l.OutstandingBalance
+                        };
+
+                    var data = query.Take(100).ToList();
+
+                    // DB reachable — clear and populate target (may be zero rows)
+                    target.Clear();
+
+                    foreach (var x in data)
+                    {
+                        int days = x.DaysOverdue;
+                        if (days <= 0 && x.NextDueDate.HasValue && x.NextDueDate.Value.Date < today)
+                            days = (today - x.NextDueDate.Value.Date).Days;
+
+                        var dueDateText = x.NextDueDate.HasValue
+                            ? x.NextDueDate.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+                            : string.Empty;
+
+                        var amountDue = x.MonthlyPayment > 0 ? $"₱{x.MonthlyPayment:N2}" : $"₱{x.OutstandingBalance:N2}";
+
+                        var customerName = (x.CustomerFirst ?? "").Trim();
+                        if (!string.IsNullOrWhiteSpace(x.CustomerLast))
+                        {
+                            customerName = (customerName + " " + x.CustomerLast).Trim();
+                        }
+                        if (string.IsNullOrWhiteSpace(customerName))
+                            customerName = x.CustomerId ?? "";
+
+                        target.Add(new OverdueLoanData
+                        {
+                            Id = x.LoanNumber ?? "",
+                            Customer = customerName,
+                            CustomerId = x.CustomerId ?? "",
+                            LoanType = x.ProductName ?? "",
+                            OriginalAmount = x.PrincipalAmount > 0 ? $"₱{x.PrincipalAmount:N0}" : "",
+                            Term = x.TermMonths > 0 ? $"{x.TermMonths} months" : "",
+                            DueDate = dueDateText,
+                            DaysOverdue = days,
+                            AmountDue = amountDue,
+                            Penalty = "",
+                            TotalDue = "",
+                            OutstandingBalance = $"₱{x.OutstandingBalance:N2}",
+                            Contact = x.Contact ?? ""
+                        });
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // show inner exception where available for precise diagnostics
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show("Failed to load overdue loans from DB:\n" + msg, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+        }
+
+        private static string GetPriorityLabelFromDays(int daysOverdue)
+        {
+            if (daysOverdue >= 7) return "Critical";
+            if (daysOverdue >= 4) return "High";
+            if (daysOverdue >= 1) return "Medium";
+            return "Low";
         }
 
         private void BuildTasksSection()
@@ -861,7 +1158,7 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionTasks.Controls.Clear();
             var header = new Label
             {
-                Text = "TODAY'S TASKS & CALENDAR",
+                Text = "TODAY'S TASKS",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 ForeColor = ColorTranslator.FromHtml("#2C3E50"),
                 BackColor = ColorTranslator.FromHtml("#DBEAFE"),
@@ -870,6 +1167,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 Dock = DockStyle.Top,
                 Padding = new Padding(8, 8, 0, 0)
             };
+
             var grid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -879,6 +1177,7 @@ namespace LendingApp.UI.LoanOfficerUI
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
                 RowHeadersVisible = false
             };
+
             grid.Columns.Add("Time", "Time");
             grid.Columns.Add("Customer", "Customer");
             grid.Columns.Add("TaskType", "Task Type");
@@ -887,9 +1186,37 @@ namespace LendingApp.UI.LoanOfficerUI
             sectionTasks.Controls.Add(grid);
             sectionTasks.Controls.Add(header);
 
-            foreach (var task in dashboard.AllTodayTasks)
+            // Try load today's tasks from DB via service
+            var todayTasks = new List<LendingApp.Class.Services.TodayTaskData>();
+            var hasDb = LendingApp.Class.Services.OfficerDashboardService.TryGetTodayTasks(todayTasks, 200);
+
+            if (hasDb)
             {
-                grid.Rows.Add(task.Time, task.Customer, task.TaskType, task.Status);
+                if (todayTasks.Count == 0)
+                {
+                    var placeholder = new Label
+                    {
+                        Text = "No tasks scheduled for today.",
+                        AutoSize = true,
+                        Location = new Point(20, 40),
+                        ForeColor = ColorTranslator.FromHtml("#6B7280")
+                    };
+                    sectionTasks.Controls.Add(placeholder);
+                    return;
+                }
+
+                foreach (var t in todayTasks)
+                {
+                    grid.Rows.Add(t.TimeDisplay, t.CustomerName, t.TaskType, t.Status);
+                }
+            }
+            else
+            {
+                // fallback to in-memory sample data (existing behavior)
+                foreach (var task in dashboard.AllTodayTasks)
+                {
+                    grid.Rows.Add(task.Time, task.Customer, task.TaskType, task.Status);
+                }
             }
         }
 

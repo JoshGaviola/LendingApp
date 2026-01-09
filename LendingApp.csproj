@@ -114,6 +114,9 @@
       <HintPath>packages\PDFsharp.6.2.3\lib\netstandard2.0\PdfSharp.WPFonts.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.ConfigurationManager, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -131,10 +134,13 @@
       <HintPath>packages\System.IO.Pipelines.5.0.2\lib\net461\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
@@ -178,6 +184,7 @@
     <Compile Include="Class\LogicClass\Cashier\CashierDashboardLogic.cs" />
     <Compile Include="Class\LogicClass\Cashier\CashierProcessLogic.cs" />
     <Compile Include="Class\LogicClass\Loan Product\LoanProduct.cs" />
+    <Compile Include="Class\LogicClass\LoanOfficer\ApplicationPriority.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\LoanOfficerLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerApplicationLogic.cs" />
     <Compile Include="Class\LogicClass\LoanOfficer\OfficerCollectionLogic.cs" />
@@ -187,6 +194,7 @@
     <Compile Include="Class\Models\Admin\UserEntity.cs" />
     <Compile Include="Class\Models\CashierModels\PaymentEntity.cs" />
     <Compile Include="Class\Models\Loans\CollectionEntity.cs" />
+    <Compile Include="Class\Models\Tasks\TaskEntity.cs" />
     <Compile Include="Class\Models\User\User.cs" />
     <Compile Include="Class\Models\CashierModels\LoanReleaseModels.cs" />
     <Compile Include="Class\Models\CashierModels\TransactionModels.cs" />
@@ -212,16 +220,27 @@
     <Compile Include="Class\Repo\LoanRepository.cs" />
     <Compile Include="Class\Services\Admin\LoanProductAdminService.cs" />
     <Compile Include="Class\Services\Admin\LoanProductCreateRequest.cs" />
+    <Compile Include="Class\Services\Collections\OfficerCollectionService.cs" />
+    <Compile Include="Class\Services\Contracts\ContractService.cs" />
     <Compile Include="Class\Services\CreditScoringService.cs" />
     <Compile Include="Class\Services\DataGetter.cs" />
     <Compile Include="Class\Services\CustomerRegistrationService.cs" />
     <Compile Include="Class\Services\DynamicLogin.cs" />
+<<<<<<< HEAD
 
     <Compile Include="Class\Services\PasswordHashing.cs" />
 
     <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
     <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
 
+=======
+    <Compile Include="Class\Services\OfficerDashboardService.cs" />
+    <Compile Include="Class\Services\OfficerReportsService.cs" />
+    <Compile Include="Class\Services\PasswordHashing.cs" />
+    <Compile Include="Class\Services\Loans\ApprovedLoanApplicationSummaryService.cs" />
+    <Compile Include="Class\Services\Loans\LoanComputationService.cs" />
+    <Compile Include="Class\Services\Reports\CustomerReportService.cs" />
+>>>>>>> 5f51dcec466b2ed17e9a9c5960ed927e27d8cecb
     <Compile Include="obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs" />
     <!-- Root -->
     <Compile Include="Program.cs" />
@@ -404,6 +423,12 @@
     <Compile Include="UI\LoanOfficerUI\Control\OfficerCollectionFollowUpControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\AmortizationScheduleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\AmortizationScheduleForm.Designer.cs">
+      <DependentUpon>AmortizationScheduleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\ApprovedLoanApplicationDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -412,6 +437,18 @@
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CashierLoanSettlementForm.Designer.cs">
       <DependentUpon>CashierLoanSettlementForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\ContractPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\ContractPreviewForm.Designer.cs">
+      <DependentUpon>ContractPreviewForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerLoansDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\Dialog\CustomerLoansDialog.Designer.cs">
+      <DependentUpon>CustomerLoansDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\CustomerProfileDialog.cs">
       <SubType>Form</SubType>
@@ -436,6 +473,9 @@
     </Compile>
     <Compile Include="UI\LoanOfficerUI\Dialog\ReviewApplicationDialog.Designer.cs">
       <DependentUpon>ReviewApplicationDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LoanOfficerUI\LoanCalculatorForm.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\LoanOfficerUI\OfficerApplications.cs">
       <SubType>Form</SubType>
@@ -524,6 +564,7 @@
       <DependentUpon>OfficerSettings.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="bin\Debug\LendingApp.exe.config" />
     <None Include="Document\wg_personal-loan-agreement-template.pdf" />
     <None Include="Lending Program ERD.drawio" />
     <None Include="obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
@@ -539,6 +580,8 @@
   <ItemGroup>
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <Content Include="bin\Debug\LendingApp.exe" />
+    <Content Include="bin\Debug\LendingApp.pdb" />
     <Content Include="icons\person.png" />
     <Content Include="icons\Save.png" />
     <Content Include="lendingapp.sql" />
@@ -547,7 +590,6 @@
     <Content Include="UpgradeLog.htm" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="bin\Debug\" />
     <Folder Include="bin\Release\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
